@@ -30,22 +30,48 @@ const TermsPage = lazy(() => import('./TermsPage'));
 const PrivacyPage = lazy(() => import('./PrivacyPage'));
 const Footer = lazy(() => import('./Footer'));
 
-// Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-[200px]">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
   </div>
 );
 
+// ─── Lazy Card Wrapper ────────────────────────────────────────────────────────
+// Each card slot renders a skeleton until it scrolls into view, then swaps to
+// the real card. This keeps DOM work minimal regardless of total product count.
+const LazyCard = ({ children, skeleton }: { children: React.ReactNode; skeleton: React.ReactNode }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px', threshold: 0 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return <div ref={ref}>{visible ? children : skeleton}</div>;
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const App = () => {
- 
   const API_BASE = process.env.REACT_APP_API_BASE;
-  
+
   const [_error, setError] = useState<string>('');
   const [_loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [highlightedProduct, setHighlightedProduct] = useState<Product | null>(null);
-  const highlightedProductRef = useRef<HTMLDivElement>(null);
   const hasScrolledToHighlighted = useRef(false);
 
   // Restore session on mount
@@ -74,7 +100,7 @@ const App = () => {
     restore();
   }, []);
 
-  // Load dark mode preference from localStorage
+  // Load dark mode preference
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
     if (savedDarkMode === 'true') {
@@ -83,12 +109,10 @@ const App = () => {
     }
   }, []);
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
     localStorage.setItem('darkMode', String(newDarkMode));
-    
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -111,16 +135,9 @@ const App = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Infinite scroll state
+  // All products fetched once — no pagination
   const [products, setProducts] = useState<Product[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [_totalProducts, setTotalProducts] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const fetchProductsRef = useRef<((page: number, append: boolean) => Promise<void>) | null>(null);
 
-  // Memoize categories and campuses
   const categories = useMemo(() => [
     { id: 'all', name: 'All Items' },
     { id: 'books', name: 'Books' },
@@ -144,22 +161,15 @@ const App = () => {
     { id: 'polokwane', name: 'Polokwane' }
   ], []);
 
-  // Fetch and highlight a specific product
+  // Fetch and highlight a specific shared product
   const fetchAndHighlightProduct = useCallback(async (productId: string) => {
     if (!API_BASE) return;
-    
     try {
-      console.log('🔍 Fetching shared product:', productId);
       const response = await fetch(`${API_BASE}/api/products/${productId}`);
       const data = await response.json();
-      
-      console.log('📦 Product data:', data);
-      
       if (data.success || data._id) {
         const product = data.success ? data : { ...data, id: data._id };
-        console.log('✅ Product found:', product.title);
-        
-        hasScrolledToHighlighted.current = false; // Reset scroll flag for new product
+        hasScrolledToHighlighted.current = false;
         setHighlightedProduct(product);
       }
     } catch (err) {
@@ -167,185 +177,80 @@ const App = () => {
     }
   }, [API_BASE]);
 
-  // Handle URL parameter for shared product links
+  // Handle ?product= URL param
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product');
-    
     if (productId && API_BASE) {
-      console.log('🔗 Detected shared product link:', productId);
       setHighlightedProduct(null);
-      
       fetchAndHighlightProduct(productId);
-      
-      // Clean up URL without page reload
       window.history.replaceState({}, '', '/');
     }
   }, [API_BASE, fetchAndHighlightProduct]);
 
-  // Scroll to highlighted product when it's rendered
+  // Scroll to highlighted product once rendered
   useEffect(() => {
     if (highlightedProduct && products.length > 0 && !hasScrolledToHighlighted.current) {
-      console.log('🎯 Highlighted product set, attempting to scroll...');
-      
       const scrollToProduct = (attempts = 0, maxAttempts = 20) => {
         const element = document.getElementById('highlighted-product');
-        
         if (element) {
-          console.log('✅ Found highlighted product, scrolling NOW!');
-          
           const headerOffset = 120;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-          
-          hasScrolledToHighlighted.current = true; // Mark as scrolled
-          return true;
+          const offsetPosition = element.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+          window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+          hasScrolledToHighlighted.current = true;
         } else if (attempts < maxAttempts) {
           setTimeout(() => scrollToProduct(attempts + 1, maxAttempts), 100);
-          return false;
         } else {
-          console.error('❌ Max scroll attempts reached!');
-          hasScrolledToHighlighted.current = true; // Mark as attempted
-          return false;
+          hasScrolledToHighlighted.current = true;
         }
       };
-      
-      // Only scroll once when the highlighted product first appears
       const timeoutId = setTimeout(() => scrollToProduct(), 300);
-      
-      // Cleanup function to prevent multiple scroll attempts
       return () => clearTimeout(timeoutId);
     }
-  }, [highlightedProduct?.id, products.length]); // Only depend on the product ID, not the entire object
+  }, [highlightedProduct?.id, products.length]);
 
-  // Fetch products with infinite scroll support
-  const fetchProducts = useCallback(async (page = 1, append = false) => {
+  // Fetch ALL products in one shot — re-runs only when filters change
+  const fetchProducts = useCallback(async () => {
     try {
-      if (append) {
-        setIsLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
-      
-      console.log(`📦 Fetching products - Page: ${page}, Append: ${append}`);
-      
+      setLoading(true);
+      setProducts([]);
+
       const response = await getProducts({
-        page,
-        limit: 12,
         category: selectedCategory !== 'all' ? selectedCategory : '',
         campus: selectedCampus !== 'all' ? selectedCampus : '',
         search: searchTerm || ''
       });
 
-      const newProducts = Array.isArray(response.products) ? response.products : [];
-
-      console.log(`✅ Received ${newProducts.length} products`);
-
-      if (append) {
-        setProducts(prev => [...prev, ...newProducts]);
-      } else {
-        setProducts(newProducts);
-      }
-      
-      setCurrentPage(response.pagination.currentPage);
-      setTotalProducts(response.pagination.totalProducts);
-      setHasMore(response.pagination.hasNext);
+      const fetched = Array.isArray(response.products) ? response.products : [];
+      console.log(`✅ Fetched ${fetched.length} products`);
+      setProducts(fetched);
       setError('');
     } catch (err: any) {
       setError(err.message || 'Failed to fetch products');
       console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
-      setIsLoadingMore(false);
     }
   }, [selectedCategory, selectedCampus, searchTerm]);
 
-  // Keep ref updated with latest fetchProducts
   useEffect(() => {
-    fetchProductsRef.current = fetchProducts;
+    fetchProducts();
   }, [fetchProducts]);
 
-  // Initial load and filter changes - reset to page 1
+  // Back to top button
   useEffect(() => {
-    console.log('🔄 Filters changed, resetting to page 1');
-    setCurrentPage(1);
-    setHasMore(true);
-    setProducts([]); // Clear products when filters change
-    fetchProducts(1, false);
-  }, [selectedCategory, selectedCampus, searchTerm]); // Remove fetchProducts from dependencies
-
-  // Back to top button visibility
-  useEffect(() => {
-    const handleScroll = () => {
-      // Show button after scrolling past approximately 3 rows of products (12 products)
-      // Assuming header ~80px, filters ~200px, first row ~400px = ~1200px total
-      const shouldShow = window.pageYOffset > 1200;
-      console.log('📜 Scroll position:', window.pageYOffset, 'Show button:', shouldShow);
-      setShowBackToTop(shouldShow);
-    };
-
+    const handleScroll = () => setShowBackToTop(window.pageYOffset > 1200);
     window.addEventListener('scroll', handleScroll);
-    // Check initial position
     handleScroll();
-    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const target = entries[0];
-        if (target.isIntersecting && hasMore && !isLoadingMore && !_loading) {
-          console.log('📜 Intersection detected! Loading more... Current page:', currentPage);
-          // Use ref to get latest fetchProducts without adding it to dependencies
-          if (fetchProductsRef.current) {
-            fetchProductsRef.current(currentPage + 1, true);
-          }
-        }
-      },
-      {
-        root: null,
-        rootMargin: '200px', // Start loading 200px before reaching the bottom
-        threshold: 0.1
-      }
-    );
-
-    const currentRef = loadMoreRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-      console.log('👀 Intersection observer attached to element');
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-        console.log('👋 Intersection observer detached');
-      }
-    };
-  }, [hasMore, isLoadingMore, _loading, currentPage]); // Remove fetchProducts
-
   const handleUpgrade = useCallback(async () => {
-    if (!currentUser) {
-      setError('User not found');
-      return;
-    }
-
+    if (!currentUser) { setError('User not found'); return; }
     setLoading(true);
     setError('');
-
     try {
-      console.log('⬆️ Upgrading user to seller:', currentUser.name);
-      
-      const response = await upgradeUserToSeller(currentUser.id, 'monthly');
-      
-      console.log('✅ Upgrade successful:', response);
-
+      await upgradeUserToSeller(currentUser.id, 'monthly');
       const updatedUser = {
         ...currentUser,
         type: 'seller',
@@ -354,21 +259,15 @@ const App = () => {
         subscriptionStartDate: new Date(),
         subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       };
-
       setCurrentUser(updatedUser);
       localStorage.setItem('user_data', JSON.stringify(updatedUser));
       setShowUpgrade(false);
-      
-      setTimeout(() => {
-        alert('Congratulations! Your account has been upgraded to a seller account. You can now add products and services.');
-      }, 100);
-
+      setTimeout(() => alert('Congratulations! Your account has been upgraded to a seller account.'), 100);
     } catch (error) {
       let errorMessage = 'Upgrade failed. Please try again.';
       if (error && typeof error === 'object' && 'message' in error) {
         errorMessage = (error as { message: string }).message;
       }
-      console.error('❌ Upgrade failed:', errorMessage);
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -402,18 +301,12 @@ const App = () => {
   useEffect(() => {
     if (currentView === 'home' && currentUser && currentUser.type === 'seller') {
       const needsCheck = currentUser.subscriptionStatus === 'expired' || !currentUser.subscribed;
-      
       if (needsCheck) {
         const interval = setInterval(async () => {
           const fresh = await refreshCurrentUser();
-          if (fresh && fresh.subscribed && fresh.subscriptionStatus === 'active') {
-            console.log('✅ Detected subscription activation on home page');
-            clearInterval(interval);
-          }
+          if (fresh && fresh.subscribed && fresh.subscriptionStatus === 'active') clearInterval(interval);
         }, 10000);
-        
         setTimeout(() => clearInterval(interval), 300000);
-        
         return () => clearInterval(interval);
       }
     }
@@ -429,9 +322,7 @@ const App = () => {
   }, []);
 
   const handleEditProduct = useCallback((updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => 
-      p.id === updatedProduct.id ? updatedProduct : p
-    ));
+    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
   }, []);
 
   const handleDeleteProduct = useCallback((productId: number) => {
@@ -453,12 +344,8 @@ const App = () => {
         </div>
         <p className="text-lg font-semibold mb-4">Monthly Subscription: R25</p>
         <div className="flex gap-2">
-          <button onClick={handleUpgrade} className="flex-1 bg-orange-600 text-white p-3 rounded hover:bg-orange-700">
-            Subscribe Now
-          </button>
-          <button onClick={() => setShowUpgrade(false)} className="flex-1 bg-gray-300 p-3 rounded hover:bg-gray-400">
-            Cancel
-          </button>
+          <button onClick={handleUpgrade} className="flex-1 bg-orange-600 text-white p-3 rounded hover:bg-orange-700">Subscribe Now</button>
+          <button onClick={() => setShowUpgrade(false)} className="flex-1 bg-gray-300 p-3 rounded hover:bg-gray-400">Cancel</button>
         </div>
       </div>
     </div>
@@ -466,37 +353,23 @@ const App = () => {
 
   const handleNewMessage = useCallback((message: Message) => {
     if (!currentUser || !chatWith) return;
-    
     const key = `${Math.min(currentUser.id, chatWith)}-${Math.max(currentUser.id, chatWith)}`;
-    setMessages(prev => ({
-      ...prev,
-      [key]: [...(prev[key] || []), message]
-    }));
+    setMessages(prev => ({ ...prev, [key]: [...(prev[key] || []), message] }));
   }, [currentUser, chatWith]);
 
   const handleLoadMessages = useCallback((loadedMessages: Message[]) => {
     if (!currentUser || !chatWith) return;
-    
     const key = `${Math.min(currentUser.id, chatWith)}-${Math.max(currentUser.id, chatWith)}`;
-    setMessages(prev => ({
-      ...prev,
-      [key]: loadedMessages
-    }));
+    setMessages(prev => ({ ...prev, [key]: loadedMessages }));
   }, [currentUser, chatWith]);
 
   const getImageUrl = useCallback((product: Product) => {
     return getProductImageUrl(product, API_BASE || '');
   }, [API_BASE]);
 
-  const scrollToTop = () => {
-    console.log('🔝 Scrolling to top!');
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // Optimized Product Skeleton Component
+  // Skeleton — used as fallback inside LazyCard
   const ProductSkeleton = useMemo(() => () => (
     <div className={`rounded-lg shadow-sm overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
       <div className="relative overflow-hidden" style={{ height: '20rem' }}>
@@ -504,7 +377,6 @@ const App = () => {
         <div className="absolute top-3 right-3 z-10 h-7 w-20 shimmer rounded-full" />
         <div className="absolute top-14 right-3 z-10 h-7 w-24 shimmer rounded-full" />
       </div>
-
       <div className="p-5 space-y-4">
         <div className="flex justify-between items-start gap-3">
           <div className="h-6 shimmer rounded flex-1" />
@@ -529,7 +401,7 @@ const App = () => {
     </div>
   ), [darkMode]);
 
-  // Product Card Component
+  // Full product card
   const ProductCard = useCallback(({ product, isHighlighted = false }: { product: Product; isHighlighted?: boolean }) => {
     const imageUrl = getImageUrl(product);
     const raw = (product as any).sellerWhatsApp || (product as any).seller?.whatsapp || (product as any).whatsapp || '';
@@ -537,84 +409,42 @@ const App = () => {
     const waMessage = encodeURIComponent(`Hi ${product.sellerName || ''}, I'm interested in your listing "${product.title}".`);
     const waLink = normalized ? `https://wa.me/${normalized}?text=${waMessage}` : null;
     const whatsappRedirects = (product as any).whatsappRedirects || 0;
-    
     const productIdRaw = (product as any)._id || product.id;
     const cleanProductId = productIdRaw ? String(productIdRaw) : '';
 
     const handleShare = async () => {
       try {
-        const backendUrl = API_BASE;
-        const shareUrl = `${backendUrl}/p/${cleanProductId}`;
-        
-        console.log('📤 Sharing URL:', shareUrl);
-        
+        const shareUrl = `${API_BASE}/p/${cleanProductId}`;
         if (navigator.share) {
-          await navigator.share({
-            url: shareUrl,
-            title: `${product.title} - R${product.price}`,
-            text: `Check out "${product.title}" on FYC Marketplace (Shared via FYC Marketplace)`
-          });
+          await navigator.share({ url: shareUrl, title: `${product.title} - R${product.price}`, text: `Check out "${product.title}" on FYC Marketplace` });
         } else {
           await navigator.clipboard.writeText(shareUrl);
           alert('Link copied! Share it on WhatsApp, Facebook, or anywhere.');
         }
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          console.error('Share failed', err);
-        }
+        if (err.name !== 'AbortError') console.error('Share failed', err);
       }
     };
 
     return (
-      <div 
-        className={`rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${
-          darkMode ? 'bg-gray-800' : 'bg-white'
-        } ${
-          isHighlighted ? 'ring-4 ring-orange-500 shadow-2xl' : ''
-        }`}
+      <div
+        className={`rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} ${isHighlighted ? 'ring-4 ring-orange-500 shadow-2xl' : ''}`}
         id={isHighlighted ? 'highlighted-product' : undefined}
       >
-{isHighlighted && (
-  <div style={{
-    background: 'linear-gradient(to right, #f97316, #ea580c)',
-    color: 'white',
-    padding: '0.5rem 1rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  }}>
-    <span style={{
-      fontSize: '0.875rem',
-      fontWeight: '600',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem'
-    }}>
-      <svg style={{ width: '0.75rem', height: '0.75rem', color: '#ffedd5' }} fill="currentColor" viewBox="0 0 20 20">
-        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-      </svg>
-      Shared Product
-    </span>
-    <button
-      onClick={() => setHighlightedProduct(null)}
-      style={{
-        borderRadius: '9999px',
-        padding: '0.25rem',
-        transition: 'background-color 0.2s',
-        background: 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        color: 'white'
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-      aria-label="Close highlight"
-    >
-      <X style={{ height: '1rem', width: '1rem' }} />
-    </button>
-  </div>
-)}
-        
+        {isHighlighted && (
+          <div style={{ background: 'linear-gradient(to right, #f97316, #ea580c)', color: 'white', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg style={{ width: '0.75rem', height: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Shared Product
+            </span>
+            <button onClick={() => setHighlightedProduct(null)} style={{ borderRadius: '9999px', padding: '0.25rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'white' }} aria-label="Close highlight">
+              <X style={{ height: '1rem', width: '1rem' }} />
+            </button>
+          </div>
+        )}
+
         <div className="relative overflow-hidden group" style={{ height: '20rem' }}>
           {imageUrl ? (
             <>
@@ -627,16 +457,12 @@ const App = () => {
                 onClick={() => setMaximizedImage(imageUrl)}
                 onError={(e) => {
                   const imgElement = e.currentTarget as HTMLImageElement;
-                  if (imgElement.src.includes('data:image')) {
-                    return;
+                  if (!imgElement.src.includes('data:image')) {
+                    imgElement.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="Arial" font-size="16" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                   }
-                  imgElement.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="Arial" font-size="16" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                 }}
               />
-              <div 
-                className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center cursor-pointer z-10"
-                onClick={() => setMaximizedImage(imageUrl)}
-              >
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center cursor-pointer z-10" onClick={() => setMaximizedImage(imageUrl)}>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg">
                   <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
@@ -654,10 +480,7 @@ const App = () => {
           )}
 
           {whatsappRedirects > 0 && (
-            <div 
-              className="absolute top-3 right-3 z-20 bg-green-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5"
-              title={`${whatsappRedirects} WhatsApp ${whatsappRedirects === 1 ? 'click' : 'clicks'}`}
-            >
+            <div className="absolute top-3 right-3 z-20 bg-green-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5" title={`${whatsappRedirects} WhatsApp ${whatsappRedirects === 1 ? 'click' : 'clicks'}`}>
               <TrendingUp className="h-3.5 w-3.5" />
               <span className="text-xs font-semibold">{whatsappRedirects}</span>
             </div>
@@ -678,9 +501,7 @@ const App = () => {
             <h3 className={`text-lg font-semibold line-clamp-2 flex-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{product.title}</h3>
             <span className="text-xl font-bold text-green-600 ml-3 whitespace-nowrap">R{product.price}</span>
           </div>
-
           <p className={`text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.description}</p>
-
           <div className={`flex items-center justify-between mb-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
@@ -692,7 +513,6 @@ const App = () => {
                 <span className="truncate max-w-[100px]">{product.sellerCampus}</span>
               </div>
             </div>
-
             {product.rating > 0 && (
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -700,7 +520,6 @@ const App = () => {
               </div>
             )}
           </div>
-
           <div className="flex gap-2">
             {waLink && (
               <a
@@ -708,11 +527,7 @@ const App = () => {
                 target="_blank"
                 rel="noreferrer noopener"
                 onClick={async () => {
-                  if (cleanProductId) {
-                    trackWhatsAppClick(cleanProductId).catch(err => 
-                      console.warn('Analytics tracking failed:', err)
-                    );
-                  }
+                  if (cleanProductId) trackWhatsAppClick(cleanProductId).catch(err => console.warn('Analytics tracking failed:', err));
                 }}
                 className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-green-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
@@ -721,13 +536,8 @@ const App = () => {
                 <span className="sm:hidden">Chat</span>
               </a>
             )}
-
             {cleanProductId && (
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
-              >
+              <button type="button" onClick={handleShare} className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
@@ -740,13 +550,6 @@ const App = () => {
     );
   }, [getImageUrl, API_BASE, darkMode]);
 
-  // Render product cards
-  const renderProductCards = () => {
-    return products.map(product => (
-      <ProductCard key={product.id} product={product} />
-    ));
-  };
-
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <header className={`shadow-sm border-b sticky top-0 z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
@@ -756,81 +559,37 @@ const App = () => {
               <img className="h-8 w-8" src={logo} alt="FYC Marketplace Logo" loading="eager" />
               <h1 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>FYC Marketplace</h1>
             </div>
-            
+
             {currentUser ? (
               <div className="flex items-center space-x-2 md:space-x-4">
-                <button 
-                  onClick={() => setCurrentView('my-profile')}
-                  className="p-2 md:p-2 rounded-lg hover:bg-gray-100 transition-colors group"
-                  title="My Profile"
-                >
+                <button onClick={() => setCurrentView('my-profile')} className="p-2 md:p-2 rounded-lg hover:bg-gray-100 transition-colors group" title="My Profile">
                   <Useric className="h-5 w-5 md:h-6 md:w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
                 </button>
-
                 {currentUser.type === 'seller' && currentUser.subscribed && (
-                  <button 
-                    onClick={() => setCurrentView('add-product')}
-                    className="bg-orange-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2 text-sm md:text-base"
-                  >
+                  <button onClick={() => setCurrentView('add-product')} className="bg-orange-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2 text-sm md:text-base">
                     <Plus className="h-4 w-4" />
                     <span className="hidden sm:inline">Add Listing</span>
                     <span className="sm:hidden">Add</span>
                   </button>
                 )}
-
                 {currentUser.type === 'admin' && (
-                  <button
-                    onClick={() => setCurrentView('admin-reactivation')}
-                    style={{
-                      backgroundColor: '#029002ff',
-                      color: 'white',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.5rem',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.3s ease'
-                    }}
-                    title="Admin: Reactivation Requests"
-                  >
+                  <button onClick={() => setCurrentView('admin-reactivation')} style={{ backgroundColor: '#029002ff', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
                     Admin
                   </button>
                 )}
-                
-                <button 
+                <button
                   onClick={handleLogout}
-                  style={{
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '0.5rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc2626';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ef4444';
-                  }}
+                  style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.3s ease' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc2626'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ef4444'; }}
                 >
                   Logout
                 </button>
               </div>
             ) : (
               <div className="space-x-2">
-                <button 
-                  onClick={() => setShowLogin(true)}
-                  className="bg-orange-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-orange-700 text-sm md:text-base font-medium"
-                >
-                  Login
-                </button>
-                <button 
-                  onClick={() => setShowRegister(true)}
-                  className="bg-orange-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-orange-700 text-sm md:text-base font-medium"
-                >
-                  Register
-                </button>
+                <button onClick={() => setShowLogin(true)} className="bg-orange-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-orange-700 text-sm md:text-base font-medium">Login</button>
+                <button onClick={() => setShowRegister(true)} className="bg-orange-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-orange-700 text-sm md:text-base font-medium">Register</button>
               </div>
             )}
           </div>
@@ -838,57 +597,24 @@ const App = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-4">
-        <Analytics/>
-        <SpeedInsights/>
+        <Analytics />
+        <SpeedInsights />
         <Suspense fallback={<LoadingFallback />}>
           {chatWith ? (
-            <ChatWindow
-              currentUser={currentUser}
-              chatWith={chatWith}
-              users={users}
-              onCloseChat={() => setChatWith(null)}
-              onNewMessage={handleNewMessage}
-              onLoadMessages={handleLoadMessages}
-            />
+            <ChatWindow currentUser={currentUser} chatWith={chatWith} users={users} onCloseChat={() => setChatWith(null)} onNewMessage={handleNewMessage} onLoadMessages={handleLoadMessages} />
           ) : currentView === 'add-product' ? (
             currentUser?.type === 'seller' && currentUser?.subscribed ? (
-              <AddProductForm 
-                currentUser={currentUser}
-                onProductAdded={(newProduct) => {
-                  setProducts(prev => [newProduct, ...prev]);
-                  setCurrentView('home');
-                }}
-                onCancel={() => setCurrentView('home')}
-              />
+              <AddProductForm currentUser={currentUser} onProductAdded={(newProduct) => { setProducts(prev => [newProduct, ...prev]); setCurrentView('home'); }} onCancel={() => setCurrentView('home')} />
             ) : (
               <div className="text-center py-20">
                 <p className="text-xl text-gray-600">You need a seller subscription to add listings.</p>
-                <button 
-                  onClick={() => setShowUpgrade(true)}
-                  className="mt-4 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700"
-                >
-                  Upgrade to Seller Account
-                </button>
+                <button onClick={() => setShowUpgrade(true)} className="mt-4 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700">Upgrade to Seller Account</button>
               </div>
             )
           ) : currentView === 'my-products' ? (
-            <SellerProducts 
-              currentUser={currentUser}
-              onEditProduct={handleEditProduct}
-              onDeleteProduct={handleDeleteProduct}
-              onBack={() => setCurrentView('home')}
-              onAddProduct={() => setCurrentView('add-product')}
-            />
+            <SellerProducts currentUser={currentUser} onEditProduct={handleEditProduct} onDeleteProduct={handleDeleteProduct} onBack={() => setCurrentView('home')} onAddProduct={() => setCurrentView('add-product')} />
           ) : currentView === 'my-profile' ? (
-            <UserProfile 
-              currentUser={currentUser}
-              onLogout={handleLogout}
-              onBack={() => setCurrentView('home')}
-              onUserUpdate={(updatedUser) => {
-                setCurrentUser(updatedUser);
-                localStorage.setItem('user_data', JSON.stringify(updatedUser));
-              }}
-            />
+            <UserProfile currentUser={currentUser} onLogout={handleLogout} onBack={() => setCurrentView('home')} onUserUpdate={(updatedUser) => { setCurrentUser(updatedUser); localStorage.setItem('user_data', JSON.stringify(updatedUser)); }} />
           ) : currentView === 'admin-reactivation' && currentUser?.type === 'admin' ? (
             <AdminReactivation darkMode={darkMode} />
           ) : currentView === 'about' ? (
@@ -907,33 +633,20 @@ const App = () => {
             <>
               <div className="flex justify-between items-center mb-8">
                 {currentUser?.type === 'seller' && (
-                  <button 
-                    onClick={() => setCurrentView('my-products')}
-                    style={{
-                      backgroundColor: '#ef8b44ff',
-                      color: 'white',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.5rem',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.3s ease'
-                    }}
-                  >
+                  <button onClick={() => setCurrentView('my-products')} style={{ backgroundColor: '#ef8b44ff', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
                     My Products
                   </button>
                 )}
               </div>
 
-              {/* Highlighted Product Section */}
+              {/* Highlighted shared product */}
               {highlightedProduct && (
                 <div className="mb-8 scroll-mt-20">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    
-                  </h2>
                   <ProductCard product={highlightedProduct} isHighlighted={true} />
                 </div>
               )}
 
+              {/* Filters */}
               <div className={`rounded-lg shadow-sm p-4 md:p-6 mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row gap-4">
@@ -942,90 +655,43 @@ const App = () => {
                       <input
                         type="text"
                         placeholder="Search products and services..."
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
-                    <select 
-                      className={`px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
+                    <select className={`px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                      {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                     </select>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <Filter className={`h-5 w-5 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                      <select 
-                        className={`flex-1 sm:flex-initial px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                        value={selectedCampus}
-                        onChange={(e) => setSelectedCampus(e.target.value)}
-                      >
-                        {campuses.map(campus => (
-                          <option key={campus.id} value={campus.id}>{campus.name}</option>
-                        ))}
+                      <select className={`flex-1 sm:flex-initial px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCampus} onChange={(e) => setSelectedCampus(e.target.value)}>
+                        {campuses.map(campus => <option key={campus.id} value={campus.id}>{campus.name}</option>)}
                       </select>
-                      <span className={`text-sm hidden lg:inline whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Filter by campus
-                      </span>
+                      <span className={`text-sm hidden lg:inline whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by campus</span>
                     </div>
-                    <div className={`text-sm font-semibold px-4 py-2 rounded-lg border w-full sm:w-auto text-center ${
-                      darkMode ? 'bg-orange-900 text-orange-200 border-orange-700' : 'bg-orange-50 text-gray-700 border-orange-200'
-                    }`}>
-                      {_totalProducts} {_totalProducts === 1 ? 'product' : 'products'} available
+                    <div className={`text-sm font-semibold px-4 py-2 rounded-lg border w-full sm:w-auto text-center ${darkMode ? 'bg-orange-900 text-orange-200 border-orange-700' : 'bg-orange-50 text-gray-700 border-orange-200'}`}>
+                      {products.length} {products.length === 1 ? 'product' : 'products'} available
                     </div>
                   </div>
                 </div>
               </div>
 
-              {_loading && products.length === 0 ? (
+              {/* Product grid */}
+              {_loading ? (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <ProductSkeleton key={i} />
-                  ))}
+                  {Array.from({ length: 12 }).map((_, i) => <ProductSkeleton key={i} />)}
                 </div>
               ) : products.length > 0 ? (
-                <>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {renderProductCards()}
-                  </div>
-                  
-                  {/* Infinite scroll trigger */}
-                  {hasMore && (
-                    <div ref={loadMoreRef} className="py-8">
-                      {isLoadingMore && (
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {Array.from({ length: 3 }).map((_, i) => (
-                            <ProductSkeleton key={`loading-${i}`} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* End of results message */}
-                  {!hasMore && products.length > 0 && (
-                    <div className="text-center py-12">
-                      <div className={`inline-block px-6 py-3 rounded-full ${
-                        darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        <span className="font-medium">You've reached the end</span>
-                        <span className="mx-2">•</span>
-                        <span>{_totalProducts} total {_totalProducts === 1 ? 'product' : 'products'}</span>
-                      </div>
-                    </div>
-                  )}
-                </>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map(product => (
+                    <LazyCard key={(product as any)._id || product.id} skeleton={<ProductSkeleton />}>
+                      <ProductCard product={product} />
+                    </LazyCard>
+                  ))}
+                </div>
               ) : (
                 <div className="text-center py-20">
                   <ShoppingBag className={`h-20 w-20 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
@@ -1044,27 +710,12 @@ const App = () => {
 
       <Suspense fallback={null}>
         {showLogin && (
-          <LoginForm
-            onLoginSuccess={handleLoginSuccess}
-            onShowRegister={() => {
-              setShowLogin(false);
-              setShowRegister(true);
-            }}
-            onClose={() => setShowLogin(false)}
-          />
+          <LoginForm onLoginSuccess={handleLoginSuccess} onShowRegister={() => { setShowLogin(false); setShowRegister(true); }} onClose={() => setShowLogin(false)} />
         )}
         {showRegister && (
           <RegisterForm
-            onRegisterSuccess={(user, token) => {
-              setCurrentUser(user);
-              if (token) localStorage.setItem('auth_token', token);
-              localStorage.setItem('user_data', JSON.stringify(user));
-              setShowRegister(false);
-            }}
-            onShowLogin={() => {
-              setShowRegister(false);
-              setShowLogin(true);
-            }}
+            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); setShowRegister(false); }}
+            onShowLogin={() => { setShowRegister(false); setShowLogin(true); }}
             onClose={() => setShowRegister(false)}
           />
         )}
@@ -1072,167 +723,45 @@ const App = () => {
       </Suspense>
 
       {maximizedImage && (
-        <div 
-          className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${
-            darkMode ? 'bg-black bg-opacity-98' : 'bg-black bg-opacity-95'
-          }`}
-          onClick={() => setMaximizedImage(null)}
-          style={{ cursor: 'pointer' }}
-        >
+        <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${darkMode ? 'bg-black bg-opacity-98' : 'bg-black bg-opacity-95'}`} onClick={() => setMaximizedImage(null)} style={{ cursor: 'pointer' }}>
           <div className="relative" style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setMaximizedImage(null);
-              }}
-              className="absolute flex items-center justify-center text-white rounded-full transition-all z-50 hover:scale-110"
-              aria-label="Close"
-              style={{ 
-                cursor: 'pointer',
-                top: '-20px',
-                right: '-20px',
-                width: '40px',
-                height: '40px',
-                backgroundColor: '#dc2626',
-                border: '3px solid white',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)'
-              }}
-            >
+            <button onClick={(e) => { e.stopPropagation(); setMaximizedImage(null); }} className="absolute flex items-center justify-center text-white rounded-full transition-all z-50 hover:scale-110" aria-label="Close" style={{ cursor: 'pointer', top: '-20px', right: '-20px', width: '40px', height: '40px', backgroundColor: '#dc2626', border: '3px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.5)' }}>
               <svg style={{ width: '24px', height: '24px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <img
-              src={maximizedImage ?? undefined}
-              alt="Maximized view"
-              className="object-contain rounded-lg"
-              style={{ 
-                maxWidth: '90vw', 
-                maxHeight: '90vh',
-                cursor: 'default'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            />
+            <img src={maximizedImage ?? undefined} alt="Maximized view" className="object-contain rounded-lg" style={{ maxWidth: '90vw', maxHeight: '90vh', cursor: 'default' }} onClick={(e) => e.stopPropagation()} />
           </div>
         </div>
       )}
 
-      {/* Back to Top Button */}
       {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          aria-label="Back to top"
-          style={{
-            position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
-            zIndex: 9999,
-            backgroundColor: '#ea580c',
-            color: 'white',
-            padding: '1rem',
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 10px 25px rgba(234, 88, 12, 0.5)',
-            transition: 'all 0.3s ease',
-            width: '56px',
-            height: '56px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#c2410c';
-            e.currentTarget.style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#ea580c';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-          onMouseDown={(e) => {
-            e.currentTarget.style.transform = 'scale(0.95)';
-          }}
-          onMouseUp={(e) => {
-            e.currentTarget.style.transform = 'scale(1.1)';
-          }}
+        <button onClick={scrollToTop} aria-label="Back to top" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999, backgroundColor: '#ea580c', color: 'white', padding: '1rem', borderRadius: '50%', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234,88,12,0.5)', transition: 'all 0.3s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#c2410c'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ea580c'; e.currentTarget.style.transform = 'scale(1)'; }}
+          onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95)'; }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }}
         >
-          <svg 
-            style={{ width: '24px', height: '24px' }}
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              d="M5 10l7-7m0 0l7 7m-7-7v18" 
-            />
+          <svg style={{ width: '24px', height: '24px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
         </button>
       )}
-      
-      {/* Dark Mode Toggle Button */}
-      <button
-        onClick={toggleDarkMode}
-        aria-label="Toggle dark mode"
-        style={{
-          position: 'fixed',
-          bottom: '2rem',
-          left: '2rem',
-          zIndex: 9999,
-          backgroundColor: darkMode ? '#fbbf24' : '#1f2937',
-          color: darkMode ? '#1f2937' : '#fbbf24',
-          padding: '1rem',
-          borderRadius: '50%',
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: darkMode 
-            ? '0 10px 25px rgba(251, 191, 36, 0.5)' 
-            : '0 10px 25px rgba(31, 41, 55, 0.5)',
-          transition: 'all 0.3s ease',
-          width: '56px',
-          height: '56px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-        }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = 'scale(0.95) rotate(0deg)';
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)';
-        }}
+
+      <button onClick={toggleDarkMode} aria-label="Toggle dark mode"
+        style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 9999, backgroundColor: darkMode ? '#fbbf24' : '#1f2937', color: darkMode ? '#1f2937' : '#fbbf24', padding: '1rem', borderRadius: '50%', border: 'none', cursor: 'pointer', boxShadow: darkMode ? '0 10px 25px rgba(251,191,36,0.5)' : '0 10px 25px rgba(31,41,55,0.5)', transition: 'all 0.3s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
+        onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95) rotate(0deg)'; }}
+        onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; }}
       >
         {darkMode ? (
-          // Sun icon for light mode
-          <svg 
-            style={{ width: '24px', height: '24px' }}
-            fill="currentColor" 
-            viewBox="0 0 20 20"
-          >
-            <path 
-              fillRule="evenodd"
-              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-              clipRule="evenodd"
-            />
+          <svg style={{ width: '24px', height: '24px' }} fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
           </svg>
         ) : (
-          // Moon icon for dark mode
-          <svg 
-            style={{ width: '24px', height: '24px' }}
-            fill="currentColor" 
-            viewBox="0 0 20 20"
-          >
-            <path 
-              d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-            />
+          <svg style={{ width: '24px', height: '24px' }} fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
           </svg>
         )}
       </button>

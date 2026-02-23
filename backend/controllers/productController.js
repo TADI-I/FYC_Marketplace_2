@@ -8,14 +8,14 @@ const isValidCategory = (category) => {
   return validCategories.includes(category);
 };
 
-// Get all products
+// Get all products - no pagination, client handles lazy rendering
 exports.getProducts = async (req, res, db) => {
   try {
     console.log('📦 Getting products with filters:', req.query);
     
-    const { category, campus, search, page = 1, limit = 12 } = req.query;
+    const { category, campus, search } = req.query;
     
-    // Build filter query (products status)
+    // Build filter query
     let filter = { status: 'active' };
     
     if (category && category !== 'all') {
@@ -35,10 +35,6 @@ exports.getProducts = async (req, res, db) => {
 
     console.log('🔍 Filter:', filter);
 
-    // Aggregation pipeline to include seller verification and whatsapp dynamically
-    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
-    const pageLimit = Math.max(parseInt(limit, 10) || 12, 1);
-    const skip = (pageNum - 1) * pageLimit;
     const now = new Date();
 
     const pipeline = [
@@ -52,7 +48,7 @@ exports.getProducts = async (req, res, db) => {
         }
       },
       { $unwind: '$seller' },
-      // seller must be subscribed and subscription not expired (or no end date)
+      // Seller must be subscribed and subscription not expired
       {
         $match: {
           'seller.subscribed': true,
@@ -62,51 +58,29 @@ exports.getProducts = async (req, res, db) => {
           ]
         }
       },
-      // Add seller fields dynamically (whatsapp, verified status, name, campus)
+      // Add seller fields dynamically
       {
         $addFields: {
           sellerWhatsApp: '$seller.whatsapp',
           sellerVerified: { $ifNull: ['$seller.verified', false] },
           sellerName: '$seller.name',
           sellerCampus: '$seller.campus',
-          // Ensure whatsappRedirects is always present
           whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
         }
       },
-      // project seller object away to keep response small
       { $project: { seller: 0 } },
-      {
-        $facet: {
-          data: [
-            // Sort by verified status first (verified sellers first), then alphabetically by title
-            { $sort: { sellerVerified: -1, title: 1 } },
-            { $skip: skip },
-            { $limit: pageLimit }
-          ],
-          totalCount: [
-            { $count: 'count' }
-          ]
-        }
-      }
+      // Verified sellers first, then alphabetically
+      { $sort: { sellerVerified: -1, title: 1 } }
     ];
 
-    const aggResult = await db.collection('products').aggregate(pipeline).toArray();
-    const facet = aggResult[0] || { data: [], totalCount: [] };
-    const products = facet.data || [];
-    const total = (facet.totalCount[0] && facet.totalCount[0].count) ? facet.totalCount[0].count : 0;
+    const products = await db.collection('products').aggregate(pipeline).toArray();
 
-    console.log(`✅ Returning ${products.length} products (filtered) out of ${total} total`);
+    console.log(`✅ Returning all ${products.length} matching products`);
 
     res.json({
       success: true,
       products,
-      pagination: {
-        currentPage: pageNum,
-        totalPages: Math.ceil(total / pageLimit),
-        totalProducts: total,
-        hasNext: pageNum * pageLimit < total,
-        hasPrev: pageNum > 1
-      }
+      total: products.length
     });
 
   } catch (error) {
@@ -131,7 +105,6 @@ exports.getProductById = async (req, res, db) => {
       });
     }
     
-    // Lookup product and seller, ensure seller active, get verification status
     const pipeline = [
       { $match: { _id: new ObjectId(productId), status: 'active' } },
       {
@@ -152,14 +125,12 @@ exports.getProductById = async (req, res, db) => {
           ]
         }
       },
-      // Add seller fields dynamically
       {
         $addFields: {
           sellerWhatsApp: '$seller.whatsapp',
           sellerVerified: { $ifNull: ['$seller.verified', false] },
           sellerName: '$seller.name',
           sellerCampus: '$seller.campus',
-          // Ensure whatsappRedirects is always present
           whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
         }
       },
@@ -205,7 +176,6 @@ exports.getProductsBySeller = async (req, res, db) => {
       });
     }
 
-    // Ensure seller exists and is active, get their verification status
     const seller = await db.collection('users').findOne(
       { _id: new ObjectId(sellerId) },
       { projection: { subscribed: 1, subscriptionEndDate: 1, verified: 1, whatsapp: 1, name: 1, campus: 1 } }
@@ -228,15 +198,13 @@ exports.getProductsBySeller = async (req, res, db) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    // Add seller's current whatsapp, verification, name, campus to each product dynamically
-    // Also ensure whatsappRedirects is present
     const enhancedProducts = products.map(product => ({
       ...product,
       sellerWhatsApp: seller.whatsapp || null,
       sellerVerified: seller.verified || false,
       sellerName: seller.name,
       sellerCampus: seller.campus,
-      whatsappRedirects: product.whatsappRedirects || 0 // Ensure this field exists
+      whatsappRedirects: product.whatsappRedirects || 0
     }));
 
     console.log(`✅ Found ${enhancedProducts.length} products for seller ${sellerId}`);
@@ -255,7 +223,7 @@ exports.getProductsBySeller = async (req, res, db) => {
   }
 };
 
-// Create product - Initialize whatsappRedirects to 0
+// Create product
 exports.createProduct = async (req, res, db) => {
   try {
     console.log('➕ Creating product:', req.body);
@@ -263,7 +231,6 @@ exports.createProduct = async (req, res, db) => {
     
     const { title, description, price, category, type } = req.body;
 
-    // Validation
     if (!title || !description || !price || !category) {
       return res.status(400).json({ 
         error: 'All fields are required',
@@ -285,10 +252,8 @@ exports.createProduct = async (req, res, db) => {
       });
     }
 
-    // Get seller information (only name and campus for metadata)
     const seller = req.userProfile;
 
-    // Create product object
     const product = {
       title: title.trim(),
       description: description.trim(),
@@ -303,17 +268,14 @@ exports.createProduct = async (req, res, db) => {
       images: [],
       status: 'active',
       views: 0,
-      whatsappRedirects: 0, // Initialize counter
+      whatsappRedirects: 0,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    console.log('💾 Inserting product:', product);
-
     const result = await db.collection('products').insertOne(product);
     console.log('✅ Product insertion result:', result.insertedId);
     
-    // Fetch the created product with seller info added dynamically
     const createdProduct = await db.collection('products').aggregate([
       { $match: { _id: result.insertedId } },
       {
@@ -364,7 +326,6 @@ exports.updateProduct = async (req, res, db) => {
       });
     }
 
-    // Check if product exists and user owns it
     const existingProduct = await db.collection('products')
       .findOne({ _id: new ObjectId(productId) });
 
@@ -384,7 +345,6 @@ exports.updateProduct = async (req, res, db) => {
 
     const { title, description, price, category, type, status } = req.body;
 
-    // Build update object
     const updateData = { updatedAt: new Date() };
     
     if (title) updateData.title = title.trim();
@@ -394,7 +354,7 @@ exports.updateProduct = async (req, res, db) => {
     if (type) updateData.type = type;
     if (status) updateData.status = status;
 
-    const result = await db.collection('products').updateOne(
+    await db.collection('products').updateOne(
       { _id: new ObjectId(productId) },
       { $set: updateData }
     );
@@ -428,7 +388,6 @@ exports.deleteProduct = async (req, res, db) => {
       });
     }
 
-    // Check if product exists and user owns it
     const existingProduct = await db.collection('products')
       .findOne({ _id: new ObjectId(productId) });
 
@@ -446,7 +405,7 @@ exports.deleteProduct = async (req, res, db) => {
       });
     }
 
-    const result = await db.collection('products').deleteOne({ 
+    await db.collection('products').deleteOne({ 
       _id: new ObjectId(productId) 
     });
 
