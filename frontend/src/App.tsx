@@ -222,7 +222,6 @@ const App = () => {
       });
 
       const fetched = Array.isArray(response.products) ? response.products : [];
-      console.log(`✅ Fetched ${fetched.length} products`);
       setProducts(fetched);
       setError('');
     } catch (err: any) {
