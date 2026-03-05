@@ -160,15 +160,6 @@ main > .grid {
   grid-column: auto;
 }
 
-@media (min-width: 1024px) {
-  .lg\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .lg\:col-span-2 {
-    grid-column: span 2 / span 2;
-  }
-}
-
 @media (min-width: 640px) {
   .sm\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -193,6 +184,9 @@ main > .grid {
 @media (min-width: 1024px) {
   .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .lg\:col-span-2 {
+    grid-column: span 2 / span 2;
   }
 }
 
@@ -656,10 +650,19 @@ html.dark .shimmer {
     font-size: 1.25rem;
   }
   
-  /* KEEP 2 COLUMN GRID ON MOBILE */
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* KEEP 2 COLUMN GRID ON MOBILE FOR PRODUCTS */
+  main > .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.75rem;
+  }
+  
+  /* FORCE 1 COLUMN GRID ON MOBILE FOR PROFILE */
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .lg\:col-span-2 {
+    grid-column: auto !important;
   }
   
   .w-96 {
