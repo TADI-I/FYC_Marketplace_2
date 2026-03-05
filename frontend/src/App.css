@@ -134,24 +134,40 @@ p {
 .gap-4 { gap: 1rem; }
 .gap-6 { gap: 1.5rem; }
 
-/* Grid System */
-.grid { display: grid; }
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+/* Grid System - FIXED 2 COLUMN LAYOUT ON ALL SCREENS */
+.grid { 
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
 
-@media (min-width: 768px) {
-  .md\\:grid-cols-2 {
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .md\\:flex-row {
+}
+
+@media (min-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .md\:flex-row {
     flex-direction: row;
   }
-  .md\\:inline {
+  .md\:inline {
     display: inline;
   }
 }
 
 @media (min-width: 1024px) {
-  .lg\\:grid-cols-3 {
+  .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
@@ -216,7 +232,7 @@ button {
 }
 
 .bg-blue-600:hover,
-.hover\\:bg-blue-700:hover {
+.hover\:bg-blue-700:hover {
   background-color: var(--primary-blue-dark);
   transform: translateY(-1px);
 }
@@ -227,7 +243,7 @@ button {
 }
 
 .bg-green-600:hover,
-.hover\\:bg-green-700:hover {
+.hover\:bg-green-700:hover {
   background-color: var(--secondary-green-dark);
   transform: translateY(-1px);
 }
@@ -238,7 +254,7 @@ button {
 }
 
 .bg-orange-600:hover,
-.hover\\:bg-orange-700:hover {
+.hover\:bg-orange-700:hover {
   background-color: var(--accent-orange-dark);
   transform: translateY(-1px);
 }
@@ -249,7 +265,7 @@ button {
 }
 
 .bg-gray-300:hover,
-.hover\\:bg-gray-400:hover {
+.hover\:bg-gray-400:hover {
   background-color: var(--gray-400);
 }
 
@@ -259,7 +275,7 @@ button {
 }
 
 .bg-gray-500:hover,
-.hover\\:bg-gray-600:hover {
+.hover\:bg-gray-600:hover {
   background-color: var(--gray-600);
 }
 
@@ -339,7 +355,7 @@ input::placeholder, textarea::placeholder {
   box-shadow: var(--shadow-lg);
 }
 
-.hover\\:shadow-md:hover {
+.hover\:shadow-md:hover {
   box-shadow: var(--shadow-md);
 }
 
@@ -418,11 +434,11 @@ input::placeholder, textarea::placeholder {
   color: var(--secondary-green);
 }
 
-.hover\\:text-gray-200:hover {
+.hover\:text-gray-200:hover {
   color: var(--gray-200);
 }
 
-.hover\\:underline:hover {
+.hover\:underline:hover {
   text-decoration: underline;
 }
 
@@ -530,16 +546,16 @@ html.dark .shimmer {
   padding-right: 1rem;
 }
 
-.focus\\:outline-none:focus {
+.focus\:outline-none:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
-.focus\\:ring-2:focus {
+.focus\:ring-2:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.focus\\:ring-blue-500:focus {
+.focus\:ring-blue-500:focus {
   --tw-ring-color: rgba(59, 130, 246, 0.5);
 }
 
@@ -602,31 +618,29 @@ html.dark .shimmer {
 }
 
 /* Responsive Design */
-@media (max-width: 767px) {
-  .hidden {
-    display: none;
+@media (max-width: 640px) {
+  .container {
+    padding: 0 0.5rem;
   }
   
-  .md\\:hidden {
-    display: none;
-  }
-}
-
-@media (min-width: 768px) {
-  .md\\:inline {
-    display: inline;
+  .px-4 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
   
-  .md\\:grid-cols-2 {
+  .text-2xl {
+    font-size: 1.25rem;
+  }
+  
+  /* KEEP 2 COLUMN GRID ON MOBILE */
+  .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
   }
   
-  .md\\:flex-row {
-    flex-direction: row;
-  }
-  
-  .hidden.md\\:inline {
-    display: inline;
+  .w-96 {
+    width: 100%;
+    max-width: 24rem;
   }
 }
 
@@ -666,7 +680,7 @@ button:active {
   transform: translateY(0);
 }
 
-.hover\\:shadow-md:hover {
+.hover\:shadow-md:hover {
   box-shadow: var(--shadow-md);
   transition: box-shadow 0.3s ease;
 }
@@ -703,31 +717,6 @@ button:focus {
 
 .text-gray-300 {
   color: var(--gray-300);
-}
-
-/* Mobile Optimizations */
-@media (max-width: 640px) {
-  .container {
-    padding: 0 0.5rem;
-  }
-  
-  .px-4 {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-  
-  .text-2xl {
-    font-size: 1.25rem;
-  }
-  
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .w-96 {
-    width: 90vw;
-    max-width: 24rem;
-  }
 }
 
 /* Shimmer loading animation */

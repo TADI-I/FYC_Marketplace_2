@@ -680,11 +680,11 @@ const App = () => {
 
               {/* Product grid */}
               {_loading ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                   {Array.from({ length: 12 }).map((_, i) => <ProductSkeleton key={i} />)}
                 </div>
               ) : products.length > 0 ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                   {products.map(product => (
                     <LazyCard key={(product as any)._id || product.id} skeleton={<ProductSkeleton />}>
                       <ProductCard product={product} />
