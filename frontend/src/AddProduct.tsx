@@ -310,7 +310,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ currentUser, onProductA
       </div>
       
       <textarea
-        placeholder="Detailed description, cell number, location, delivery options, etc."
+        placeholder="Detailed description, delivery options, etc."
         className="w-full p-3 border rounded mb-4"
         rows={4}
         value={productData.description}
