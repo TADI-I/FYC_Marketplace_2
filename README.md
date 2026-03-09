@@ -32,7 +32,7 @@ A minimal, maintainable frontend and backend for the TUT_Marketplace web applica
 - Node.js 16+
 - npm, yarn or pnpm
 - Git
-- Database server (Postgres / MySQL) or Docker
+- Database server (MongoDB)
 
 ---
 
