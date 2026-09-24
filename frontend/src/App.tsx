@@ -32,7 +32,7 @@ const Footer = lazy(() => import('./Footer'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-[200px]">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+    <div className="animate-spin rounded-full h-12 w-12" style={{ border: '2px solid rgba(16,17,15,.18)', borderBottomColor: '#d8ff4f' }}></div>
   </div>
 );
 
@@ -428,17 +428,18 @@ const App = () => {
     return (
       <div
         className={`rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} ${isHighlighted ? 'ring-4 ring-orange-500 shadow-2xl' : ''}`}
+        style={isHighlighted ? { borderColor: '#d8ff4f', boxShadow: '0 0 0 4px rgba(216,255,79,.55), 0 24px 60px -38px rgba(16,17,15,.68)' } : undefined}
         id={isHighlighted ? 'highlighted-product' : undefined}
       >
         {isHighlighted && (
-          <div style={{ background: 'linear-gradient(to right, #f97316, #ea580c)', color: 'white', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: '#d8ff4f', color: '#10110f', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textTransform: 'uppercase', letterSpacing: '.04em' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <svg style={{ width: '0.75rem', height: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               Shared Product
             </span>
-            <button onClick={() => setHighlightedProduct(null)} style={{ borderRadius: '9999px', padding: '0.25rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'white' }} aria-label="Close highlight">
+            <button onClick={() => setHighlightedProduct(null)} style={{ borderRadius: 0, padding: '0.25rem', background: 'transparent', border: '1px solid rgba(16,17,15,.32)', cursor: 'pointer', color: '#10110f' }} aria-label="Close highlight">
               <X style={{ height: '1rem', width: '1rem' }} />
             </button>
           </div>
@@ -462,7 +463,7 @@ const App = () => {
                 }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center cursor-pointer z-10" onClick={() => setMaximizedImage(imageUrl)}>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg" style={{ borderRadius: 0 }}>
                   <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                   </svg>
@@ -498,7 +499,7 @@ const App = () => {
         <div className="p-5">
           <div className="flex justify-between items-start mb-3">
             <h3 className={`text-lg font-semibold line-clamp-2 flex-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{product.title}</h3>
-            <span className="text-xl font-bold text-green-600 ml-3 whitespace-nowrap">R{product.price}</span>
+            <span className="text-xl font-bold text-green-600 ml-3 whitespace-nowrap" style={{ color: '#10110f', background: '#d8ff4f', padding: '.15rem .35rem' }}>R{product.price}</span>
           </div>
           <p className={`text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.description}</p>
           <div className={`flex items-center justify-between mb-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -572,15 +573,15 @@ const App = () => {
                   </button>
                 )}
                 {currentUser.type === 'admin' && (
-                  <button onClick={() => setCurrentView('admin-reactivation')} style={{ backgroundColor: '#029002ff', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
+                  <button onClick={() => setCurrentView('admin-reactivation')} style={{ backgroundColor: '#d8ff4f', color: '#10110f', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid #d8ff4f', cursor: 'pointer' }}>
                     Admin
                   </button>
                 )}
                 <button
                   onClick={handleLogout}
-                  style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.3s ease' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc2626'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ef4444'; }}
+                  style={{ backgroundColor: 'transparent', color: '#fbfaf6', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid rgba(251,250,246,.28)', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(251,250,246,.1)'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'; }}
                 >
                   Logout
                 </button>
@@ -632,7 +633,7 @@ const App = () => {
             <>
               <div className="flex justify-between items-center mb-8">
                 {currentUser?.type === 'seller' && (
-                  <button onClick={() => setCurrentView('my-products')} style={{ backgroundColor: '#ef8b44ff', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
+                  <button onClick={() => setCurrentView('my-products')} style={{ backgroundColor: '#10110f', color: '#fbfaf6', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid rgba(16,17,15,.7)', cursor: 'pointer' }}>
                     My Products
                   </button>
                 )}
@@ -724,7 +725,7 @@ const App = () => {
       {maximizedImage && (
         <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${darkMode ? 'bg-black bg-opacity-98' : 'bg-black bg-opacity-95'}`} onClick={() => setMaximizedImage(null)} style={{ cursor: 'pointer' }}>
           <div className="relative" style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
-            <button onClick={(e) => { e.stopPropagation(); setMaximizedImage(null); }} className="absolute flex items-center justify-center text-white rounded-full transition-all z-50 hover:scale-110" aria-label="Close" style={{ cursor: 'pointer', top: '-20px', right: '-20px', width: '40px', height: '40px', backgroundColor: '#dc2626', border: '3px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.5)' }}>
+            <button onClick={(e) => { e.stopPropagation(); setMaximizedImage(null); }} className="absolute flex items-center justify-center text-white rounded-full transition-all z-50 hover:scale-110" aria-label="Close" style={{ cursor: 'pointer', top: '-20px', right: '-20px', width: '40px', height: '40px', backgroundColor: '#000000', border: '3px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.5)' }}>
               <svg style={{ width: '24px', height: '24px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -735,9 +736,9 @@ const App = () => {
       )}
 
       {showBackToTop && (
-        <button onClick={scrollToTop} aria-label="Back to top" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999, backgroundColor: '#ea580c', color: 'white', padding: '1rem', borderRadius: '50%', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234,88,12,0.5)', transition: 'all 0.3s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#c2410c'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ea580c'; e.currentTarget.style.transform = 'scale(1)'; }}
+        <button onClick={scrollToTop} aria-label="Back to top" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999, backgroundColor: '#d8ff4f', color: '#10110f', padding: '1rem', borderRadius: 0, border: '1px solid #10110f', cursor: 'pointer', boxShadow: '0 14px 34px -20px rgba(16,17,15,.8)', transition: 'all 0.2s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#bfe638'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#d8ff4f'; e.currentTarget.style.transform = 'translateY(0)'; }}
           onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95)'; }}
           onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }}
         >
@@ -748,7 +749,7 @@ const App = () => {
       )}
 
       <button onClick={toggleDarkMode} aria-label="Toggle dark mode"
-        style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 9999, backgroundColor: darkMode ? '#fbbf24' : '#1f2937', color: darkMode ? '#1f2937' : '#fbbf24', padding: '1rem', borderRadius: '50%', border: 'none', cursor: 'pointer', boxShadow: darkMode ? '0 10px 25px rgba(251,191,36,0.5)' : '0 10px 25px rgba(31,41,55,0.5)', transition: 'all 0.3s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 9999, backgroundColor: darkMode ? '#d8ff4f' : '#10110f', color: darkMode ? '#10110f' : '#d8ff4f', padding: '1rem', borderRadius: 0, border: darkMode ? '1px solid #10110f' : '1px solid rgba(251,250,246,.28)', cursor: 'pointer', boxShadow: '0 14px 34px -20px rgba(16,17,15,.8)', transition: 'all 0.2s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
         onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95) rotate(0deg)'; }}

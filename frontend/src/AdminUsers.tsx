@@ -67,7 +67,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
     <div style={{
       marginTop: '1.5rem',
       padding: '1rem',
-      border: '1px solid #e5e7eb',
+      border: '1px solid rgba(16, 17, 15, .17)',
       borderRadius: '0.5rem',
       backgroundColor: 'white'
     }}>
@@ -81,23 +81,23 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
         gap: '1rem',
         marginBottom: '1rem',
         padding: '1rem',
-        backgroundColor: '#f9fafb',
+        backgroundColor: '#fbfaf6',
         borderRadius: '0.5rem',
-        border: '1px solid #e5e7eb'
+        border: '1px solid rgba(16, 17, 15, .17)'
       }}>
         <div style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937' }}>
             {totalCount}
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
             Total Users
           </div>
         </div>
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10110f' }}>
             {buyerCount}
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
             Buyers
           </div>
         </div>
@@ -105,7 +105,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f97316' }}>
             {sellerCount}
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
             Sellers
           </div>
         </div>
@@ -116,7 +116,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
           onClick={() => setFilterType('all')} 
           style={{
             padding: '0.5rem 1rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid rgba(16, 17, 15, .24)',
             borderRadius: '0.25rem',
             backgroundColor: filterType === 'all' ? '#1f2937' : 'white',
             color: filterType === 'all' ? 'white' : 'black',
@@ -130,7 +130,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
           onClick={() => setFilterType('buyer')} 
           style={{
             padding: '0.5rem 1rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid rgba(16, 17, 15, .24)',
             borderRadius: '0.25rem',
             backgroundColor: filterType === 'buyer' ? '#1f2937' : 'white',
             color: filterType === 'buyer' ? 'white' : 'black',
@@ -144,7 +144,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
           onClick={() => setFilterType('seller')} 
           style={{
             padding: '0.5rem 1rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid rgba(16, 17, 15, .24)',
             borderRadius: '0.25rem',
             backgroundColor: filterType === 'seller' ? '#1f2937' : 'white',
             color: filterType === 'seller' ? 'white' : 'black',
@@ -159,7 +159,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
           style={{
             marginLeft: 'auto',
             padding: '0.5rem 1rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid rgba(16, 17, 15, .24)',
             borderRadius: '0.25rem',
             backgroundColor: 'white',
             cursor: 'pointer'
@@ -175,7 +175,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
             key={u._id} 
             style={{
               padding: '1.5rem',
-              border: '1px solid #e5e7eb',
+              border: '1px solid rgba(16, 17, 15, .17)',
               borderRadius: '0.5rem',
               backgroundColor: 'white',
               boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
@@ -197,7 +197,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                       style={{
                         width: '100%',
                         padding: '0.5rem',
-                        border: '1px solid #d1d5db',
+                        border: '1px solid rgba(16, 17, 15, .24)',
                         borderRadius: '0.375rem'
                       }}
                     />
@@ -212,7 +212,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                       style={{
                         width: '100%',
                         padding: '0.5rem',
-                        border: '1px solid #d1d5db',
+                        border: '1px solid rgba(16, 17, 15, .24)',
                         borderRadius: '0.375rem'
                       }}
                     />
@@ -227,7 +227,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                       style={{
                         width: '100%',
                         padding: '0.5rem',
-                        border: '1px solid #d1d5db',
+                        border: '1px solid rgba(16, 17, 15, .24)',
                         borderRadius: '0.375rem'
                       }}
                     />
@@ -242,7 +242,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                       style={{
                         width: '100%',
                         padding: '0.5rem',
-                        border: '1px solid #d1d5db',
+                        border: '1px solid rgba(16, 17, 15, .24)',
                         borderRadius: '0.375rem'
                       }}
                     />
@@ -252,25 +252,25 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                 <>
                   <div style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
                     {u.name} 
-                    <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 400, marginLeft: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#74756f', fontWeight: 400, marginLeft: '0.5rem' }}>
                       ({u.type})
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.25rem' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#3e403a', marginBottom: '0.25rem' }}>
                     {u.email}
                   </div>
                   {u.campus && (
-                    <div style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.25rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#3e403a', marginBottom: '0.25rem' }}>
                       Campus: {u.campus}
                     </div>
                   )}
                   {u.whatsapp && (
-                    <div style={{ fontSize: '0.875rem', color: '#4b5563' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#3e403a' }}>
                       WhatsApp: {u.whatsapp}
                     </div>
                   )}
                   {u.updatedAt && (
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#74756f', marginTop: '0.5rem' }}>
                       Last updated: {new Date(u.updatedAt).toLocaleString()}
                     </div>
                   )}
@@ -284,7 +284,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                   <button 
                     onClick={save} 
                     style={{ 
-                      backgroundColor: '#2563eb', 
+                      backgroundColor: '#10110f', 
                       color: 'white', 
                       padding: '0.5rem 1rem', 
                       borderRadius: '0.25rem',
@@ -298,7 +298,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                     onClick={() => { setEditingId(null); setForm({}); }} 
                     style={{ 
                       padding: '0.5rem 1rem',
-                      border: '1px solid #d1d5db',
+                      border: '1px solid rgba(16, 17, 15, .24)',
                       borderRadius: '0.25rem',
                       backgroundColor: 'white',
                       cursor: 'pointer'
@@ -312,7 +312,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                   onClick={() => startEdit(u)} 
                   style={{ 
                     padding: '0.5rem 1rem',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid rgba(16, 17, 15, .24)',
                     borderRadius: '0.25rem',
                     backgroundColor: 'white',
                     cursor: 'pointer'
@@ -324,7 +324,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
             </div>
           </div>
         ))}
-        {users.length === 0 && <div style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No users found</div>}
+        {users.length === 0 && <div style={{ textAlign: 'center', color: '#74756f', padding: '2rem' }}>No users found</div>}
       </div>
     </div>
   );

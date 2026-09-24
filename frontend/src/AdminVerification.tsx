@@ -12,8 +12,8 @@ export interface AdminVerificationProps {
 
 const FALLBACK_IMAGE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'>
-     <rect width='100%' height='100%' fill='#f3f4f6'/>
-     <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9ca3af' font-family='Arial, Helvetica, sans-serif' font-size='22'>Image unavailable</text>
+     <rect width='100%' height='100%' fill='#f2efe7'/>
+     <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9c9d97' font-family='Arial, Helvetica, sans-serif' font-size='22'>Image unavailable</text>
    </svg>`
 );
 
@@ -169,15 +169,15 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
           gap: '1rem',
           marginBottom: '1.5rem',
           padding: '1rem',
-          backgroundColor: '#f9fafb',
+          backgroundColor: '#fbfaf6',
           borderRadius: '0.5rem',
-          border: '1px solid #e5e7eb'
+          border: '1px solid rgba(16, 17, 15, .17)'
         }}>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937' }}>
               {counts.all || 0}
             </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
               Total Requests
             </div>
           </div>
@@ -185,23 +185,23 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#eab308' }}>
               {counts.pending || 0}
             </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
               Pending
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#16a34a' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#d8ff4f' }}>
               {counts.approved || 0}
             </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
               Approved
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#dc2626' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#000000' }}>
               {counts.rejected || 0}
             </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
               Rejected
             </div>
           </div>

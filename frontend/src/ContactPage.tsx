@@ -32,7 +32,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
       <button 
         onClick={onBack}
         style={{
-          backgroundColor: '#2563eb',
+          backgroundColor: '#10110f',
           color: 'white',
           padding: '0.5rem 1.5rem',
           borderRadius: '0.5rem',
@@ -44,17 +44,17 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
           marginBottom: '1.5rem',
           transition: 'background-color 0.2s'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#000000'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10110f'}
       >
         <ArrowLeft style={{ height: '1.25rem', width: '1.25rem' }} />
         <span>Back to Home</span>
       </button>
 
       <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '2rem' }}>
-        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>Contact Us</h1>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1.5rem' }}>Contact Us</h1>
         
-        <p style={{ fontSize: '1.125rem', color: '#374151', marginBottom: '2rem' }}>
+        <p style={{ fontSize: '1.125rem', color: '#3e403a', marginBottom: '2rem' }}>
           Have questions, feedback, or need support? We're here to help! Reach out to the FYC Marketplace 
           team using any of the methods below.
         </p>
@@ -68,18 +68,18 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
         }}>
           {/* WhatsApp Support */}
           <div style={{ 
-            backgroundColor: '#f0fdf4', 
-            border: '1px solid #bbf7d0', 
+            backgroundColor: '#fbfaf6', 
+            border: '1px solid rgba(16, 17, 15, .17)', 
             borderRadius: '0.75rem', 
             padding: '1.5rem' 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: '#16a34a', borderRadius: '50%', padding: '0.75rem' }}>
+              <div style={{ backgroundColor: '#d8ff4f', borderRadius: '50%', padding: '0.75rem' }}>
                 <MessageCircle style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>WhatsApp Support</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>WhatsApp Support</h3>
             </div>
-            <p style={{ color: '#374151', marginBottom: '1rem' }}>
+            <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
               Get instant help via WhatsApp! Our support team responds within minutes during business hours.
             </p>
             <a
@@ -90,7 +90,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#16a34a',
+                backgroundColor: '#d8ff4f',
                 color: 'white',
                 padding: '0.5rem 1rem',
                 borderRadius: '0.5rem',
@@ -98,31 +98,31 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 textDecoration: 'none',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#15803d'}
-              onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#16a34a'}
+              onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#bfe638'}
+              onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#d8ff4f'}
             >
               <MessageCircle style={{ height: '1rem', width: '1rem' }} />
               Chat on WhatsApp
             </a>
-            <p style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.75rem' }}>
+            <p style={{ fontSize: '0.875rem', color: '#3e403a', marginTop: '0.75rem' }}>
               <strong>Phone:</strong> +27 71 112 6204
             </p>
           </div>
 
           {/* Email Support */}
           <div style={{ 
-            backgroundColor: '#eff6ff', 
-            border: '1px solid #bfdbfe', 
+            backgroundColor: '#fbfaf6', 
+            border: '1px solid rgba(16, 17, 15, .17)', 
             borderRadius: '0.75rem', 
             padding: '1.5rem' 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: '#2563eb', borderRadius: '50%', padding: '0.75rem' }}>
+              <div style={{ backgroundColor: '#10110f', borderRadius: '50%', padding: '0.75rem' }}>
                 <Mail style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Email Support</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Email Support</h3>
             </div>
-            <p style={{ color: '#374151', marginBottom: '1rem' }}>
+            <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
               Prefer email? Send us a detailed message and we'll respond within 24 hours.
             </p>
             <a
@@ -131,7 +131,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#2563eb',
+                backgroundColor: '#10110f',
                 color: 'white',
                 padding: '0.5rem 1rem',
                 borderRadius: '0.5rem',
@@ -139,35 +139,35 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 textDecoration: 'none',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#1d4ed8'}
-              onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#2563eb'}
+              onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#000000'}
+              onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#10110f'}
             >
               <Mail style={{ height: '1rem', width: '1rem' }} />
               Email Us
             </a>
-            <p style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.75rem' }}>
+            <p style={{ fontSize: '0.875rem', color: '#3e403a', marginTop: '0.75rem' }}>
               <strong>Email:</strong> support@firstyearcouncil.co.za
             </p>
           </div>
 
           {/* Office Hours */}
           <div style={{ 
-            backgroundColor: '#fff7ed', 
-            border: '1px solid #fed7aa', 
+            backgroundColor: '#fbfaf6', 
+            border: '1px solid rgba(16, 17, 15, .17)', 
             borderRadius: '0.75rem', 
             padding: '1.5rem' 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: '#ea580c', borderRadius: '50%', padding: '0.75rem' }}>
+              <div style={{ backgroundColor: '#d8ff4f', borderRadius: '50%', padding: '0.75rem' }}>
                 <Clock style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Support Hours</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Support Hours</h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#374151' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#3e403a' }}>
               <p style={{ margin: 0 }}><strong>Monday - Friday:</strong> 8:00 AM - 6:00 PM</p>
               <p style={{ margin: 0 }}><strong>Saturday:</strong> 9:00 AM - 2:00 PM</p>
               <p style={{ margin: 0 }}><strong>Sunday & Public Holidays:</strong> Closed</p>
-              <p style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.75rem', marginBottom: 0 }}>
+              <p style={{ fontSize: '0.875rem', color: '#3e403a', marginTop: '0.75rem', marginBottom: 0 }}>
                 All times are in South African Standard Time (SAST)
               </p>
             </div>
@@ -175,38 +175,38 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
 
           {/* Location */}
           <div style={{ 
-            backgroundColor: '#faf5ff', 
-            border: '1px solid #e9d5ff', 
+            backgroundColor: '#fbfaf6', 
+            border: '1px solid rgba(16, 17, 15, .17)', 
             borderRadius: '0.75rem', 
             padding: '1.5rem' 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: '#9333ea', borderRadius: '50%', padding: '0.75rem' }}>
+              <div style={{ backgroundColor: '#10110f', borderRadius: '50%', padding: '0.75rem' }}>
                 <MapPin style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Location</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Location</h3>
             </div>
-            <p style={{ color: '#374151', marginBottom: '0.75rem' }}>
+            <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
               We serve students across all TUT campuses in South Africa, including Pretoria Central, 
               Soshanguve, Ga-Rankuwa, and more.
             </p>
-            <p style={{ fontSize: '0.875rem', color: '#4b5563', margin: 0 }}>
+            <p style={{ fontSize: '0.875rem', color: '#3e403a', margin: 0 }}>
               <strong>Headquarters:</strong> Pretoria, Gauteng, South Africa
             </p>
           </div>
         </div>
 
         {/* Contact Form */}
-        <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>Send Us a Message</h2>
-          <p style={{ color: '#4b5563', marginBottom: '1.5rem' }}>
+        <div style={{ backgroundColor: '#fbfaf6', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem' }}>Send Us a Message</h2>
+          <p style={{ color: '#3e403a', marginBottom: '1.5rem' }}>
             Fill out the form below and we'll send your message via WhatsApp to our support team.
           </p>
           
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3e403a', marginBottom: '0.5rem' }}>
                   Your Name *
                 </label>
                 <input
@@ -217,7 +217,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid rgba(16, 17, 15, .24)',
                     borderRadius: '0.5rem',
                     fontSize: '1rem'
                   }}
@@ -226,7 +226,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               </div>
               
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3e403a', marginBottom: '0.5rem' }}>
                   Your Email *
                 </label>
                 <input
@@ -237,7 +237,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid rgba(16, 17, 15, .24)',
                     borderRadius: '0.5rem',
                     fontSize: '1rem'
                   }}
@@ -247,7 +247,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3e403a', marginBottom: '0.5rem' }}>
                 Subject *
               </label>
               <select
@@ -257,7 +257,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  border: '1px solid #d1d5db',
+                  border: '1px solid rgba(16, 17, 15, .24)',
                   borderRadius: '0.5rem',
                   fontSize: '1rem'
                 }}
@@ -274,7 +274,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3e403a', marginBottom: '0.5rem' }}>
                 Your Message *
               </label>
               <textarea
@@ -285,7 +285,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  border: '1px solid #d1d5db',
+                  border: '1px solid rgba(16, 17, 15, .24)',
                   borderRadius: '0.5rem',
                   fontSize: '1rem',
                   fontFamily: 'inherit',
@@ -299,7 +299,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               type="submit"
               style={{
                 width: '100%',
-                backgroundColor: '#2563eb',
+                backgroundColor: '#10110f',
                 color: 'white',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '0.5rem',
@@ -312,53 +312,53 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 gap: '0.5rem',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
-              onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#2563eb'}
+              onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000'}
+              onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#10110f'}
             >
               <MessageCircle style={{ height: '1.25rem', width: '1.25rem' }} />
               Send via WhatsApp
             </button>
             
-            <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', margin: 0 }}>
+            <p style={{ fontSize: '0.875rem', color: '#74756f', textAlign: 'center', margin: 0 }}>
               This will open WhatsApp with your message pre-filled. Click send to submit.
             </p>
           </form>
         </div>
 
         {/* Common Issues - FIXED BULLETS */}
-        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>Common Support Topics</h2>
+        <div style={{ borderTop: '1px solid rgba(16, 17, 15, .17)', paddingTop: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem' }}>Common Support Topics</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem' }}>
-              <h3 style={{ fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Account & Login</h3>
-              <ul style={{ fontSize: '0.875rem', color: '#374151', paddingLeft: '1.25rem', margin: 0 }}>
+            <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
+              <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Account & Login</h3>
+              <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
                 <li>Password reset</li>
                 <li>Account verification</li>
                 <li>Profile updates</li>
               </ul>
             </div>
             
-            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem' }}>
-              <h3 style={{ fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Payments</h3>
-              <ul style={{ fontSize: '0.875rem', color: '#374151', paddingLeft: '1.25rem', margin: 0 }}>
+            <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
+              <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Payments</h3>
+              <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
                 <li>Subscription activation</li>
                 <li>Payment issues</li>
                 <li>Refund requests</li>
               </ul>
             </div>
             
-            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem' }}>
-              <h3 style={{ fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Listings</h3>
-              <ul style={{ fontSize: '0.875rem', color: '#374151', paddingLeft: '1.25rem', margin: 0 }}>
+            <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
+              <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Listings</h3>
+              <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
                 <li>Unable to add products</li>
                 <li>Edit or delete listings</li>
                 <li>Image upload problems</li>
               </ul>
             </div>
             
-            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem' }}>
-              <h3 style={{ fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Safety & Reports</h3>
-              <ul style={{ fontSize: '0.875rem', color: '#374151', paddingLeft: '1.25rem', margin: 0 }}>
+            <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
+              <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Safety & Reports</h3>
+              <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
                 <li>Report suspicious users</li>
                 <li>Scam prevention</li>
                 <li>Dispute resolution</li>
@@ -370,21 +370,21 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
         {/* FAQ Link */}
         <div style={{
           marginTop: '2rem',
-          background: 'linear-gradient(to right, #eff6ff, #fff7ed)',
-          border: '1px solid #bfdbfe',
+          background: '#fbfaf6',
+          border: '1px solid rgba(16, 17, 15, .17)',
           borderRadius: '0.5rem',
           padding: '1.5rem',
           textAlign: 'center'
         }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Check Our FAQ First</h3>
-          <p style={{ color: '#374151', marginBottom: '1rem' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Check Our FAQ First</h3>
+          <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
             Many common questions are answered in our comprehensive FAQ section. You might find 
             your answer there instantly!
           </p>
           <button
             onClick={onBack}
             style={{
-              backgroundColor: '#2563eb',
+              backgroundColor: '#10110f',
               color: 'white',
               padding: '0.75rem 1.5rem',
               borderRadius: '0.5rem',
@@ -393,8 +393,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               cursor: 'pointer',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
-            onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#2563eb'}
+            onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000'}
+            onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#10110f'}
           >
             View FAQs
           </button>

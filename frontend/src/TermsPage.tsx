@@ -11,7 +11,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
       <button 
         onClick={onBack}
         style={{
-          backgroundColor: '#2563eb',
+          backgroundColor: '#10110f',
           color: 'white',
           padding: '0.5rem 1.5rem',
           borderRadius: '0.5rem',
@@ -23,29 +23,29 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           marginBottom: '1.5rem',
           transition: 'background-color 0.2s'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#000000'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10110f'}
       >
         <ArrowLeft style={{ height: '1.25rem', width: '1.25rem' }} />
         <span>Back to Home</span>
       </button>
 
       <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '2rem' }}>
-        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem' }}>
           Terms of Service
         </h1>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '2rem' }}>
+        <p style={{ fontSize: '0.875rem', color: '#74756f', marginBottom: '2rem' }}>
           Last Updated: February 4, 2026
         </p>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#374151' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#3e403a' }}>
           <p style={{ fontSize: '1.125rem' }}>
             Welcome to FYC Marketplace. By accessing or using our platform, you agree to be bound by 
             these Terms of Service. Please read them carefully before using our services.
           </p>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               1. Acceptance of Terms
             </h2>
             <p>
@@ -57,7 +57,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               2. Eligibility
             </h2>
             <p>
@@ -69,7 +69,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               3. Account Responsibilities
             </h2>
             <p>You are responsible for:</p>
@@ -86,7 +86,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               4. User Content and Listings
             </h2>
             <p>When creating listings or posting content on FYC Marketplace:</p>
@@ -101,7 +101,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               5. Prohibited Activities
             </h2>
             <p>You agree NOT to:</p>
@@ -121,7 +121,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               6. Seller Subscriptions and Payments
             </h2>
             <p>
@@ -137,7 +137,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               7. Transactions Between Users
             </h2>
             <p>
@@ -155,7 +155,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               8. Safety and Security
             </h2>
             <p>
@@ -172,7 +172,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               9. Intellectual Property
             </h2>
             <p>
@@ -183,7 +183,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               10. Limitation of Liability
             </h2>
             <p>
@@ -195,7 +195,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               11. Indemnification
             </h2>
             <p>
@@ -206,7 +206,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               12. Account Termination
             </h2>
             <p>
@@ -218,7 +218,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               13. Governing Law
             </h2>
             <p>
@@ -229,7 +229,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               14. Changes to Terms
             </h2>
             <p>
@@ -240,7 +240,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               15. Contact Information
             </h2>
             <p>
@@ -254,13 +254,13 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           </div>
 
           <div style={{
-            backgroundColor: '#eff6ff',
-            border: '1px solid #bfdbfe',
+            backgroundColor: '#fbfaf6',
+            border: '1px solid rgba(16, 17, 15, .17)',
             borderRadius: '0.5rem',
             padding: '1.5rem',
             marginTop: '2rem'
           }}>
-            <p style={{ fontWeight: '600', color: '#111827', margin: 0 }}>
+            <p style={{ fontWeight: '600', color: '#10110f', margin: 0 }}>
               By using FYC Marketplace, you acknowledge that you have read, understood, and agree to be 
               bound by these Terms of Service.
             </p>

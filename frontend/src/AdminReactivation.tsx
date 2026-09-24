@@ -15,8 +15,8 @@ const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5001';
 
 const FALLBACK_IMAGE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'>
-     <rect width='100%' height='100%' fill='#f3f4f6'/>
-     <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9ca3af' font-family='Arial, Helvetica, sans-serif' font-size='22'>Image unavailable</text>
+     <rect width='100%' height='100%' fill='#f2efe7'/>
+     <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9c9d97' font-family='Arial, Helvetica, sans-serif' font-size='22'>Image unavailable</text>
    </svg>`
 );
 
@@ -234,7 +234,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
         <button
           onClick={() => setMainTab('reactivation')}
           style={{
-            backgroundColor: mainTab === 'reactivation' ? '#2563eb' : '#f3f4f6',
+            backgroundColor: mainTab === 'reactivation' ? '#10110f' : '#f2efe7',
             color: mainTab === 'reactivation' ? 'white' : 'black',
             padding: '0.5rem 1rem',
             borderRadius: '0.25rem',
@@ -248,7 +248,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
         <button
           onClick={() => setMainTab('verification')}
           style={{
-            backgroundColor: mainTab === 'verification' ? '#2563eb' : '#f3f4f6',
+            backgroundColor: mainTab === 'verification' ? '#10110f' : '#f2efe7',
             color: mainTab === 'verification' ? 'white' : 'black',
             padding: '0.5rem 1rem',
             borderRadius: '0.25rem',
@@ -262,7 +262,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
         <button
           onClick={() => setMainTab('users')}
           style={{
-            backgroundColor: mainTab === 'users' ? '#2563eb' : '#f3f4f6',
+            backgroundColor: mainTab === 'users' ? '#10110f' : '#f2efe7',
             color: mainTab === 'users' ? 'white' : 'black',
             padding: '0.5rem 1rem',
             borderRadius: '0.25rem',
@@ -288,7 +288,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
             <button
               onClick={() => setTab('all')}
               style={{
-                backgroundColor: tab === 'all' ? '#1f2937' : '#f3f4f6',
+                backgroundColor: tab === 'all' ? '#1f2937' : '#f2efe7',
                 color: tab === 'all' ? 'white' : 'black',
                 padding: '0.25rem 0.75rem',
                 borderRadius: '0.25rem',
@@ -302,7 +302,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
             <button
               onClick={() => setTab('pending')}
               style={{
-                backgroundColor: tab === 'pending' ? '#2563eb' : '#f3f4f6',
+                backgroundColor: tab === 'pending' ? '#10110f' : '#f2efe7',
                 color: tab === 'pending' ? 'white' : 'black',
                 padding: '0.25rem 0.75rem',
                 borderRadius: '0.25rem',
@@ -316,7 +316,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
             <button
               onClick={() => setTab('approved')}
               style={{
-                backgroundColor: tab === 'approved' ? '#16a34a' : '#f3f4f6',
+                backgroundColor: tab === 'approved' ? '#d8ff4f' : '#f2efe7',
                 color: tab === 'approved' ? 'white' : 'black',
                 padding: '0.25rem 0.75rem',
                 borderRadius: '0.25rem',
@@ -330,7 +330,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
             <button
               onClick={() => setTab('rejected')}
               style={{
-                backgroundColor: tab === 'rejected' ? '#dc2626' : '#f3f4f6',
+                backgroundColor: tab === 'rejected' ? '#000000' : '#f2efe7',
                 color: tab === 'rejected' ? 'white' : 'black',
                 padding: '0.25rem 0.75rem',
                 borderRadius: '0.25rem',
@@ -350,7 +350,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                   key={r._id} 
                   style={{
                     padding: '1.5rem',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(16, 17, 15, .17)',
                     borderRadius: '0.5rem',
                     backgroundColor: 'white',
                     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
@@ -360,7 +360,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                     <div style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
                       {r.user?.name || r.userId}
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: '#4b5563' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#3e403a' }}>
                       {r.user?.email}
                     </div>
                     {r.userNote && (
@@ -374,22 +374,22 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                         <strong>User Note:</strong> {r.userNote}
                       </div>
                     )}
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.75rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#74756f', marginTop: '0.75rem' }}>
                       Requested: {new Date(r.requestedAt).toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
                       Status: <span style={{
                         fontWeight: 500,
-                        color: r.status === 'approved' ? '#16a34a' : r.status === 'rejected' ? '#ef4444' : '#ca8a04'
+                        color: r.status === 'approved' ? '#d8ff4f' : r.status === 'rejected' ? '#10110f' : '#10110f'
                       }}>{r.status}</span>
                     </div>
                     {r.processedAt && (
                       <>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#74756f', marginTop: '0.25rem' }}>
                           Processed: {new Date(r.processedAt).toLocaleString()}
                         </div>
                         {r.admin && (
-                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#74756f' }}>
                             By: {r.admin.name} ({r.admin.email})
                           </div>
                         )}
@@ -397,7 +397,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                           <div style={{
                             marginTop: '0.75rem',
                             padding: '0.75rem',
-                            backgroundColor: '#f9fafb',
+                            backgroundColor: '#fbfaf6',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem'
                           }}>
@@ -409,7 +409,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                   </div>
 
                   {r.status === 'pending' && (
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(16, 17, 15, .17)' }}>
                       {processingId === r._id ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                           <div>
@@ -422,7 +422,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                               style={{
                                 width: '100%',
                                 padding: '0.5rem',
-                                border: '1px solid #d1d5db',
+                                border: '1px solid rgba(16, 17, 15, .24)',
                                 borderRadius: '0.375rem'
                               }}
                             >
@@ -442,7 +442,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                               style={{
                                 width: '100%',
                                 padding: '0.5rem',
-                                border: '1px solid #d1d5db',
+                                border: '1px solid rgba(16, 17, 15, .24)',
                                 borderRadius: '0.375rem',
                                 resize: 'none'
                               }}
@@ -454,7 +454,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                             <button
                               onClick={() => handleProcess(r._id, 'approve')}
                               style={{
-                                backgroundColor: '#16a34a',
+                                backgroundColor: '#d8ff4f',
                                 color: 'white',
                                 padding: '0.5rem 1rem',
                                 borderRadius: '0.25rem',
@@ -468,7 +468,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                             <button
                               onClick={() => handleProcess(r._id, 'reject')}
                               style={{
-                                backgroundColor: '#ef4444',
+                                backgroundColor: '#10110f',
                                 color: 'white',
                                 padding: '0.5rem 1rem',
                                 borderRadius: '0.25rem',
@@ -483,7 +483,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                               onClick={cancelProcessing}
                               style={{
                                 padding: '0.5rem 1rem',
-                                border: '1px solid #d1d5db',
+                                border: '1px solid rgba(16, 17, 15, .24)',
                                 borderRadius: '0.25rem',
                                 backgroundColor: 'white',
                                 cursor: 'pointer'
@@ -498,7 +498,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                           onClick={() => startProcessing(r._id)}
                           style={{
                             width: '100%',
-                            backgroundColor: '#2563eb',
+                            backgroundColor: '#10110f',
                             color: 'white',
                             padding: '0.5rem 1rem',
                             borderRadius: '0.25rem',
@@ -513,7 +513,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                   )}
 
                   {r.status !== 'pending' && (
-                    <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#6b7280', fontStyle: 'italic' }}>
+                    <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#74756f', fontStyle: 'italic' }}>
                       Already processed - no actions available
                     </div>
                   )}
@@ -536,7 +536,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                 key={status}
                 onClick={() => setVerificationFilter(status as any)}
                 style={{
-                  backgroundColor: verificationFilter === status ? '#2563eb' : '#f3f4f6',
+                  backgroundColor: verificationFilter === status ? '#10110f' : '#f2efe7',
                   color: verificationFilter === status ? 'white' : 'black',
                   padding: '0.5rem 1rem',
                   borderRadius: '0.25rem',
@@ -550,7 +550,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                   <span style={{
                     marginLeft: '0.5rem',
                     backgroundColor: 'white',
-                    color: '#2563eb',
+                    color: '#10110f',
                     padding: '0.125rem 0.5rem',
                     borderRadius: '9999px',
                     fontSize: '0.75rem'
@@ -564,8 +564,8 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
 
           {/* Verification Requests List */}
           {verificationRequests.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-              <Clock style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem', color: '#d1d5db' }} />
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#74756f' }}>
+              <Clock style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem', color: 'rgba(16, 17, 15, .24)' }} />
               <p style={{ fontSize: '1.25rem' }}>No {verificationFilter !== 'all' ? verificationFilter : ''} verification requests</p>
             </div>
           ) : (
@@ -580,7 +580,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                     key={request._id} 
                     style={{
                       padding: '1rem',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid rgba(16, 17, 15, .17)',
                       borderRadius: '0.5rem',
                       backgroundColor: 'white',
                       boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
@@ -612,7 +612,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                               height: '8rem',
                               objectFit: 'cover',
                               borderRadius: '0.5rem',
-                              border: '2px solid #d1d5db'
+                              border: '2px solid rgba(16, 17, 15, .24)'
                             }}
                           />
                           <div style={{
@@ -642,10 +642,10 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                             <h4 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
                               {userName}
                             </h4>
-                            <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>{request.user?.email}</p>
-                            <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Campus: {request.user?.campus}</p>
+                            <p style={{ fontSize: '0.875rem', color: '#74756f' }}>{request.user?.email}</p>
+                            <p style={{ fontSize: '0.875rem', color: '#74756f' }}>Campus: {request.user?.campus}</p>
                             {whatsappNumber && (
-                              <p style={{ fontSize: '0.875rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
+                              <p style={{ fontSize: '0.875rem', color: '#74756f', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
                                 <MessageCircle style={{ width: '0.75rem', height: '0.75rem' }} />
                                 WhatsApp: {whatsappNumber}
                               </p>
@@ -654,7 +654,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                           {getStatusBadge(request.status)}
                         </div>
 
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.75rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#74756f', marginBottom: '0.75rem' }}>
                           Requested: {new Date(request.requestedAt).toLocaleString()}
                           {request.processedAt && (
                             <> • Processed: {new Date(request.processedAt).toLocaleString()}</>
@@ -663,19 +663,19 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
 
                         {request.adminNote && (
                           <div style={{
-                            backgroundColor: '#f9fafb',
+                            backgroundColor: '#fbfaf6',
                             padding: '0.5rem',
                             borderRadius: '0.375rem',
                             marginBottom: '0.75rem'
                           }}>
-                            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            <p style={{ fontSize: '0.75rem', color: '#74756f' }}>
                               <strong>Admin Note:</strong> {request.adminNote}
                             </p>
                           </div>
                         )}
 
                         {request.status === 'pending' && (
-                          <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb' }}>
+                          <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(16, 17, 15, .17)' }}>
                             {verificationProcessingId === request._id ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <div>
@@ -689,7 +689,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                                     style={{
                                       width: '100%',
                                       padding: '0.5rem',
-                                      border: '1px solid #d1d5db',
+                                      border: '1px solid rgba(16, 17, 15, .24)',
                                       borderRadius: '0.375rem',
                                       resize: 'none'
                                     }}
@@ -702,7 +702,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                                     onClick={() => handleVerificationProcess(request._id, 'approve')}
                                     disabled={!whatsappNumber}
                                     style={{
-                                      backgroundColor: '#16a34a',
+                                      backgroundColor: '#d8ff4f',
                                       color: 'white',
                                       padding: '0.5rem 1rem',
                                       borderRadius: '0.375rem',
@@ -725,7 +725,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                                     onClick={() => handleVerificationProcess(request._id, 'reject')}
                                     disabled={!whatsappNumber}
                                     style={{
-                                      backgroundColor: '#ef4444',
+                                      backgroundColor: '#10110f',
                                       color: 'white',
                                       padding: '0.5rem 1rem',
                                       borderRadius: '0.375rem',
@@ -748,7 +748,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                                     onClick={cancelVerificationProcessing}
                                     style={{
                                       padding: '0.5rem 1rem',
-                                      border: '1px solid #d1d5db',
+                                      border: '1px solid rgba(16, 17, 15, .24)',
                                       borderRadius: '0.375rem',
                                       backgroundColor: 'white',
                                       cursor: 'pointer'
@@ -776,7 +776,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                                 onClick={() => startVerificationProcessing(request._id)}
                                 style={{
                                   width: '100%',
-                                  backgroundColor: '#2563eb',
+                                  backgroundColor: '#10110f',
                                   color: 'white',
                                   padding: '0.5rem 1rem',
                                   borderRadius: '0.375rem',

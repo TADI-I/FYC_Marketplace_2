@@ -731,7 +731,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.25rem',
-                        backgroundColor: loading ? '#f87171' : '#dc2626',
+                        backgroundColor: loading ? '#f87171' : '#000000',
                         color: 'white',
                         padding: '0.5rem',
                         borderRadius: '0.5rem',
@@ -748,7 +748,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                       }}
                       onMouseLeave={(e) => {
                         if (!loading) {
-                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc2626';
+                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000';
                         }
                       }}
                     >

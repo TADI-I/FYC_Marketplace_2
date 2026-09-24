@@ -1,11 +1,18 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
+import lbgMonogram from './lbg-monogram-cream-transparent.png';
 
 interface FooterProps {
   onNavigate: (view: string) => void;
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const ink = '#10110f';
+  const signal = '#d8ff4f';
+  const paper = '#fbfaf6';
+  const muted = '#9c9d97';
+  const line = 'rgba(251,250,246,.16)';
+
   const handleNavigate = (view: string) => {
     // Scroll to top first
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -15,12 +22,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
   return (
     <footer style={{
-      backgroundColor: '#111827', // Dark gray/black background
-      color: 'white',
+      backgroundColor: ink,
+      color: paper,
       marginTop: '4rem',
       paddingTop: '3rem',
       paddingBottom: '3rem',
-      borderTop: '1px solid #374151'
+      borderTop: `1px solid ${line}`
     }}>
       <div style={{
         maxWidth: '1280px',
@@ -37,10 +44,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* About Section */}
           <div>
             <h3 style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              fontWeight: 800,
               marginBottom: '1rem',
-              color: 'white'
+              color: paper,
+              textTransform: 'uppercase',
+              letterSpacing: '.06em'
             }}>
               About FYC
             </h3>
@@ -51,15 +60,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#9CA3AF',
+                    color: muted,
                     cursor: 'pointer',
                     padding: 0,
                     textAlign: 'left',
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   About Us
                 </button>
@@ -70,15 +79,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#9CA3AF',
+                    color: muted,
                     cursor: 'pointer',
                     padding: 0,
                     textAlign: 'left',
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   How It Works
                 </button>
@@ -89,15 +98,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#9CA3AF',
+                    color: muted,
                     cursor: 'pointer',
                     padding: 0,
                     textAlign: 'left',
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   FAQ
                 </button>
@@ -108,10 +117,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Support Section */}
           <div>
             <h3 style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              fontWeight: 800,
               marginBottom: '1rem',
-              color: 'white'
+              color: paper,
+              textTransform: 'uppercase',
+              letterSpacing: '.06em'
             }}>
               Support
             </h3>
@@ -122,15 +133,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#9CA3AF',
+                    color: muted,
                     cursor: 'pointer',
                     padding: 0,
                     textAlign: 'left',
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   Contact Us
                 </button>
@@ -141,7 +152,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    color: '#9CA3AF',
+                    color: muted,
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -149,8 +160,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   <MessageCircle style={{ height: '1rem', width: '1rem' }} />
                   WhatsApp Support
@@ -162,10 +173,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Legal Section */}
           <div>
             <h3 style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              fontWeight: 800,
               marginBottom: '1rem',
-              color: 'white'
+              color: paper,
+              textTransform: 'uppercase',
+              letterSpacing: '.06em'
             }}>
               Legal
             </h3>
@@ -176,15 +189,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#9CA3AF',
+                    color: muted,
                     cursor: 'pointer',
                     padding: 0,
                     textAlign: 'left',
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   Terms of Service
                 </button>
@@ -195,15 +208,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#9CA3AF',
+                    color: muted,
                     cursor: 'pointer',
                     padding: 0,
                     textAlign: 'left',
                     fontSize: '0.875rem',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = signal}
+                  onMouseLeave={(e) => e.currentTarget.style.color = muted}
                 >
                   Privacy Policy
                 </button>
@@ -214,10 +227,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Campus Locations */}
           <div>
             <h3 style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              fontWeight: 800,
               marginBottom: '1rem',
-              color: 'white'
+              color: paper,
+              textTransform: 'uppercase',
+              letterSpacing: '.06em'
             }}>
               Locations
             </h3>
@@ -226,7 +241,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               padding: 0, 
               margin: 0,
               fontSize: '0.875rem',
-              color: '#9CA3AF'
+              color: muted
             }}>
               <li style={{ marginBottom: '0.25rem' }}>Pretoria Central</li>
               <li style={{ marginBottom: '0.25rem' }}>Soshanguve South</li>
@@ -242,25 +257,37 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         {/* Copyright Section */}
         <div style={{
-          borderTop: '1px solid #374151',
+          borderTop: `1px solid ${line}`,
           paddingTop: '2rem',
           marginTop: '2rem',
           textAlign: 'center'
         }}>
           <p style={{
-            color: '#9CA3AF',
+            color: muted,
             fontSize: '0.875rem',
             marginBottom: '0.5rem'
           }}>
             © {new Date().getFullYear()} FYC Marketplace. All rights reserved.
           </p>
-          <p style={{
-            color: '#9CA3AF',
-            fontSize: '0.875rem',
-            margin: 0
-          }}>
-            Designed by Big Daddy T
-          </p>
+ 
+          <div className="poweredBy">
+            <img
+              src={lbgMonogram}
+              alt="LBG Software"
+              width="70"
+              height="20"
+            />
+            <span>
+              Powered by{' '}
+              <a
+                href="https://lbgsoftware.co.za"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LBG Software
+              </a>
+            </span>
+          </div>
         </div>
       </div>
     </footer>

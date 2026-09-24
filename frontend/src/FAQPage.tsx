@@ -120,7 +120,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
       <button 
         onClick={onBack}
         style={{
-          backgroundColor: '#2563eb',
+          backgroundColor: '#10110f',
           color: 'white',
           padding: '0.5rem 1.5rem',
           borderRadius: '0.5rem',
@@ -132,8 +132,8 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
           marginBottom: '1.5rem',
           transition: 'background-color 0.2s'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#000000'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10110f'}
       >
         <ArrowLeft style={{ height: '1.25rem', width: '1.25rem' }} />
         <span>Back to Home</span>
@@ -145,17 +145,17 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
         padding: '2rem'
       }}>
-        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem' }}>
           Frequently Asked Questions
         </h1>
-        <p style={{ fontSize: '1.125rem', color: '#4B5563', marginBottom: '2rem' }}>
+        <p style={{ fontSize: '1.125rem', color: '#3e403a', marginBottom: '2rem' }}>
           Find answers to common questions about FYC Marketplace. Can't find what you're looking for? 
-          Contact us on WhatsApp at <a href="https://wa.me/27711126204" style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: '600' }}>+27 71 112 6204</a>.
+          Contact us on WhatsApp at <a href="https://wa.me/27711126204" style={{ color: '#10110f', textDecoration: 'underline', fontWeight: '600' }}>+27 71 112 6204</a>.
         </p>
 
         {/* Category Filter - FIXED FOR MOBILE */}
         <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.75rem' }}>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#3e403a', marginBottom: '0.75rem' }}>
             Filter by Category:
           </h3>
           <div style={{ 
@@ -174,8 +174,8 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
                   fontWeight: '500',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  backgroundColor: selectedCategory === category.id ? '#2563eb' : '#f3f4f6',
-                  color: selectedCategory === category.id ? 'white' : '#374151',
+                  backgroundColor: selectedCategory === category.id ? '#10110f' : '#f2efe7',
+                  color: selectedCategory === category.id ? 'white' : '#3e403a',
                   fontSize: '0.875rem',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -183,12 +183,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
                 }}
                 onMouseEnter={(e) => {
                   if (selectedCategory !== category.id) {
-                    e.currentTarget.style.backgroundColor = '#e5e7eb';
+                    e.currentTarget.style.backgroundColor = 'rgba(16, 17, 15, .17)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedCategory !== category.id) {
-                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    e.currentTarget.style.backgroundColor = '#f2efe7';
                   }
                 }}
               >
@@ -204,7 +204,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             <div
               key={index}
               style={{
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(16, 17, 15, .17)',
                 borderRadius: '0.5rem',
                 overflow: 'hidden',
                 transition: 'box-shadow 0.2s',
@@ -232,7 +232,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
                   transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f9fafb';
+                  e.currentTarget.style.backgroundColor = '#fbfaf6';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'white';
@@ -241,25 +241,25 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
                 <h3 style={{
                   fontSize: '1.125rem',
                   fontWeight: '600',
-                  color: '#111827',
+                  color: '#10110f',
                   paddingRight: '1rem',
                   flex: 1
                 }}>
                   {faq.question}
                 </h3>
                 {openIndex === index ? (
-                  <ChevronUp style={{ height: '1.25rem', width: '1.25rem', color: '#2563eb', flexShrink: 0 }} />
+                  <ChevronUp style={{ height: '1.25rem', width: '1.25rem', color: '#10110f', flexShrink: 0 }} />
                 ) : (
-                  <ChevronDown style={{ height: '1.25rem', width: '1.25rem', color: '#9ca3af', flexShrink: 0 }} />
+                  <ChevronDown style={{ height: '1.25rem', width: '1.25rem', color: '#9c9d97', flexShrink: 0 }} />
                 )}
               </button>
               {openIndex === index && (
                 <div style={{
                   padding: '0 1.25rem 1.25rem',
-                  backgroundColor: '#f9fafb' // GRAY BACKGROUND FOR ANSWER
+                  backgroundColor: '#fbfaf6' // GRAY BACKGROUND FOR ANSWER
                 }}>
                   <p style={{
-                    color: '#374151',
+                    color: '#3e403a',
                     lineHeight: '1.75',
                     margin: 0
                   }}>
@@ -274,15 +274,15 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
         {/* Still have questions */}
         <div style={{
           marginTop: '3rem',
-          background: 'linear-gradient(to right, #eff6ff, #fff7ed)',
-          border: '1px solid #bfdbfe',
+          background: '#fbfaf6',
+          border: '1px solid rgba(16, 17, 15, .17)',
           borderRadius: '0.5rem',
           padding: '1.5rem'
         }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
             Still Have Questions?
           </h2>
-          <p style={{ color: '#374151', marginBottom: '1rem' }}>
+          <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
             Our support team is here to help! Reach out to us on WhatsApp for quick assistance 
             with any issues or questions about FYC Marketplace.
           </p>
@@ -294,7 +294,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              backgroundColor: '#16a34a',
+              backgroundColor: '#d8ff4f',
               color: 'white',
               padding: '0.75rem 1.5rem',
               borderRadius: '0.5rem',
@@ -303,10 +303,10 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
               transition: 'background-color 0.2s'
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#15803d';
+              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#bfe638';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#16a34a';
+              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#d8ff4f';
             }}
           >
             Contact Support on WhatsApp
