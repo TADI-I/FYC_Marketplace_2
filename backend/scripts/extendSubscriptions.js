@@ -3,7 +3,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const DB_NAME = process.env.DB_NAME || 'your_db_name'; // ← change this
+const DB_NAME = process.env.DB_NAME || 'tut_marketplace';
 
 const EXTENSION_DAYS = 30;
 
@@ -16,7 +16,10 @@ async function extendAllSubscriptions() {
 
     // Find all subscribed users
     const users = await db.collection('users').find({
-      subscribed: true || { $exists: false }, // Include users without the field (treat as subscribed)
+      $or: [
+        { subscribed: true },
+        { subscribed: { $exists: false } }
+      ], // Include users without the field (treat as subscribed)
       type: 'seller'
     }).toArray();
 

@@ -236,10 +236,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         icon: CheckCircle,
         title: 'Subscription Active',
         message: `Your subscription is active for ${daysRemaining} more days.`,
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200',
-        textColor: 'text-green-800',
-        iconColor: 'text-green-600'
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200',
+        textColor: 'text-blue-800',
+        iconColor: 'text-blue-600'
       };
     }
 
@@ -441,7 +441,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="apple-page min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <p className="text-lg text-gray-600 mb-4">Please log in to view your profile.</p>
           <button 
@@ -458,7 +458,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
   const subscriptionAlert = getSubscriptionAlert();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="apple-page profile-page min-h-screen bg-gray-50 py-8">
       {/* Reactivation Modal - Single instance at top level */}
       <ReactivateModal
         isOpen={showReactivationModal}
@@ -471,8 +471,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="h-10 w-10 text-blue-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent!</h2>
               <p className="text-gray-600">
@@ -500,7 +500,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setShowUpgradeContactModal(false)}
-                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span>Contact Admin on WhatsApp</span>
@@ -531,6 +531,117 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         </div>
       )}
 
+      {editing && (
+        <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="profile-edit-title">
+          <div className="apple-modal-card bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 id="profile-edit-title" className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+                <p className="text-sm text-gray-600">Update your account details in one focused step.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleEditToggle}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                aria-label="Close profile editor"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="profile-name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="profile-email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="profile-campus" className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <select
+                    id="profile-campus"
+                    name="campus"
+                    value={formData.campus}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">{campuses[0].name}</option>
+                    {campuses.map((campus) => (
+                      <option key={campus.id} value={campus.id}>
+                        {campus.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="profile-whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
+                    WhatsApp Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="profile-whatsapp"
+                    name="whatsapp"
+                    value={formData.whatsapp}
+                    onChange={handleInputChange}
+                    placeholder="+27123456789"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Include country code, for example 27...</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditToggle}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* WhatsApp Support Button - Fixed at bottom right */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
         {/* Tooltip that appears after 30 seconds */}
@@ -546,7 +657,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
               width: '280px',
               animation: 'slideIn 0.5s ease-out',
-              border: '2px solid #25D366'
+              border: '2px solid #007aff'
             }}
           >
             <button
@@ -570,7 +681,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
               <div
                 style={{
-                  backgroundColor: '#25D366',
+                  backgroundColor: '#007aff',
                   borderRadius: '50%',
                   width: '40px',
                   height: '40px',
@@ -607,7 +718,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                 height: '0',
                 borderLeft: '10px solid transparent',
                 borderRight: '10px solid transparent',
-                borderTop: '10px solid #25D366'
+                borderTop: '10px solid #007aff'
               }}
             />
           </div>
@@ -620,7 +731,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
           style={{
             position: 'relative',
             display: 'flex',
-            backgroundColor: '#25D366',
+            backgroundColor: '#007aff',
             color: 'white',
             width: '60px',
             height: '60px',
@@ -634,11 +745,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.1)';
-            e.currentTarget.style.backgroundColor = '#20BA5A';
+            e.currentTarget.style.backgroundColor = '#0062cc';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.backgroundColor = '#25D366';
+            e.currentTarget.style.backgroundColor = '#007aff';
           }}
           onClick={() => setShowSupportTooltip(false)}
           title="Contact Support on WhatsApp"
@@ -679,7 +790,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
                 <UserIC className="h-12 w-12 text-black" />
               </div>
               <div>
@@ -707,7 +818,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   <button
                     onClick={handleRequestReactivation}
                     disabled={loading || upgrading}
-                    className="mt-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:opacity-50"
+                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                   >
                     {loading ? 'Sending request...' : 'Request Reactivation'}
                   </button>
@@ -717,7 +828,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   <button
                     onClick={handleRenewSubscription}
                     disabled={upgrading}
-                    className="mt-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:opacity-50"
+                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                   >
                     {upgrading ? 'Processing...' : 'Renew Subscription'}
                   </button>
@@ -737,10 +848,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         )}
 
         {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
-              <Save className="h-5 w-5 text-green-600 mr-2" />
-              <span className="text-green-800">{successMessage}</span>
+              <Save className="h-5 w-5 text-blue-600 mr-2" />
+              <span className="text-blue-800">{successMessage}</span>
             </div>
           </div>
         )}
@@ -762,101 +873,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                   >
                     <Edit3 className="h-4 w-4" />
-                    <span>{editing ? 'Cancel' : 'Edit Profile'}</span>
+                    <span>Edit Profile</span>
                   </button>
                 </div>
 
-                {editing ? (
-                  <form onSubmit={handleProfileUpdate} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                          Full Name
-                        </label>
-                        <input
-                          type="text"
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="campus" className="block text-sm font-medium text-gray-700 mb-1">
-                          Location
-                        </label>
-                        <select
-                          id="campus"
-                          name="campus"
-                          value={formData.campus}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        >
-                          <option value="">{campuses[0].name}</option>
-                          {campuses.map((campus) => (
-                            <option key={campus.id} value={campus.id}>
-                              {campus.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
-                          WhatsApp Number
-                        </label>
-                        <input
-                          type="tel"
-                          id="whatsapp"
-                          name="whatsapp"
-                          value={formData.whatsapp}
-                          onChange={handleInputChange}
-                          placeholder="+27123456789"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Include country code (e.g. 27...) so others can contact you via WhatsApp.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-3 pt-4">
-                      <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
-                      >
-                        <Save className="h-4 w-4" />
-                        <span>{loading ? 'Saving...' : 'Save Changes'}</span>
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={handleEditToggle}
-                        className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center space-x-3">
                         <UserIC className="h-5 w-5 text-gray-400" />
@@ -900,8 +921,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
 
@@ -912,7 +932,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Subscription</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.subscribed && user.subscriptionStatus !== 'expired' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      user.subscribed && user.subscriptionStatus !== 'expired' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                     }`}>
                       {user.subscribed && user.subscriptionStatus !== 'expired' ? 'Active' : 'Inactive'}
                     </span>
@@ -959,7 +979,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                     <button 
                       onClick={handleRequestUpgrade} 
                       disabled={loading || upgradeRequested}
-                      className="w-full bg-orange-600 text-white p-3 rounded hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center space-x-2"
+                      className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
                       <Zap className="h-4 w-4" />
                       <span>{upgradeRequested ? 'Request Pending' : loading ? 'Sending...' : 'Request Seller Account'}</span>

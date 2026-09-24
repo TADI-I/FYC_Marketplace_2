@@ -8,7 +8,7 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const ink = '#10110f';
-  const signal = '#d8ff4f';
+  const signal = '#007aff';
   const paper = '#fbfaf6';
   const muted = '#9c9d97';
   const line = 'rgba(251,250,246,.16)';
@@ -24,7 +24,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     <footer style={{
       backgroundColor: ink,
       color: paper,
-      marginTop: '4rem',
+      marginTop: 'auto',
       paddingTop: '3rem',
       paddingBottom: '3rem',
       borderTop: `1px solid ${line}`

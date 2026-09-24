@@ -5,6 +5,7 @@ import { getVerificationRequests, processVerificationRequest } from './api';
 
 // CRITICAL: Must match the API_BASE in api.js
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5001';
+const ADMIN_PAGE_SIZE = 10;
 
 export interface AdminVerificationProps {
   darkMode?: boolean;
@@ -50,6 +51,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
   const [processing, setProcessing] = useState<string | null>(null);
   const [counts, setCounts] = useState<any>({});
   const [verificationNote, setVerificationNote] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState(ADMIN_PAGE_SIZE);
 
   useEffect(() => {
     fetchRequests();
@@ -61,6 +63,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
       const data = await getVerificationRequests(filter);
       setRequests(data.requests || []);
       setCounts(data.counts || {});
+      setVisibleCount(ADMIN_PAGE_SIZE);
     } catch (err) {
       console.error('Failed to fetch verification requests:', err);
     } finally {
@@ -119,7 +122,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
   const getStatusBadge = (status: string) => {
     const badges = {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
-      approved: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
+      approved: { bg: 'bg-blue-100', text: 'text-blue-800', icon: CheckCircle },
       rejected: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle }
     };
     const badge = badges[status as keyof typeof badges] || badges.pending;
@@ -158,6 +161,9 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
     );
   }
 
+  const visibleRequests = requests.slice(0, visibleCount);
+  const hasMoreRequests = visibleCount < requests.length;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
@@ -190,7 +196,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#d8ff4f' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#007aff' }}>
               {counts.approved || 0}
             </div>
             <div style={{ fontSize: '0.875rem', color: '#74756f', marginTop: '0.25rem' }}>
@@ -241,18 +247,18 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
             </div>
           </div>
 
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-green-900">
+                <div className="text-2xl font-bold text-blue-900">
                   {counts.approved || 0}
                 </div>
-                <div className="text-sm text-green-700 mt-1">
+                <div className="text-sm text-blue-700 mt-1">
                   Approved
                 </div>
               </div>
-              <div className="bg-green-200 rounded-full p-3">
-                <CheckCircle className="h-6 w-6 text-green-700" />
+              <div className="bg-blue-200 rounded-full p-3">
+                <CheckCircle className="h-6 w-6 text-blue-700" />
               </div>
             </div>
           </div>
@@ -302,7 +308,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
           </div>
         ) : (
           <div className="space-y-4">
-            {requests.map((request) => {
+            {visibleRequests.map((request) => {
               const imageUrl = buildImageUrl(request.imageUrl);
               const whatsappNumber = request.user?.whatsapp || request.user?.phoneNumber || '';
               const userName = request.user?.name || 'User';
@@ -383,7 +389,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
                                 <button
                                   onClick={() => handleProcess(request._id, 'approve', whatsappNumber, userName)}
                                   disabled={!whatsappNumber}
-                                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                                   title={!whatsappNumber ? 'No WhatsApp number available' : ''}
                                 >
                                   <CheckCircle className="h-4 w-4" />
@@ -430,6 +436,19 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
                 </div>
               );
             })}
+            {hasMoreRequests && (
+              <button
+                onClick={() => setVisibleCount(count => Math.min(count + ADMIN_PAGE_SIZE, requests.length))}
+                className="mx-auto block px-5 py-3 rounded-lg font-semibold"
+                style={{
+                  border: '1px solid rgba(0, 122, 255, .24)',
+                  backgroundColor: 'rgba(0, 122, 255, .1)',
+                  color: '#007aff'
+                }}
+              >
+                Load 10 more ({requests.length - visibleCount} remaining)
+              </button>
+            )}
           </div>
         )}
       </div>

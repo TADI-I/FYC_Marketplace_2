@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getAllUsers, updateUser } from './api';
 
+const ADMIN_PAGE_SIZE = 10;
+
 type User = {
   _id: string;
   name: string;
@@ -21,6 +23,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
   const [filterType, setFilterType] = useState<'all'|'buyer'|'seller'>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<User>>({});
+  const [visibleCount, setVisibleCount] = useState(ADMIN_PAGE_SIZE);
 
   // Calculate counts
   const buyerCount = users.filter(u => u.type === 'buyer').length;
@@ -32,6 +35,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
     try {
       const data = await getAllUsers(filterType);
       setUsers(data.users || []);
+      setVisibleCount(ADMIN_PAGE_SIZE);
     } catch (err) {
       console.error(err);
       alert('Failed to load users');
@@ -41,6 +45,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
   };
 
   useEffect(() => { load(); }, [filterType]);
+
+  const visibleUsers = users.slice(0, visibleCount);
+  const hasMoreUsers = visibleCount < users.length;
 
   const startEdit = (u: User) => {
     setEditingId(u._id);
@@ -170,7 +177,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {users.map(u => (
+        {visibleUsers.map(u => (
           <div 
             key={u._id} 
             style={{
@@ -185,71 +192,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
             }}
           >
             <div style={{ minWidth: 0, flex: 1 }}>
-              {editingId === u._id ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
-                      Name
-                    </label>
-                    <input 
-                      value={form.name || ''} 
-                      onChange={e => setForm({...form, name: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid rgba(16, 17, 15, .24)',
-                        borderRadius: '0.375rem'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
-                      Email
-                    </label>
-                    <input 
-                      value={form.email || ''} 
-                      onChange={e => setForm({...form, email: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid rgba(16, 17, 15, .24)',
-                        borderRadius: '0.375rem'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
-                      Campus
-                    </label>
-                    <input 
-                      value={form.campus || ''} 
-                      onChange={e => setForm({...form, campus: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid rgba(16, 17, 15, .24)',
-                        borderRadius: '0.375rem'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
-                      WhatsApp
-                    </label>
-                    <input 
-                      value={form.whatsapp || ''} 
-                      onChange={e => setForm({...form, whatsapp: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid rgba(16, 17, 15, .24)',
-                        borderRadius: '0.375rem'
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <>
+              <>
                   <div style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
                     {u.name} 
                     <span style={{ fontSize: '0.75rem', color: '#74756f', fontWeight: 400, marginLeft: '0.5rem' }}>
@@ -274,58 +217,80 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                       Last updated: {new Date(u.updatedAt).toLocaleString()}
                     </div>
                   )}
-                </>
-              )}
+              </>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '1rem' }}>
-              {editingId === u._id ? (
-                <>
-                  <button 
-                    onClick={save} 
-                    style={{ 
-                      backgroundColor: '#10110f', 
-                      color: 'white', 
-                      padding: '0.5rem 1rem', 
-                      borderRadius: '0.25rem',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Save
-                  </button>
-                  <button 
-                    onClick={() => { setEditingId(null); setForm({}); }} 
-                    style={{ 
-                      padding: '0.5rem 1rem',
-                      border: '1px solid rgba(16, 17, 15, .24)',
-                      borderRadius: '0.25rem',
-                      backgroundColor: 'white',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button 
-                  onClick={() => startEdit(u)} 
-                  style={{ 
-                    padding: '0.5rem 1rem',
-                    border: '1px solid rgba(16, 17, 15, .24)',
-                    borderRadius: '0.25rem',
-                    backgroundColor: 'white',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Edit
-                </button>
-              )}
+              <button 
+                onClick={() => startEdit(u)} 
+                style={{ 
+                  padding: '0.5rem 1rem',
+                  border: '1px solid rgba(16, 17, 15, .24)',
+                  borderRadius: '0.25rem',
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                Edit
+              </button>
             </div>
           </div>
         ))}
         {users.length === 0 && <div style={{ textAlign: 'center', color: '#74756f', padding: '2rem' }}>No users found</div>}
+        {hasMoreUsers && (
+          <button
+            onClick={() => setVisibleCount(count => Math.min(count + ADMIN_PAGE_SIZE, users.length))}
+            style={{
+              alignSelf: 'center',
+              padding: '0.75rem 1.25rem',
+              border: '1px solid rgba(0, 122, 255, .24)',
+              borderRadius: '0.5rem',
+              backgroundColor: 'rgba(0, 122, 255, .1)',
+              color: '#007aff',
+              cursor: 'pointer',
+              fontWeight: 700
+            }}
+          >
+            Load 10 more ({users.length - visibleCount} remaining)
+          </button>
+        )}
       </div>
+
+      {editingId && (
+        <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="admin-user-edit-title">
+          <div className="apple-modal-card bg-white rounded-xl shadow-2xl max-w-lg w-full">
+            <h3 id="admin-user-edit-title" style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>
+              Edit User
+            </h3>
+            <div style={{ display: 'grid', gap: '0.875rem' }}>
+              <label style={{ display: 'grid', gap: '0.35rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                Name
+                <input value={form.name || ''} onChange={e => setForm({...form, name: e.target.value})} />
+              </label>
+              <label style={{ display: 'grid', gap: '0.35rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                Email
+                <input value={form.email || ''} onChange={e => setForm({...form, email: e.target.value})} />
+              </label>
+              <label style={{ display: 'grid', gap: '0.35rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                Campus
+                <input value={form.campus || ''} onChange={e => setForm({...form, campus: e.target.value})} />
+              </label>
+              <label style={{ display: 'grid', gap: '0.35rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                WhatsApp
+                <input value={form.whatsapp || ''} onChange={e => setForm({...form, whatsapp: e.target.value})} />
+              </label>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+              <button onClick={save} style={{ backgroundColor: '#007aff', color: 'white', padding: '0.75rem 1rem', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', flex: 1 }}>
+                Save
+              </button>
+              <button onClick={() => { setEditingId(null); setForm({}); }} style={{ padding: '0.75rem 1rem', border: '1px solid rgba(16, 17, 15, .24)', borderRadius: '0.5rem', backgroundColor: 'white', cursor: 'pointer', flex: 1 }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

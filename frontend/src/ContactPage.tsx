@@ -74,7 +74,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
             padding: '1.5rem' 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: '#d8ff4f', borderRadius: '50%', padding: '0.75rem' }}>
+              <div style={{ backgroundColor: '#007aff', borderRadius: '50%', padding: '0.75rem' }}>
                 <MessageCircle style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>WhatsApp Support</h3>
@@ -90,7 +90,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#d8ff4f',
+                backgroundColor: '#007aff',
                 color: 'white',
                 padding: '0.5rem 1rem',
                 borderRadius: '0.5rem',
@@ -98,8 +98,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 textDecoration: 'none',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#bfe638'}
-              onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#d8ff4f'}
+              onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#0062cc'}
+              onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#007aff'}
             >
               <MessageCircle style={{ height: '1rem', width: '1rem' }} />
               Chat on WhatsApp
@@ -158,7 +158,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
             padding: '1.5rem' 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: '#d8ff4f', borderRadius: '50%', padding: '0.75rem' }}>
+              <div style={{ backgroundColor: '#007aff', borderRadius: '50%', padding: '0.75rem' }}>
                 <Clock style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Support Hours</h3>

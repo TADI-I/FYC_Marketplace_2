@@ -271,7 +271,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
 
   if (!currentUser || currentUser.type !== 'seller') {
     return (
-      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+      <div className="apple-page max-w-4xl mx-auto p-4 sm:p-6">
         <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 text-center">
           <h2 className="text-xl font-bold text-red-600">Access Denied</h2>
           <p className="text-gray-600 mt-2">You need to be a seller to access this page.</p>
@@ -299,7 +299,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6">
+    <div className="apple-page seller-products-page max-w-6xl mx-auto p-4 sm:p-6">
       {/* WhatsApp Support Button - Fixed at bottom right */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
         {/* Tooltip that appears after 30 seconds */}
@@ -315,7 +315,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
               width: '280px',
               animation: 'slideIn 0.5s ease-out',
-              border: '2px solid #25D366'
+              border: '2px solid #007aff'
             }}
           >
             <button
@@ -339,7 +339,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
               <div
                 style={{
-                  backgroundColor: '#25D366',
+                  backgroundColor: '#007aff',
                   borderRadius: '50%',
                   width: '40px',
                   height: '40px',
@@ -376,7 +376,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                 height: '0',
                 borderLeft: '10px solid transparent',
                 borderRight: '10px solid transparent',
-                borderTop: '10px solid #25D366'
+                borderTop: '10px solid #007aff'
               }}
             />
           </div>
@@ -389,7 +389,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
           style={{
             position: 'relative',
             display: 'flex',
-            backgroundColor: '#25D366',
+            backgroundColor: '#007aff',
             color: 'white',
             width: '60px',
             height: '60px',
@@ -403,11 +403,11 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.1)';
-            e.currentTarget.style.backgroundColor = '#20BA5A';
+            e.currentTarget.style.backgroundColor = '#0062cc';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.backgroundColor = '#25D366';
+            e.currentTarget.style.backgroundColor = '#007aff';
           }}
           onClick={() => setShowSupportTooltip(false)}
           title="Contact Support on WhatsApp"
@@ -457,7 +457,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
         <button 
           onClick={onAddProduct}
           disabled={loading}
-          className="flex items-center justify-center gap-2 bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 disabled:bg-orange-400 disabled:cursor-not-allowed w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Add New Product
@@ -591,7 +591,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                 <button 
                   onClick={handleUpdateProduct}
                   disabled={loading}
-                  className="flex-1 bg-orange-600 text-white px-6 py-3 rounded hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -648,7 +648,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
           <button 
             onClick={onAddProduct}
             disabled={loading}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed w-full sm:w-auto"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed w-full sm:w-auto"
           >
             Add Your First Product
           </button>
@@ -685,7 +685,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                       {product.title}
                     </h3>
                     <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
-                      product.type === 'service' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                      product.type === 'service' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800'
                     }`}>
                       {product.type}
                     </span>
@@ -696,7 +696,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                   </p>
                   
                   <div className="flex justify-between items-center mb-3">
-                    <span className="font-bold text-green-600 text-base">R{product.price}</span>
+                    <span className="font-bold text-blue-600 text-base">R{product.price}</span>
                     <span className="text-xs text-gray-500 capitalize">{product.category}</span>
                   </div>
                   
@@ -705,7 +705,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                     <button 
                       onClick={() => setViewingAnalytics(getProductId(product) || null)}
                       disabled={loading}
-                      className="flex-1 flex items-center justify-center gap-1 bg-orange-600 text-white py-2 px-1 rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-sm"
+                      className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white py-2 px-1 rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-sm"
                       title="View Analytics"
                     >
                       <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />

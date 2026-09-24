@@ -111,8 +111,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto">
+    <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="apple-modal-card bg-white rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">
           Register for FYC Marketplace
         </h2>
@@ -149,7 +149,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             confirmPassword
               ? password !== confirmPassword
                 ? "border-red-500"
-                : "border-green-500"
+                : "border-blue-500"
               : ""
           }`}
           value={confirmPassword}
@@ -209,7 +209,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         <div className="flex gap-2">
           <button
             onClick={handleRegister}
-            className="flex-1 bg-orange-600 text-white p-3 rounded hover:bg-orange-700"
+            className="flex-1 bg-blue-600 text-white p-3 rounded hover:bg-blue-700"
           >
             Register
           </button>

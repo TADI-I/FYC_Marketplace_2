@@ -215,7 +215,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ currentUser, onProductA
   };
  
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="apple-page apple-form-shell max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">Add New Product/Service</h2>
       
       {disabledMessage && (
@@ -344,7 +344,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ currentUser, onProductA
         <button 
           onClick={handleAddProduct} 
           disabled={loading || !canPost}
-          className="bg-orange-600 text-white px-6 py-3 rounded hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed flex items-center gap-2"
+          className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {loading ? (
             <>

@@ -144,8 +144,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   if (!currentUser || !chatWith) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+      <div className="apple-page max-w-2xl mx-auto p-6">
+        <div className="apple-surface bg-white rounded-lg shadow-lg p-6 text-center">
           <div>Please log in to view messages.</div>
         </div>
       </div>
@@ -153,8 +153,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg h-[600px] flex flex-col">
+    <div className="apple-page chat-shell max-w-2xl mx-auto p-6">
+      <div className="apple-surface chat-card bg-white rounded-lg shadow-lg h-[600px] flex flex-col">
         {/* Header */}
         <div className="p-4 border-b bg-blue-600 text-white rounded-t-lg flex justify-between items-center">
           <div className="flex items-center gap-3">

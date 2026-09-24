@@ -59,7 +59,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
 
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Database style={{ height: '1.5rem', width: '1.5rem', color: '#d8ff4f' }} />
+              <Database style={{ height: '1.5rem', width: '1.5rem', color: '#007aff' }} />
               1. Information We Collect
             </h2>
             
@@ -115,7 +115,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <p>We use your personal data for the following purposes:</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #d8ff4f', padding: '1rem', borderRadius: '0.25rem' }}>
+              <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', padding: '1rem', borderRadius: '0.25rem' }}>
                 <p style={{ fontWeight: '600', color: '#10110f' }}>Platform Operations</p>
                 <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <li>Create and manage your account</li>
@@ -135,7 +135,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
                 </ul>
               </div>
 
-              <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #d8ff4f', padding: '1rem', borderRadius: '0.25rem' }}>
+              <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', padding: '1rem', borderRadius: '0.25rem' }}>
                 <p style={{ fontWeight: '600', color: '#10110f' }}>Communication</p>
                 <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <li>Send account notifications (subscription renewals, verification updates)</li>
@@ -210,7 +210,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li><strong>Regular Updates:</strong> Security patches and software updates applied promptly</li>
               <li><strong>Authentication:</strong> JWT tokens with expiration for secure sessions</li>
             </ul>
-            <p style={{ marginTop: '0.75rem', fontSize: '0.875rem', backgroundColor: '#fbfaf6', border: '1px solid #d8ff4f', borderRadius: '0.25rem', padding: '0.75rem' }}>
+            <p style={{ marginTop: '0.75rem', fontSize: '0.875rem', backgroundColor: '#fbfaf6', border: '1px solid #007aff', borderRadius: '0.25rem', padding: '0.75rem' }}>
               <strong>Note:</strong> While we take security seriously, no online platform can guarantee 100% security. 
               You are responsible for keeping your password confidential and logging out of shared devices.
             </p>
@@ -231,7 +231,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
 
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <UserX style={{ height: '1.5rem', width: '1.5rem', color: '#d8ff4f' }} />
+              <UserX style={{ height: '1.5rem', width: '1.5rem', color: '#007aff' }} />
               6. Your Privacy Rights
             </h2>
             <p>You have the following rights regarding your personal data:</p>

@@ -64,8 +64,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
+    <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="apple-modal-card bg-white rounded-lg p-6 w-96">
         <h2 className="text-xl font-bold mb-4">Login to FYC Marketplace</h2>
         {error && <p className="text-red-600 mb-4">{error}</p>}
         <input
@@ -90,7 +90,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
           <button 
             onClick={handleLogin} 
             disabled={loading}
-            className="flex-1 bg-orange-600 text-white p-3 rounded hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>

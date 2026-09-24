@@ -56,7 +56,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
           </p>
 
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShoppingBag style={{ height: '1.5rem', width: '1.5rem', color: '#d8ff4f' }} />
+            <ShoppingBag style={{ height: '1.5rem', width: '1.5rem', color: '#007aff' }} />
             What We Offer
           </h2>
           <div style={{ backgroundColor: '#fbfaf6', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
@@ -80,7 +80,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
           </div>
 
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Shield style={{ height: '1.5rem', width: '1.5rem', color: '#d8ff4f' }} />
+            <Shield style={{ height: '1.5rem', width: '1.5rem', color: '#007aff' }} />
             Why Choose FYC Marketplace?
           </h2>
           <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
@@ -97,7 +97,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
             </div>
             <div style={{ backgroundColor: '#fbfaf6', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
               <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Safe & Verified</h3>
-              <p style={{ fontSize: '0.875rem', color: '#bfe638' }}>
+              <p style={{ fontSize: '0.875rem', color: '#0062cc' }}>
                 Verified seller badges help you identify trustworthy sellers, and direct WhatsApp 
                 communication keeps transactions transparent.
               </p>
@@ -147,7 +147,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
               <button 
                 onClick={onBack}
                 style={{
-                  backgroundColor: '#d8ff4f',
+                  backgroundColor: '#007aff',
                   color: 'white',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
@@ -156,8 +156,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
                   cursor: 'pointer',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#bfe638'}
-                onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#d8ff4f'}
+                onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#0062cc'}
+                onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#007aff'}
               >
                 Browse Marketplace
               </button>

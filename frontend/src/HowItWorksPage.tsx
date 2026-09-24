@@ -84,10 +84,10 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
             </div>
 
             {/* Step 2 */}
-            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #d8ff4f', borderRadius: '0.5rem', padding: '1.5rem' }}>
+            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', borderRadius: '0.5rem', padding: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                 <div style={{
-                  backgroundColor: '#d8ff4f',
+                  backgroundColor: '#007aff',
                   color: 'white',
                   borderRadius: '50%',
                   width: '2.5rem',
@@ -102,7 +102,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Search style={{ height: '1.25rem', width: '1.25rem', color: '#d8ff4f' }} />
+                    <Search style={{ height: '1.25rem', width: '1.25rem', color: '#007aff' }} />
                     Search for Items
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
@@ -119,10 +119,10 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
             </div>
 
             {/* Step 3 */}
-            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #d8ff4f', borderRadius: '0.5rem', padding: '1.5rem' }}>
+            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', borderRadius: '0.5rem', padding: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                 <div style={{
-                  backgroundColor: '#d8ff4f',
+                  backgroundColor: '#007aff',
                   color: 'white',
                   borderRadius: '50%',
                   width: '2.5rem',
@@ -137,7 +137,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <MessageCircle style={{ height: '1.25rem', width: '1.25rem', color: '#d8ff4f' }} />
+                    <MessageCircle style={{ height: '1.25rem', width: '1.25rem', color: '#007aff' }} />
                     Contact the Seller
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
@@ -193,7 +193,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
         {/* For Sellers Section */}
         <div style={{ marginBottom: '3rem' }}>
           <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Package style={{ height: '2rem', width: '2rem', color: '#d8ff4f' }} />
+            <Package style={{ height: '2rem', width: '2rem', color: '#007aff' }} />
             For Sellers
           </h2>
 
@@ -234,10 +234,10 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
             </div>
 
             {/* Seller Step 2 */}
-            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #d8ff4f', borderRadius: '0.5rem', padding: '1.5rem' }}>
+            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', borderRadius: '0.5rem', padding: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                 <div style={{
-                  backgroundColor: '#d8ff4f',
+                  backgroundColor: '#007aff',
                   color: 'white',
                   borderRadius: '50%',
                   width: '2.5rem',
@@ -252,7 +252,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Package style={{ height: '1.25rem', width: '1.25rem', color: '#d8ff4f' }} />
+                    <Package style={{ height: '1.25rem', width: '1.25rem', color: '#007aff' }} />
                     Create Your Listing
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
@@ -270,10 +270,10 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
             </div>
 
             {/* Seller Step 3 */}
-            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #d8ff4f', borderRadius: '0.5rem', padding: '1.5rem' }}>
+            <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', borderRadius: '0.5rem', padding: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                 <div style={{
-                  backgroundColor: '#d8ff4f',
+                  backgroundColor: '#007aff',
                   color: 'white',
                   borderRadius: '50%',
                   width: '2.5rem',
@@ -288,7 +288,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <MessageCircle style={{ height: '1.25rem', width: '1.25rem', color: '#d8ff4f' }} />
+                    <MessageCircle style={{ height: '1.25rem', width: '1.25rem', color: '#007aff' }} />
                     Respond to Buyers
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
@@ -355,14 +355,14 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
             <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#d8ff4f', marginBottom: '0.5rem' }}>For Buyers</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#007aff', marginBottom: '0.5rem' }}>For Buyers</h3>
               <p style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>FREE</p>
               <p style={{ color: '#74756f' }}>
                 Browse and buy unlimited items with no fees, no hidden charges, and no subscriptions.
               </p>
             </div>
             <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#d8ff4f', marginBottom: '0.5rem' }}>For Sellers</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#007aff', marginBottom: '0.5rem' }}>For Sellers</h3>
               <p style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>
                 R25<span style={{ fontSize: '1.125rem' }}>/month</span>
               </p>
@@ -377,7 +377,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
         {/* Safety Tips */}
         <div style={{
           backgroundColor: '#fbfaf6',
-          border: '1px solid #d8ff4f',
+          border: '1px solid #007aff',
           borderRadius: '0.5rem',
           padding: '1.5rem',
           marginBottom: '2rem'

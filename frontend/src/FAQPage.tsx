@@ -294,7 +294,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              backgroundColor: '#d8ff4f',
+              backgroundColor: '#007aff',
               color: 'white',
               padding: '0.75rem 1.5rem',
               borderRadius: '0.5rem',
@@ -303,10 +303,10 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
               transition: 'background-color 0.2s'
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#bfe638';
+              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#0062cc';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#d8ff4f';
+              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#007aff';
             }}
           >
             Contact Support on WhatsApp

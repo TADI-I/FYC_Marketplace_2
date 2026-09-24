@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Clock, Eye, MessageCircle } from 'lucide-react';
 type RequestItem = any;
 type TabKey = 'all' | 'pending' | 'approved' | 'rejected';
 type MainTabKey = 'reactivation' | 'verification' | 'users';
+const ADMIN_PAGE_SIZE = 10;
 
 export interface AdminReactivationProps {
   darkMode?: boolean;
@@ -60,6 +61,8 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
   const [verificationFilter, setVerificationFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
   const [verificationProcessingId, setVerificationProcessingId] = useState<string | null>(null);
   const [verificationNote, setVerificationNote] = useState<string>('');
+  const [reactivationVisibleCount, setReactivationVisibleCount] = useState(ADMIN_PAGE_SIZE);
+  const [verificationVisibleCount, setVerificationVisibleCount] = useState(ADMIN_PAGE_SIZE);
 
   // Build proper image URL with API_BASE
   const buildImageUrl = (imageUrl: string): string => {
@@ -84,6 +87,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       const data = await getReactivationRequests();
       setRequests(data.requests || data || []);
       setCounts(data.counts || {});
+      setReactivationVisibleCount(ADMIN_PAGE_SIZE);
     } catch (err) {
       console.error('Failed to load reactivation requests', err);
     } finally {
@@ -97,6 +101,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       const data = await getVerificationRequests(verificationFilter);
       setVerificationRequests(data.requests || []);
       setVerificationCounts(data.counts || {});
+      setVerificationVisibleCount(ADMIN_PAGE_SIZE);
     } catch (err) {
       console.error('Failed to load verification requests', err);
     } finally {
@@ -108,6 +113,10 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
     if (mainTab === 'reactivation') loadReactivation();
     else if (mainTab === 'verification') loadVerification();
   }, [mainTab, verificationFilter]);
+
+  useEffect(() => {
+    setReactivationVisibleCount(ADMIN_PAGE_SIZE);
+  }, [tab]);
 
   const handleProcess = async (id: string, action: 'approve' | 'reject') => {
     if (!adminNote.trim()) {
@@ -195,7 +204,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
   const getStatusBadge = (status: string) => {
     const badges = {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
-      approved: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
+      approved: { bg: 'bg-blue-100', text: 'text-blue-800', icon: CheckCircle },
       rejected: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle }
     };
     const badge = badges[status as keyof typeof badges] || badges.pending;
@@ -224,9 +233,13 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
   }
 
   const filtered = requests.filter(r => tab === 'all' ? true : r.status === tab);
+  const visibleReactivationRequests = filtered.slice(0, reactivationVisibleCount);
+  const hasMoreReactivationRequests = reactivationVisibleCount < filtered.length;
+  const visibleVerificationRequests = verificationRequests.slice(0, verificationVisibleCount);
+  const hasMoreVerificationRequests = verificationVisibleCount < verificationRequests.length;
 
   return (
-    <div className="p-4">
+    <div className="apple-page admin-page p-4">
       <h2 className="text-xl font-bold mb-4">Admin Panel</h2>
 
       {/* Main Tabs */}
@@ -316,7 +329,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
             <button
               onClick={() => setTab('approved')}
               style={{
-                backgroundColor: tab === 'approved' ? '#d8ff4f' : '#f2efe7',
+                backgroundColor: tab === 'approved' ? '#007aff' : '#f2efe7',
                 color: tab === 'approved' ? 'white' : 'black',
                 padding: '0.25rem 0.75rem',
                 borderRadius: '0.25rem',
@@ -345,7 +358,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
           {/* Requests List */}
           {filtered.length === 0 ? <p>No requests</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {filtered.map(r => (
+              {visibleReactivationRequests.map(r => (
                 <div 
                   key={r._id} 
                   style={{
@@ -380,7 +393,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                     <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
                       Status: <span style={{
                         fontWeight: 500,
-                        color: r.status === 'approved' ? '#d8ff4f' : r.status === 'rejected' ? '#10110f' : '#10110f'
+                        color: r.status === 'approved' ? '#007aff' : r.status === 'rejected' ? '#10110f' : '#10110f'
                       }}>{r.status}</span>
                     </div>
                     {r.processedAt && (
@@ -454,7 +467,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                             <button
                               onClick={() => handleProcess(r._id, 'approve')}
                               style={{
-                                backgroundColor: '#d8ff4f',
+                                backgroundColor: '#007aff',
                                 color: 'white',
                                 padding: '0.5rem 1rem',
                                 borderRadius: '0.25rem',
@@ -519,6 +532,23 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                   )}
                 </div>
               ))}
+              {hasMoreReactivationRequests && (
+                <button
+                  onClick={() => setReactivationVisibleCount(count => Math.min(count + ADMIN_PAGE_SIZE, filtered.length))}
+                  style={{
+                    alignSelf: 'center',
+                    padding: '0.75rem 1.25rem',
+                    border: '1px solid rgba(0, 122, 255, .24)',
+                    borderRadius: '0.5rem',
+                    backgroundColor: 'rgba(0, 122, 255, .1)',
+                    color: '#007aff',
+                    cursor: 'pointer',
+                    fontWeight: 700
+                  }}
+                >
+                  Load 10 more ({filtered.length - reactivationVisibleCount} remaining)
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -570,7 +600,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {verificationRequests.map((request) => {
+              {visibleVerificationRequests.map((request) => {
                 const imageUrl = buildImageUrl(request.imageUrl);
                 const whatsappNumber = request.user?.whatsapp || request.user?.phoneNumber || '';
                 const userName = request.user?.name || 'User';
@@ -702,7 +732,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                                     onClick={() => handleVerificationProcess(request._id, 'approve')}
                                     disabled={!whatsappNumber}
                                     style={{
-                                      backgroundColor: '#d8ff4f',
+                                      backgroundColor: '#007aff',
                                       color: 'white',
                                       padding: '0.5rem 1rem',
                                       borderRadius: '0.375rem',
@@ -799,6 +829,23 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
                   </div>
                 );
               })}
+              {hasMoreVerificationRequests && (
+                <button
+                  onClick={() => setVerificationVisibleCount(count => Math.min(count + ADMIN_PAGE_SIZE, verificationRequests.length))}
+                  style={{
+                    alignSelf: 'center',
+                    padding: '0.75rem 1.25rem',
+                    border: '1px solid rgba(0, 122, 255, .24)',
+                    borderRadius: '0.5rem',
+                    backgroundColor: 'rgba(0, 122, 255, .1)',
+                    color: '#007aff',
+                    cursor: 'pointer',
+                    fontWeight: 700
+                  }}
+                >
+                  Load 10 more ({verificationRequests.length - verificationVisibleCount} remaining)
+                </button>
+              )}
             </div>
           )}
         </div>

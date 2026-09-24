@@ -66,7 +66,7 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ productId, productT
     : '0.0';
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
+    <div className="apple-surface product-analytics bg-white rounded-lg shadow-sm border p-6">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <TrendingUp className="h-5 w-5 text-blue-600" />
         Analytics: {productTitle}
@@ -89,16 +89,16 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ productId, productT
         </div>
 
         {/* WhatsApp Clicks */}
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-green-600 font-medium">WhatsApp Clicks</p>
-              <p className="text-2xl font-bold text-green-900 mt-1">
+              <p className="text-sm text-blue-600 font-medium">WhatsApp Clicks</p>
+              <p className="text-2xl font-bold text-blue-900 mt-1">
                 {analytics.totalWhatsAppClicks}
               </p>
             </div>
-            <div className="bg-green-200 rounded-full p-3">
-              <MessageCircle className="h-6 w-6 text-green-700" />
+            <div className="bg-blue-200 rounded-full p-3">
+              <MessageCircle className="h-6 w-6 text-blue-700" />
             </div>
           </div>
         </div>

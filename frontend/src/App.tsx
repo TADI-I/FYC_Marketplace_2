@@ -1,8 +1,26 @@
 import React, { useState, useEffect, lazy, Suspense, useCallback, useMemo, useRef } from 'react';
-import { ShoppingBag, Plus, Search, User as Useric, Star, Filter, Locate, TrendingUp, MessageCircle, X } from 'lucide-react';
+import {
+  ArrowUp,
+  BadgeCheck,
+  Image as ImageIcon,
+  LogOut,
+  MapPin,
+  Moon,
+  Plus,
+  Search,
+  Share2,
+  ShoppingBag,
+  SlidersHorizontal,
+  Star,
+  Sun,
+  TrendingUp,
+  User as Useric,
+  X,
+  MessageCircle
+} from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { User, Product, Message, MessageMap, Category, Campus, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber } from './types';
+import { User, Product, Message, MessageMap, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber } from './types';
 import logo from './assets/facicon.jpeg';
 
 import './App.css';
@@ -32,7 +50,7 @@ const Footer = lazy(() => import('./Footer'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-[200px]">
-    <div className="animate-spin rounded-full h-12 w-12" style={{ border: '2px solid rgba(16,17,15,.18)', borderBottomColor: '#d8ff4f' }}></div>
+    <div className="animate-spin rounded-full h-12 w-12" style={{ border: '2px solid rgba(16,17,15,.18)', borderBottomColor: '#007aff' }}></div>
   </div>
 );
 
@@ -160,6 +178,20 @@ const App = () => {
     { id: 'mbombela', name: 'Mbombela' },
     { id: 'polokwane', name: 'Polokwane' }
   ], []);
+
+  const selectedCategoryName = useMemo(() => {
+    return categories.find(category => category.id === selectedCategory)?.name || 'All Items';
+  }, [categories, selectedCategory]);
+
+  const selectedCampusName = useMemo(() => {
+    return campuses.find(campus => campus.id === selectedCampus)?.name.replace('🔥 ', '') || 'All Locations';
+  }, [campuses, selectedCampus]);
+
+  const clearFilters = useCallback(() => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedCampus('all');
+  }, []);
 
   // Fetch and highlight a specific shared product
   const fetchAndHighlightProduct = useCallback(async (productId: string) => {
@@ -343,7 +375,7 @@ const App = () => {
         </div>
         <p className="text-lg font-semibold mb-4">Monthly Subscription: R25</p>
         <div className="flex gap-2">
-          <button onClick={handleUpgrade} className="flex-1 bg-orange-600 text-white p-3 rounded hover:bg-orange-700">Subscribe Now</button>
+          <button onClick={handleUpgrade} className="flex-1 bg-blue-600 text-white p-3 rounded hover:bg-blue-700">Subscribe Now</button>
           <button onClick={() => setShowUpgrade(false)} className="flex-1 bg-gray-300 p-3 rounded hover:bg-gray-400">Cancel</button>
         </div>
       </div>
@@ -370,8 +402,8 @@ const App = () => {
 
   // Skeleton — used as fallback inside LazyCard
   const ProductSkeleton = useMemo(() => () => (
-    <div className={`rounded-lg shadow-sm overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      <div className="relative overflow-hidden" style={{ height: '20rem' }}>
+    <div className={`product-card product-card-skeleton rounded-lg shadow-sm overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className="product-media relative overflow-hidden">
         <div className={`absolute inset-0 w-full h-full shimmer ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
         <div className="absolute top-3 right-3 z-10 h-7 w-20 shimmer rounded-full" />
         <div className="absolute top-14 right-3 z-10 h-7 w-24 shimmer rounded-full" />
@@ -427,25 +459,23 @@ const App = () => {
 
     return (
       <div
-        className={`rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} ${isHighlighted ? 'ring-4 ring-orange-500 shadow-2xl' : ''}`}
-        style={isHighlighted ? { borderColor: '#d8ff4f', boxShadow: '0 0 0 4px rgba(216,255,79,.55), 0 24px 60px -38px rgba(16,17,15,.68)' } : undefined}
+        className={`product-card rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} ${isHighlighted ? 'ring-4 ring-orange-500 shadow-2xl' : ''}`}
+        style={isHighlighted ? { borderColor: '#007aff', boxShadow: '0 0 0 4px rgba(216,255,79,.55), 0 24px 60px -38px rgba(16,17,15,.68)' } : undefined}
         id={isHighlighted ? 'highlighted-product' : undefined}
       >
         {isHighlighted && (
-          <div style={{ background: '#d8ff4f', color: '#10110f', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+          <div className="shared-product-banner">
             <span style={{ fontSize: '0.875rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <svg style={{ width: '0.75rem', height: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
+              <Star style={{ width: '0.85rem', height: '0.85rem' }} fill="currentColor" />
               Shared Product
             </span>
-            <button onClick={() => setHighlightedProduct(null)} style={{ borderRadius: 0, padding: '0.25rem', background: 'transparent', border: '1px solid rgba(16,17,15,.32)', cursor: 'pointer', color: '#10110f' }} aria-label="Close highlight">
+            <button onClick={() => setHighlightedProduct(null)} className="shared-product-close" aria-label="Close highlight">
               <X style={{ height: '1rem', width: '1rem' }} />
             </button>
           </div>
         )}
 
-        <div className="relative overflow-hidden group" style={{ height: '20rem' }}>
+        <div className="product-media relative overflow-hidden group">
           {imageUrl ? (
             <>
               <img
@@ -453,7 +483,7 @@ const App = () => {
                 alt={product.title}
                 loading="lazy"
                 decoding="async"
-                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 cursor-pointer z-0"
+                className="product-image absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 cursor-pointer z-0"
                 onClick={() => setMaximizedImage(imageUrl)}
                 onError={(e) => {
                   const imgElement = e.currentTarget as HTMLImageElement;
@@ -462,8 +492,8 @@ const App = () => {
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center cursor-pointer z-10" onClick={() => setMaximizedImage(imageUrl)}>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg" style={{ borderRadius: 0 }}>
+              <div className="product-image-overlay absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center cursor-pointer z-10" onClick={() => setMaximizedImage(imageUrl)}>
+                <div className="product-enlarge opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg">
                   <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                   </svg>
@@ -473,43 +503,49 @@ const App = () => {
             </>
           ) : (
             <div className="absolute inset-0 w-full h-full bg-gray-200 flex items-center justify-center">
-              <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              <ImageIcon className="w-16 h-16 text-gray-400" />
             </div>
           )}
 
           {whatsappRedirects > 0 && (
-            <div className="absolute top-3 right-3 z-20 bg-green-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5" title={`${whatsappRedirects} WhatsApp ${whatsappRedirects === 1 ? 'click' : 'clicks'}`}>
+            <div className="product-badge product-badge-trend absolute top-3 right-3 z-20 bg-blue-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5" title={`${whatsappRedirects} WhatsApp ${whatsappRedirects === 1 ? 'click' : 'clicks'}`}>
               <TrendingUp className="h-3.5 w-3.5" />
               <span className="text-xs font-semibold">{whatsappRedirects}</span>
             </div>
           )}
 
           {product.sellerVerified && (
-            <div className="absolute top-14 right-3 z-20 bg-blue-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+            <div className="product-badge product-badge-verified absolute top-14 right-3 z-20 bg-blue-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+              <BadgeCheck className="h-4 w-4" />
               <span className="text-xs font-semibold">Verified</span>
             </div>
           )}
         </div>
 
-        <div className="p-5">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className={`text-lg font-semibold line-clamp-2 flex-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{product.title}</h3>
-            <span className="text-xl font-bold text-green-600 ml-3 whitespace-nowrap" style={{ color: '#10110f', background: '#d8ff4f', padding: '.15rem .35rem' }}>R{product.price}</span>
+        <div className="product-body p-5">
+          <div className="product-title-row flex justify-between items-start mb-3">
+            <h3 className={`product-title text-lg font-semibold line-clamp-2 flex-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{product.title}</h3>
+            <span className="product-price text-xl font-bold text-blue-600 ml-3 whitespace-nowrap">R{product.price}</span>
           </div>
-          <p className={`text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.description}</p>
-          <div className={`flex items-center justify-between mb-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p className={`product-description text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.description}</p>
+          <div className="mobile-product-perks" aria-hidden="true">
+            <div className="mobile-perk-box">
+              <span>Campus pickup</span>
+              <strong>{product.sellerCampus || 'Nearby'}</strong>
+            </div>
+            <div className="mobile-arrival-row">
+              <MapPin className="h-4 w-4" />
+              <span>Message seller to arrange collection</span>
+            </div>
+          </div>
+          <div className={`product-meta flex items-center justify-between mb-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Useric className="h-4 w-4" />
                 <span className="truncate max-w-[100px]">{product.sellerName}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Locate className="h-4 w-4" />
+                <MapPin className="h-4 w-4" />
                 <span className="truncate max-w-[100px]">{product.sellerCampus}</span>
               </div>
             </div>
@@ -520,7 +556,7 @@ const App = () => {
               </div>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="product-actions flex gap-2">
             {waLink && (
               <a
                 href={waLink}
@@ -529,7 +565,7 @@ const App = () => {
                 onClick={async () => {
                   if (cleanProductId) trackWhatsAppClick(cleanProductId).catch(err => console.warn('Analytics tracking failed:', err));
                 }}
-                className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-green-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                className="product-action product-action-primary flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span className="hidden sm:inline">WhatsApp</span>
@@ -537,10 +573,8 @@ const App = () => {
               </a>
             )}
             {cleanProductId && (
-              <button type="button" onClick={handleShare} className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
+              <button type="button" onClick={handleShare} className="product-action product-action-secondary flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <Share2 className="h-5 w-5" />
                 <span className="hidden sm:inline">Share</span>
               </button>
             )}
@@ -551,52 +585,64 @@ const App = () => {
   }, [getImageUrl, API_BASE, darkMode]);
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <header className={`shadow-sm border-b sticky top-0 z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+    <div className={`app-shell min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <header className={`app-header shadow-sm border-b sticky top-0 z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4 cursor-pointer" onClick={() => setCurrentView('home')}>
+            <div className="brand-lockup flex items-center space-x-4 cursor-pointer" onClick={() => setCurrentView('home')}>
               <img className="h-8 w-8" src={logo} alt="FYC Marketplace Logo" loading="eager" />
               <h1 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>FYC Marketplace</h1>
             </div>
 
             {currentUser ? (
-              <div className="flex items-center space-x-2 md:space-x-4">
-                <button onClick={() => setCurrentView('my-profile')} className="p-2 md:p-2 rounded-lg hover:bg-gray-100 transition-colors group" title="My Profile">
+              <div className="header-actions flex items-center space-x-2 md:space-x-4">
+                <button onClick={() => setCurrentView('my-profile')} className="profile-trigger p-2 md:p-2 rounded-lg hover:bg-gray-100 transition-colors group" title="My Profile" aria-label="Open profile">
                   <Useric className="h-5 w-5 md:h-6 md:w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
                 </button>
                 {currentUser.type === 'seller' && currentUser.subscribed && (
-                  <button onClick={() => setCurrentView('add-product')} className="bg-orange-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2 text-sm md:text-base">
+                  <button onClick={() => setCurrentView('add-product')} className="bg-blue-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 text-sm md:text-base">
                     <Plus className="h-4 w-4" />
                     <span className="hidden sm:inline">Add Listing</span>
                     <span className="sm:hidden">Add</span>
                   </button>
                 )}
                 {currentUser.type === 'admin' && (
-                  <button onClick={() => setCurrentView('admin-reactivation')} style={{ backgroundColor: '#d8ff4f', color: '#10110f', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid #d8ff4f', cursor: 'pointer' }}>
+                  <button onClick={() => setCurrentView('admin-reactivation')} style={{ backgroundColor: '#007aff', color: '#10110f', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid #007aff', cursor: 'pointer' }}>
                     Admin
                   </button>
                 )}
                 <button
                   onClick={handleLogout}
-                  style={{ backgroundColor: 'transparent', color: '#fbfaf6', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid rgba(251,250,246,.28)', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(251,250,246,.1)'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'; }}
+                  className="logout-button"
+                  style={{
+                    backgroundColor: darkMode ? 'rgba(235,235,245,.1)' : 'rgba(118,118,128,.1)',
+                    color: darkMode ? '#f5f5f7' : '#1d1d1f',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 0,
+                    border: darkMode ? '1px solid rgba(235,235,245,.18)' : '1px solid rgba(60,60,67,.18)',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = darkMode ? 'rgba(235,235,245,.16)' : 'rgba(118,118,128,.16)'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = darkMode ? 'rgba(235,235,245,.1)' : 'rgba(118,118,128,.1)'; }}
+                  aria-label="Logout"
+                  title="Logout"
                 >
-                  Logout
+                  <LogOut className="logout-button-icon h-4 w-4" aria-hidden="true" />
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
-              <div className="space-x-2">
-                <button onClick={() => setShowLogin(true)} className="bg-orange-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-orange-700 text-sm md:text-base font-medium">Login</button>
-                <button onClick={() => setShowRegister(true)} className="bg-orange-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-orange-700 text-sm md:text-base font-medium">Register</button>
+              <div className="header-actions header-actions-public space-x-2">
+                <button onClick={() => setShowLogin(true)} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base font-medium">Login</button>
+                <button onClick={() => setShowRegister(true)} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base font-medium">Register</button>
               </div>
             )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-4">
+      <main className="marketplace-main flex-1 max-w-7xl mx-auto px-4 py-4">
         <Analytics />
         <SpeedInsights />
         <Suspense fallback={<LoadingFallback />}>
@@ -608,7 +654,7 @@ const App = () => {
             ) : (
               <div className="text-center py-20">
                 <p className="text-xl text-gray-600">You need a seller subscription to add listings.</p>
-                <button onClick={() => setShowUpgrade(true)} className="mt-4 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700">Upgrade to Seller Account</button>
+                <button onClick={() => setShowUpgrade(true)} className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Upgrade to Seller Account</button>
               </div>
             )
           ) : currentView === 'my-products' ? (
@@ -631,7 +677,25 @@ const App = () => {
             <PrivacyPage onBack={() => setCurrentView('home')} />
           ) : (
             <>
-              <div className="flex justify-between items-center mb-8">
+              <div className="mobile-commerce-topbar" aria-label="Mobile marketplace controls">
+                <button type="button" className="mobile-round-control" onClick={scrollToTop} aria-label="Back to top">
+                  <ShoppingBag className="h-5 w-5" />
+                </button>
+                <div className="mobile-commerce-title">
+                  {searchTerm ? searchTerm : 'Marketplace'}
+                </div>
+                <div className="mobile-commerce-pill">
+                  <Search className="h-5 w-5" />
+                  <button type="button" aria-label="Share marketplace" onClick={scrollToTop}>
+                    <Share2 className="h-5 w-5" />
+                  </button>
+                  <button type="button" aria-label="Focus filters" onClick={() => document.getElementById('category-filter')?.focus()}>
+                    <SlidersHorizontal className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="home-toolbar flex justify-between items-center mb-8">
                 {currentUser?.type === 'seller' && (
                   <button onClick={() => setCurrentView('my-products')} style={{ backgroundColor: '#10110f', color: '#fbfaf6', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid rgba(16,17,15,.7)', cursor: 'pointer' }}>
                     My Products
@@ -646,59 +710,87 @@ const App = () => {
                 </div>
               )}
 
-              {/* Filters */}
-              <div className={`rounded-lg shadow-sm p-4 md:p-6 mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
-                      <Search className={`absolute left-3 top-3 h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                      <input
-                        type="text"
-                        placeholder="Search products and services..."
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+              <section className="storefront-shell">
+                <aside className={`filter-rail ${darkMode ? 'bg-gray-800' : 'bg-white'}`} aria-label="Marketplace filters">
+                  <div className="filter-rail-header">
+                    <div>
+                      <span className="eyebrow">Browse</span>
+                      <h2>Marketplace</h2>
                     </div>
-                    <select className={`px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                    <SlidersHorizontal className="h-5 w-5" />
+                  </div>
+
+                  <div className="filter-group">
+                    <label htmlFor="category-filter">Category</label>
+                    <select id="category-filter" className={`filter-select px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                       {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                     </select>
                   </div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <Filter className={`h-5 w-5 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                      <select className={`flex-1 sm:flex-initial px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCampus} onChange={(e) => setSelectedCampus(e.target.value)}>
-                        {campuses.map(campus => <option key={campus.id} value={campus.id}>{campus.name}</option>)}
-                      </select>
-                      <span className={`text-sm hidden lg:inline whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by campus</span>
-                    </div>
-                    <div className={`text-sm font-semibold px-4 py-2 rounded-lg border w-full sm:w-auto text-center ${darkMode ? 'bg-orange-900 text-orange-200 border-orange-700' : 'bg-orange-50 text-gray-700 border-orange-200'}`}>
-                      {products.length} {products.length === 1 ? 'product' : 'products'} available
+
+                  <div className="filter-group">
+                    <label htmlFor="campus-filter">Campus</label>
+                    <select id="campus-filter" className={`filter-select px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCampus} onChange={(e) => setSelectedCampus(e.target.value)}>
+                      {campuses.map(campus => <option key={campus.id} value={campus.id}>{campus.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="filter-summary">
+                    <span>{products.length}</span>
+                    <small>{products.length === 1 ? 'listing available' : 'listings available'}</small>
+                  </div>
+
+                  <button type="button" className="clear-filters-button" onClick={clearFilters}>
+                    Clear filters
+                  </button>
+                </aside>
+
+                <div className="storefront-content">
+                  <div className={`browse-panel rounded-lg shadow-sm p-4 md:p-6 mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <div className="browse-stack flex flex-col gap-4">
+                      <div className="browse-row browse-row-primary flex flex-col md:flex-row gap-4">
+                        <div className="search-field flex-1 relative">
+                          <Search className={`absolute left-3 top-3 h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                          <input
+                            type="text"
+                            placeholder="Search products, services, sellers..."
+                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                        </div>
+                        <div className={`product-count text-sm font-semibold px-4 py-2 rounded-lg border w-full sm:w-auto text-center ${darkMode ? 'bg-blue-900 text-blue-200 border-blue-700' : 'bg-blue-50 text-gray-700 border-blue-200'}`}>
+                          {products.length} {products.length === 1 ? 'product' : 'products'}
+                        </div>
+                      </div>
+                      <div className="active-filters" aria-label="Active filters">
+                        <span>{selectedCategoryName}</span>
+                        <span>{selectedCampusName}</span>
+                        {searchTerm && <span>{searchTerm}</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Product grid */}
-              {_loading ? (
-                <div className="grid grid-cols-2 gap-6">
-                  {Array.from({ length: 12 }).map((_, i) => <ProductSkeleton key={i} />)}
+                  {_loading ? (
+                    <div className="product-grid grid grid-cols-2 gap-6">
+                      {Array.from({ length: 12 }).map((_, i) => <ProductSkeleton key={i} />)}
+                    </div>
+                  ) : products.length > 0 ? (
+                    <div className="product-grid grid grid-cols-2 gap-6">
+                      {products.map(product => (
+                        <LazyCard key={(product as any)._id || product.id} skeleton={<ProductSkeleton />}>
+                          <ProductCard product={product} />
+                        </LazyCard>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-state text-center py-20">
+                      <ShoppingBag className={`h-20 w-20 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+                      <p className={`text-xl font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>No products found matching your search.</p>
+                      <p className={`mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your filters or search terms</p>
+                    </div>
+                  )}
                 </div>
-              ) : products.length > 0 ? (
-                <div className="grid grid-cols-2 gap-6">
-                  {products.map(product => (
-                    <LazyCard key={(product as any)._id || product.id} skeleton={<ProductSkeleton />}>
-                      <ProductCard product={product} />
-                    </LazyCard>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <ShoppingBag className={`h-20 w-20 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-                  <p className={`text-xl font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>No products found matching your search.</p>
-                  <p className={`mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your filters or search terms</p>
-                </div>
-              )}
+              </section>
             </>
           )}
         </Suspense>
@@ -726,9 +818,7 @@ const App = () => {
         <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${darkMode ? 'bg-black bg-opacity-98' : 'bg-black bg-opacity-95'}`} onClick={() => setMaximizedImage(null)} style={{ cursor: 'pointer' }}>
           <div className="relative" style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
             <button onClick={(e) => { e.stopPropagation(); setMaximizedImage(null); }} className="absolute flex items-center justify-center text-white rounded-full transition-all z-50 hover:scale-110" aria-label="Close" style={{ cursor: 'pointer', top: '-20px', right: '-20px', width: '40px', height: '40px', backgroundColor: '#000000', border: '3px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.5)' }}>
-              <svg style={{ width: '24px', height: '24px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X style={{ width: '24px', height: '24px' }} />
             </button>
             <img src={maximizedImage ?? undefined} alt="Maximized view" className="object-contain rounded-lg" style={{ maxWidth: '90vw', maxHeight: '90vh', cursor: 'default' }} onClick={(e) => e.stopPropagation()} />
           </div>
@@ -736,33 +826,27 @@ const App = () => {
       )}
 
       {showBackToTop && (
-        <button onClick={scrollToTop} aria-label="Back to top" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999, backgroundColor: '#d8ff4f', color: '#10110f', padding: '1rem', borderRadius: 0, border: '1px solid #10110f', cursor: 'pointer', boxShadow: '0 14px 34px -20px rgba(16,17,15,.8)', transition: 'all 0.2s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#bfe638'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#d8ff4f'; e.currentTarget.style.transform = 'translateY(0)'; }}
+        <button onClick={scrollToTop} aria-label="Back to top" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999, backgroundColor: '#007aff', color: '#10110f', padding: '1rem', borderRadius: 0, border: '1px solid #10110f', cursor: 'pointer', boxShadow: '0 14px 34px -20px rgba(16,17,15,.8)', transition: 'all 0.2s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0062cc'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#007aff'; e.currentTarget.style.transform = 'translateY(0)'; }}
           onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95)'; }}
           onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }}
         >
-          <svg style={{ width: '24px', height: '24px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-          </svg>
+          <ArrowUp style={{ width: '24px', height: '24px' }} />
         </button>
       )}
 
       <button onClick={toggleDarkMode} aria-label="Toggle dark mode"
-        style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 9999, backgroundColor: darkMode ? '#d8ff4f' : '#10110f', color: darkMode ? '#10110f' : '#d8ff4f', padding: '1rem', borderRadius: 0, border: darkMode ? '1px solid #10110f' : '1px solid rgba(251,250,246,.28)', cursor: 'pointer', boxShadow: '0 14px 34px -20px rgba(16,17,15,.8)', transition: 'all 0.2s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 9999, backgroundColor: darkMode ? '#007aff' : '#10110f', color: darkMode ? '#10110f' : '#007aff', padding: '1rem', borderRadius: 0, border: darkMode ? '1px solid #10110f' : '1px solid rgba(251,250,246,.28)', cursor: 'pointer', boxShadow: '0 14px 34px -20px rgba(16,17,15,.8)', transition: 'all 0.2s ease', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
         onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95) rotate(0deg)'; }}
         onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; }}
       >
         {darkMode ? (
-          <svg style={{ width: '24px', height: '24px' }} fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-          </svg>
+          <Sun style={{ width: '24px', height: '24px' }} />
         ) : (
-          <svg style={{ width: '24px', height: '24px' }} fill="currentColor" viewBox="0 0 20 20">
-            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-          </svg>
+          <Moon style={{ width: '24px', height: '24px' }} />
         )}
       </button>
     </div>

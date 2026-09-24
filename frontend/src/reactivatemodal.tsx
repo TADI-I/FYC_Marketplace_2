@@ -15,13 +15,13 @@ const ReactivateModal: React.FC<ReactivateModalProps> = ({ isOpen, onClose, user
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+      className="apple-modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
     >
       <div
         className="
-          bg-white
+          apple-modal-card bg-white
           w-[360px] h-[360px]
           rounded-lg
           p-6
@@ -68,7 +68,7 @@ const ReactivateModal: React.FC<ReactivateModalProps> = ({ isOpen, onClose, user
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-green-600 text-white py-2 rounded-lg text-center hover:bg-green-700"
+            className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-center hover:bg-blue-700"
           >
             <span>WhatsApp Admin</span>
           </a>
