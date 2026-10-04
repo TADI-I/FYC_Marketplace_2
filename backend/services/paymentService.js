@@ -1,9 +1,9 @@
 const crypto = require('crypto');
 
 function paymentServiceConfig() {
-  const baseUrl = process.env.PAYMENT_SERVICE_URL;
-  const keyId = process.env.PAYMENT_SERVICE_KEY_ID;
-  const secret = process.env.PAYMENT_SERVICE_SECRET;
+  const baseUrl = process.env.PAYMENT_SERVICE_URL?.trim();
+  const keyId = process.env.PAYMENT_SERVICE_KEY_ID?.trim();
+  const secret = process.env.PAYMENT_SERVICE_SECRET?.trim();
   if (!baseUrl || !keyId || !secret) {
     const error = new Error('Payment Service is not configured.');
     error.code = 'PAYMENT_SERVICE_NOT_CONFIGURED';

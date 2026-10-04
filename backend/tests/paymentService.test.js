@@ -2,6 +2,52 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const paymentService = require('../services/paymentService');
 
+test('service credentials ignore accidental environment whitespace', async () => {
+  const originalFetch = global.fetch;
+  const originalUrl = process.env.PAYMENT_SERVICE_URL;
+  const originalKeyId = process.env.PAYMENT_SERVICE_KEY_ID;
+  const originalSecret = process.env.PAYMENT_SERVICE_SECRET;
+  let request;
+
+  process.env.PAYMENT_SERVICE_URL = '  https://payments.example.test/  ';
+  process.env.PAYMENT_SERVICE_KEY_ID = ' marketplace_local\n';
+  process.env.PAYMENT_SERVICE_SECRET = '  service-secret-service-secret-1234\n';
+  global.fetch = async (url, options) => {
+    request = { url, options };
+    return {
+      ok: true,
+      json: async () => ({ payment: { id: 'payment-1' }, authorizationUrl: 'https://checkout.example.test' })
+    };
+  };
+
+  try {
+    await paymentService.createPayment({
+      idempotencyKey: 'marketplace:test-order:seller-subscription',
+      tenantId: 'tenant-1',
+      orderId: 'order-1',
+      customerId: 'customer-1',
+      email: 'buyer@example.test',
+      amount: 2500,
+      currency: 'ZAR',
+      returnUrl: 'https://marketplace.example.test',
+      metadata: {}
+    });
+    assert.equal(request.url, 'https://payments.example.test/api/v1/payments');
+    assert.equal(
+      request.options.headers.authorization,
+      'Bearer marketplace_local.service-secret-service-secret-1234'
+    );
+  } finally {
+    global.fetch = originalFetch;
+    if (originalUrl === undefined) delete process.env.PAYMENT_SERVICE_URL;
+    else process.env.PAYMENT_SERVICE_URL = originalUrl;
+    if (originalKeyId === undefined) delete process.env.PAYMENT_SERVICE_KEY_ID;
+    else process.env.PAYMENT_SERVICE_KEY_ID = originalKeyId;
+    if (originalSecret === undefined) delete process.env.PAYMENT_SERVICE_SECRET;
+    else process.env.PAYMENT_SERVICE_SECRET = originalSecret;
+  }
+});
+
 test('signed callbacks accept a current valid signature', () => {
   process.env.PAYMENT_SERVICE_CALLBACK_SECRET = 'callback-secret-callback-secret-1234';
   const now = Date.parse('2026-10-01T12:00:00.000Z');
