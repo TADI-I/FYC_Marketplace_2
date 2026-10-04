@@ -14,7 +14,12 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  limit: '64kb',
+  verify: (req, _res, buffer) => {
+    req.rawBody = Buffer.from(buffer);
+  }
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB connection
@@ -51,6 +56,9 @@ async function connectToMongoDB() {
       await db.collection('images.files').createIndex({ filename: 1 });
       // Add index for analytics
       await db.collection('analytics_events').createIndex({ productId: 1, timestamp: -1 });
+      await db.collection('subscriptionOrders').createIndex({ paymentReference: 1 }, { unique: true, sparse: true });
+      await db.collection('subscriptionOrders').createIndex({ userId: 1, status: 1, expiresAt: -1 });
+      await db.collection('paymentCallbackEvents').createIndex({ eventId: 1 }, { unique: true });
     } catch (indexError) {
       console.log('Some indexes already exist');
     }
@@ -131,6 +139,8 @@ const messageController = require('./controllers/messageController');
 const referenceController = require('./controllers/referenceController');
 const healthController = require('./controllers/healthController');
 const analyticsController = require('./controllers/analyticsController');
+const subscriptionPaymentController = require('./controllers/subscriptionPaymentController');
+const { warmRequiredServices } = require('./services/serviceWarmup');
 
 const { 
   authenticateToken, 
@@ -156,6 +166,15 @@ const withOwnershipCheck = (resourceType) => (req, res, next) => {
 // Health checks
 app.get('/api/health', (req, res) => healthController.healthCheck(req, res, req.db));
 app.get('/api/test-db', (req, res) => healthController.testDbConnection(req, res, req.db));
+app.get('/api/warmup', async (_req, res) => {
+  const dependencies = await warmRequiredServices();
+  res.set('Cache-Control', 'no-store').json({
+    ok: true,
+    service: 'lbg-marketplace-backend',
+    dependencies,
+    warmedAt: new Date().toISOString()
+  });
+});
 
 // Verification image endpoint
 app.get('/api/verification/image/:imageId', async (req, res) => {
@@ -233,7 +252,9 @@ app.post('/api/auth/login', (req, res) => authController.login(req, res, req.db)
 app.get('/api/users/me', authenticateToken, (req, res) => authController.getCurrentUser(req, res, req.db));
 app.get('/api/users/:id', authenticateToken, validateObjectId('id'), (req, res) => userController.getUserProfile(req, res, req.db));
 app.put('/api/users/:id', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), (req, res) => userController.updateUserProfile(req, res, req.db));
-app.post('/api/users/:id/upgrade', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), (req, res) => userController.upgradeUserToSeller(req, res, req.db));
+app.post('/api/users/:id/upgrade', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), (req, res) => subscriptionPaymentController.startCheckout(req, res, req.db));
+app.post('/api/subscriptions/checkout', authenticateToken, (req, res) => subscriptionPaymentController.startCheckout(req, res, req.db));
+app.post('/api/webhooks/payments', (req, res) => subscriptionPaymentController.handleCallback(req, res, req.db));
 app.get('/api/user/subscription-status', authenticateToken, (req, res) => userController.getSubscriptionStatus(req, res, req.db));
 app.post('/api/users/:id/reactivate-request', authenticateToken, validateObjectId('id'), (req, res) => {
   return userController.createReactivationRequest(req, res, req.db);
@@ -631,7 +652,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({ 
     error: 'Route not found',
     success: false

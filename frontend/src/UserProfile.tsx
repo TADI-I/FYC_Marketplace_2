@@ -339,21 +339,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     setError('');
 
     try {
-      await upgradeUserToSeller(currentUser._id);
-
-      // Fetch fresh user data
-      const freshUser = await fetchCurrentUser();
-      if (freshUser) {
-        setUser(freshUser);
-        // Update parent component AND localStorage
-        if (onUserUpdate) {
-          onUserUpdate(freshUser);
-        }
-        localStorage.setItem('user_data', JSON.stringify(freshUser));
-      }
-
-      setSuccessMessage('Account upgraded to seller successfully!');
-      await fetchSubscriptionStatus();
+      const checkout = await upgradeUserToSeller(currentUser._id);
+      if (!checkout.authorizationUrl) throw new Error('Secure checkout URL was not returned.');
+      window.location.assign(checkout.authorizationUrl);
     } catch (err: any) {
       setError(err.message || 'Upgrade failed');
     } finally {
@@ -816,11 +804,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
                 {subscriptionAlert.type === 'error' && (
                   <button
-                    onClick={handleRequestReactivation}
+                    onClick={handleRenewSubscription}
                     disabled={loading || upgrading}
                     className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {loading ? 'Sending request...' : 'Request Reactivation'}
+                    {upgrading ? 'Starting secure checkout...' : 'Reactivate Subscription'}
                   </button>
                 )}
 
@@ -977,15 +965,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   </p>
                   <div className="space-y-2">
                     <button 
-                      onClick={handleRequestUpgrade} 
-                      disabled={loading || upgradeRequested}
+                      onClick={handleUpgradeToSeller}
+                      disabled={loading || upgrading}
                       className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
                       <Zap className="h-4 w-4" />
-                      <span>{upgradeRequested ? 'Request Pending' : loading ? 'Sending...' : 'Request Seller Account'}</span>
+                      <span>{upgrading ? 'Starting secure checkout...' : 'Subscribe as Seller'}</span>
                     </button>
                     <p className="text-xs text-gray-600">
-                      Seller subscription: <span className="font-semibold">R25 / month</span> — first month free. Admin will review your request.
+                      Seller subscription: <span className="font-semibold">R25 / month</span>. Access activates after verified payment.
                     </p>
                   </div>
                 </div>

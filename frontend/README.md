@@ -1,46 +1,56 @@
-# Getting Started with Create React App
+# FYC Marketplace Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React 19 and TypeScript frontend for FYC TUT Marketplace.
 
-## Available Scripts
+## Environment
 
-In the project directory, you can run:
+Create `.env` in this directory:
 
-### `npm start`
+```text
+REACT_APP_API_BASE=http://localhost:5001
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+In production, set `REACT_APP_API_BASE` to the public HTTPS URL of the
+Marketplace backend. This is a build-time Create React App variable, so rebuild
+the frontend after changing it.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Do not place `PAYMENT_SERVICE_SECRET`, `PAYMENT_SERVICE_CALLBACK_SECRET`, a
+Paystack secret, MongoDB credentials, or JWT secrets in the frontend
+environment.
 
-### `npm test`
+## Development
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm install
+npm start
+```
 
-### `npm run build`
+The development server opens at `http://localhost:3000` and expects the backend
+at the configured `REACT_APP_API_BASE`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Payments
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The frontend asks the Marketplace backend to start the R25 seller-subscription
+checkout, then redirects the browser to the authorization URL returned by the
+backend. Returning to the frontend does not prove payment. Seller access changes
+only after the backend receives and verifies the signed callback from LBG
+Payment Service.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Listing purchases are arranged directly between buyers and sellers and do not
+use this subscription checkout.
 
-### `npm run eject`
+## Verification
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+npm test -- --watchAll=false
+npm run build
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Production build
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```bash
+npm run build
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Deploy the generated `build/` directory to the frontend host and configure SPA
+fallback routing to `index.html`.

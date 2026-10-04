@@ -54,7 +54,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'selling',
       question: 'How much does the seller subscription cost and how do I pay?',
-      answer: 'The seller subscription costs R25 per month – one of the most affordable rates in South Africa! Payment methods include PayShap (+27629622755), bank transfer to FNB Account 62315723321 (Branch Code: 250655), or EFT. Use your registered email address + "FYC" as the payment reference. After payment, send proof of payment to our WhatsApp support (+27 71 112 6204), and your account will be activated within 24 hours. Your subscription renews automatically every 30 days.'
+      answer: 'The seller subscription costs R25 per month. Start secure checkout from your profile; seller access activates automatically only after the payment provider confirms the payment.'
     },
     {
       category: 'selling',
@@ -94,7 +94,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'technical',
       question: 'My seller subscription expired. How do I reactivate it?',
-      answer: 'To reactivate your expired subscription, go to your profile page and click "Request Reactivation." Make a payment of R25 using PayShap (+27629622755) or bank transfer (FNB 62315723321, Branch 250655). Use your email + "FYC" as the reference. Send proof of payment to our WhatsApp support at +27 71 112 6204. Our admin team will reactivate your account within 24 hours. All your previous listings will remain saved and will become visible again once reactivated.'
+      answer: 'To reactivate an expired subscription, open your profile and choose Reactivate Subscription. Complete the secure checkout; your saved listings become visible again after the provider confirms payment.'
     }
   ];
 

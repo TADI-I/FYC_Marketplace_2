@@ -10,6 +10,7 @@ const messageController = require('../controllers/messageController');
 const referenceController = require('../controllers/referenceController');
 const healthController = require('../controllers/healthController');
 const verificationController = require('../controllers/verificationController');
+const subscriptionPaymentController = require('../controllers/subscriptionPaymentController');
 
 // Import middleware
 const { 
@@ -52,7 +53,9 @@ module.exports = (db) => {
   router.get('/users/me', authenticateToken, withDb(authController.getCurrentUser));
   router.get('/users/:id', authenticateToken, validateObjectId('id'), withDb(userController.getUserProfile));
   router.put('/users/:id', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), withDb(userController.updateUserProfile));
-  router.post('/users/:id/upgrade', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), withDb(userController.upgradeUserToSeller));
+  router.post('/users/:id/upgrade', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), withDb(subscriptionPaymentController.startCheckout));
+  router.post('/subscriptions/checkout', authenticateToken, withDb(subscriptionPaymentController.startCheckout));
+  router.post('/webhooks/payments', withDb(subscriptionPaymentController.handleCallback));
   router.get('/user/subscription-status', authenticateToken, withDb(userController.getSubscriptionStatus));
   router.post('/users/:id/reactivate-request', authenticateToken, validateObjectId('id'), withDb(userController.createReactivationRequest));
 

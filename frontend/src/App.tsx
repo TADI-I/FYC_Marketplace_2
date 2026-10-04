@@ -281,19 +281,9 @@ const App = () => {
     setLoading(true);
     setError('');
     try {
-      await upgradeUserToSeller(currentUser.id, 'monthly');
-      const updatedUser = {
-        ...currentUser,
-        type: 'seller',
-        subscribed: true,
-        subscriptionStatus: 'active',
-        subscriptionStartDate: new Date(),
-        subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      };
-      setCurrentUser(updatedUser);
-      localStorage.setItem('user_data', JSON.stringify(updatedUser));
-      setShowUpgrade(false);
-      setTimeout(() => alert('Congratulations! Your account has been upgraded to a seller account.'), 100);
+      const checkout = await upgradeUserToSeller(currentUser._id || String(currentUser.id), 'monthly');
+      if (!checkout.authorizationUrl) throw new Error('Secure checkout URL was not returned.');
+      window.location.assign(checkout.authorizationUrl);
     } catch (error) {
       let errorMessage = 'Upgrade failed. Please try again.';
       if (error && typeof error === 'object' && 'message' in error) {

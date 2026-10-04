@@ -192,66 +192,12 @@ exports.getUserProfile = async (req, res, db) => {
 };
 
 // Upgrade user to seller
-exports.upgradeUserToSeller = async (req, res, db) => {
-  try {
-    const userId = req.params.id;
-    const { subscriptionType = 'monthly' } = req.body;
-
-    if (!ObjectId.isValid(userId)) {
-      return res.status(400).json({ 
-        error: 'Invalid user ID',
-        success: false
-      });
-    }
-
-    const user = await db.collection('users').findOne(
-      { _id: new ObjectId(userId) }
-    );
-
-    if (!user) {
-      return res.status(404).json({ 
-        error: 'User not found',
-        success: false
-      });
-    }
-
-    // Calculate subscription end date
-    const subscriptionDays = subscriptionType === 'monthly' ? 30 : 365;
-    const subscriptionEndDate = new Date(Date.now() + subscriptionDays * 24 * 60 * 60 * 1000);
-
-    const updateData = {
-      type: 'seller',
-      subscribed: true,
-      subscriptionType,
-      subscriptionStartDate: new Date(),
-      subscriptionEndDate,
-      subscriptionStatus: 'active',
-      updatedAt: new Date()
-    };
-
-    const result = await db.collection('users').updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: updateData }
-    );
-
-    const updatedUser = await db.collection('users').findOne(
-      { _id: new ObjectId(userId) },
-      { projection: { password: 0 } }
-    );
-
-    res.json({
-      success: true,
-      message: 'Account upgraded to seller successfully',
-      user: updatedUser
-    });
-
-  } catch (error) {
-    console.error('❌ Upgrade user error:', error);
-    res.status(500).json({ 
-      error: 'Failed to upgrade account: ' + error.message,
-      success: false
-    });
-  }
+exports.upgradeUserToSeller = async (_req, res) => {
+  return res.status(410).json({
+    error: 'Direct seller upgrades are disabled. Start verified subscription checkout.',
+    code: 'PAYMENT_REQUIRED',
+    success: false
+  });
 };
 
 // Create a reactivation request (user requests admin review)
@@ -377,7 +323,7 @@ exports.processReactivationRequest = async (req, res, db) => {
   try {
     console.log('🔧 processReactivationRequest called by', req.user?.id, 'body:', req.body);
     const requestId = req.params.requestId;
-    const { action, adminNote = '', subscriptionType = 'monthly' } = req.body;
+    const { action, adminNote = '' } = req.body;
 
     if (!ObjectId.isValid(requestId)) {
       return res.status(400).json({ error: 'Invalid request ID', success: false });
@@ -391,6 +337,22 @@ exports.processReactivationRequest = async (req, res, db) => {
     if (!requestDoc) return res.status(404).json({ error: 'Request not found', success: false });
     if (requestDoc.status !== 'pending') return res.status(409).json({ error: 'Request already processed', success: false });
 
+    if (action === 'approve') {
+      const paidUser = await db.collection('users').findOne({
+        _id: requestDoc.userId,
+        subscribed: true,
+        subscriptionStatus: 'active',
+        subscriptionPaymentId: { $exists: true }
+      });
+      if (!paidUser) {
+        return res.status(409).json({
+          error: 'Verified subscription payment is required before approval.',
+          code: 'PAYMENT_REQUIRED',
+          success: false
+        });
+      }
+    }
+
     const adminId = new ObjectId(req.user.id);
     const patch = {
       status: action === 'approve' ? 'approved' : 'rejected',
@@ -400,26 +362,6 @@ exports.processReactivationRequest = async (req, res, db) => {
     };
 
     await db.collection('reactivationRequests').updateOne({ _id: new ObjectId(requestId) }, { $set: patch });
-
-    if (action === 'approve') {
-      const days = subscriptionType === 'monthly' ? 30 : 365;
-      const subscriptionEndDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-
-      await db.collection('users').updateOne(
-        { _id: requestDoc.userId },
-        {
-          $set: {
-            subscribed: true,
-            subscriptionStatus: 'active',
-            subscriptionStartDate: new Date(),
-            subscriptionEndDate,
-            subscriptionType,
-            type: 'seller',
-            updatedAt: new Date()
-          }
-        }
-      );
-    }
 
     res.json({ success: true, message: `Request ${action}ed successfully` });
   } catch (error) {
