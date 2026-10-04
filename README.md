@@ -122,10 +122,12 @@ the frontend sends a non-blocking request to `/api/warmup`. This wakes the
 Marketplace backend, which calls the Payment Service `/health` endpoint. The UI
 does not wait for the call and never receives Payment Service credentials.
 
-Set `REACT_APP_PAYMENT_SERVICE_URL` to the same public Payment Service base URL
-used by the backend. The frontend sends an opaque request to its public
-`/health` route in parallel with the Marketplace backend request. The variable
-is a public URL only and must never contain credentials.
+`REACT_APP_PAYMENT_SERVICE_URL` is optional. When it is set to the public
+Payment Service base URL, the frontend also sends an opaque request to its
+public `/health` route in parallel with the Marketplace backend request. The
+Marketplace backend warm-up remains the authoritative dependency probe, so the
+Payment Service is still woken when this frontend variable is omitted. The
+variable is a public URL only and must never contain credentials.
 
 Browser calls are throttled and backend dependency probes are deduplicated for
 30 seconds. This reduces cold-start delays without needing a third-party uptime
@@ -137,6 +139,22 @@ The Payment Service must also contain:
 MARKETPLACE_CALLBACK_URL=https://<marketplace-backend>/api/webhooks/payments
 MARKETPLACE_RETURN_URL=https://<marketplace-frontend>/?payment=return
 ```
+
+Current production values:
+
+```text
+Marketplace frontend:       https://marketplace.lbgsoftware.co.za
+Marketplace backend:        https://marketplace.firstyearcouncil.co.za
+Marketplace Render origin:  https://fyc-marketplace-tut.onrender.com
+Payment Service:             https://lbg-payment-service.onrender.com
+
+MARKETPLACE_CALLBACK_URL=https://marketplace.firstyearcouncil.co.za/api/webhooks/payments
+MARKETPLACE_RETURN_URL=https://marketplace.lbgsoftware.co.za/?payment=return
+```
+
+The Marketplace backend and Payment Service must use the same Marketplace key
+ID, service secret, and callback secret. Never place either secret in the
+frontend or in this document.
 
 ## Seller subscription payment flow
 
