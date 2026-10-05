@@ -1,5 +1,13 @@
 const crypto = require('crypto');
 
+const READY_CACHE_MS = 30_000;
+const READY_TIMEOUT_MS = 60_000;
+const REQUEST_TIMEOUT_MS = 20_000;
+const RETRYABLE_GATEWAY_STATUSES = new Set([502, 503, 504]);
+let readyAt = 0;
+let readyBaseUrl = null;
+let readyInFlight = null;
+
 function paymentServiceConfig() {
   const baseUrl = process.env.PAYMENT_SERVICE_URL?.trim();
   const keyId = process.env.PAYMENT_SERVICE_KEY_ID?.trim();
@@ -12,8 +20,40 @@ function paymentServiceConfig() {
   return { baseUrl: baseUrl.replace(/\/$/, ''), keyId, secret };
 }
 
+async function waitUntilReady(config) {
+  if (readyBaseUrl === config.baseUrl && Date.now() - readyAt < READY_CACHE_MS) return;
+  if (readyInFlight) return readyInFlight;
+
+  readyInFlight = (async () => {
+    try {
+      const response = await fetch(`${config.baseUrl}/health`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(READY_TIMEOUT_MS)
+      });
+      if (!response.ok) throw new Error(`Health check returned HTTP ${response.status}.`);
+      readyBaseUrl = config.baseUrl;
+      readyAt = Date.now();
+    } catch (cause) {
+      const error = new Error('Payment service is still starting. Please try again in a moment.');
+      error.code = 'PAYMENT_SERVICE_WAKING';
+      error.cause = cause;
+      throw error;
+    } finally {
+      readyInFlight = null;
+    }
+  })();
+
+  return readyInFlight;
+}
+
 async function request(path, options = {}) {
   const config = paymentServiceConfig();
+  await waitUntilReady(config);
+
+  return requestOnce(config, path, options, true);
+}
+
+async function requestOnce(config, path, options, allowGatewayRetry) {
   let response;
   try {
     response = await fetch(`${config.baseUrl}${path}`, {
@@ -23,7 +63,7 @@ async function request(path, options = {}) {
         'content-type': 'application/json',
         ...(options.headers || {})
       },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
     });
   } catch (cause) {
     const error = new Error('Payment service is unavailable.');
@@ -33,7 +73,16 @@ async function request(path, options = {}) {
   }
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload) {
-    const error = new Error(payload?.error || 'Payment service request failed.');
+    if (allowGatewayRetry && !payload && RETRYABLE_GATEWAY_STATUSES.has(response.status)) {
+      readyAt = 0;
+      readyBaseUrl = null;
+      await waitUntilReady(config);
+      return requestOnce(config, path, options, false);
+    }
+    const fallbackMessage = RETRYABLE_GATEWAY_STATUSES.has(response.status)
+      ? 'Payment service is temporarily unavailable. Please try again.'
+      : `Payment service request failed (HTTP ${response.status || 'unknown'}).`;
+    const error = new Error(payload?.error || fallbackMessage);
     error.code = payload?.code || 'PAYMENT_SERVICE_ERROR';
     error.status = response.status;
     throw error;

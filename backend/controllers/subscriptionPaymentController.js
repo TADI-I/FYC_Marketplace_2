@@ -149,7 +149,11 @@ exports.startCheckout = async (req, res, db) => {
       throw error;
     }
   } catch (error) {
-    console.error('Subscription checkout failed:', error.message);
+    console.error('Subscription checkout failed:', {
+      message: error.message,
+      code: error.code || 'SUBSCRIPTION_CHECKOUT_FAILED',
+      status: error.status || null
+    });
     return res.status(error.status >= 400 && error.status < 500 ? error.status : 503).json({
       success: false,
       error: error.message || 'Could not start subscription checkout.',

@@ -16,6 +16,7 @@ test('service credentials ignore accidental environment whitespace', async () =>
     request = { url, options };
     return {
       ok: true,
+      status: 200,
       json: async () => ({ payment: { id: 'payment-1' }, authorizationUrl: 'https://checkout.example.test' })
     };
   };
@@ -37,6 +38,54 @@ test('service credentials ignore accidental environment whitespace', async () =>
       request.options.headers.authorization,
       'Bearer marketplace_local.service-secret-service-secret-1234'
     );
+  } finally {
+    global.fetch = originalFetch;
+    if (originalUrl === undefined) delete process.env.PAYMENT_SERVICE_URL;
+    else process.env.PAYMENT_SERVICE_URL = originalUrl;
+    if (originalKeyId === undefined) delete process.env.PAYMENT_SERVICE_KEY_ID;
+    else process.env.PAYMENT_SERVICE_KEY_ID = originalKeyId;
+    if (originalSecret === undefined) delete process.env.PAYMENT_SERVICE_SECRET;
+    else process.env.PAYMENT_SERVICE_SECRET = originalSecret;
+  }
+});
+
+test('checkout waits for a cold payment service before creating the payment', async () => {
+  const originalFetch = global.fetch;
+  const originalUrl = process.env.PAYMENT_SERVICE_URL;
+  const originalKeyId = process.env.PAYMENT_SERVICE_KEY_ID;
+  const originalSecret = process.env.PAYMENT_SERVICE_SECRET;
+  const calls = [];
+
+  process.env.PAYMENT_SERVICE_URL = 'https://cold-payments.example.test';
+  process.env.PAYMENT_SERVICE_KEY_ID = 'marketplace_test';
+  process.env.PAYMENT_SERVICE_SECRET = 'service-secret-service-secret-1234';
+  global.fetch = async (url, options) => {
+    calls.push({ url, options });
+    if (url.endsWith('/health')) {
+      return { ok: true, status: 200, json: async () => ({ status: 'ok' }) };
+    }
+    return {
+      ok: true,
+      status: 201,
+      json: async () => ({ payment: { id: 'payment-cold' }, authorizationUrl: 'https://checkout.example.test/cold' })
+    };
+  };
+
+  try {
+    const result = await paymentService.createPayment({
+      idempotencyKey: 'marketplace:cold-order:seller-subscription',
+      tenantId: 'tenant-cold',
+      orderId: 'order-cold',
+      customerId: 'customer-cold',
+      email: 'seller@example.test',
+      amount: 2500,
+      currency: 'ZAR',
+      returnUrl: 'https://marketplace.example.test',
+      metadata: {}
+    });
+    assert.equal(calls[0].url, 'https://cold-payments.example.test/health');
+    assert.equal(calls[1].url, 'https://cold-payments.example.test/api/v1/payments');
+    assert.equal(result.authorizationUrl, 'https://checkout.example.test/cold');
   } finally {
     global.fetch = originalFetch;
     if (originalUrl === undefined) delete process.env.PAYMENT_SERVICE_URL;
