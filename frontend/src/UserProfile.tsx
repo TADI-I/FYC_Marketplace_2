@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getSubscriptionStatus, updateUserProfile, upgradeUserToSeller, getCurrentUser, requestReactivation, requestUpgrade } from './api'; 
-import { User as UserIC, ArrowLeft, Mail, Building, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle, MessageCircle } from 'lucide-react';
-import ReactivateModal from './reactivatemodal';
+import { getSubscriptionStatus, updateUserProfile, upgradeUserToSeller, getCurrentUser } from './api';
+import { User as UserIC, ArrowLeft, Mail, Building, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import VerificationSection from './VerificationSection';
 
 // Use shared types (remove duplicate User type to avoid redeclare)
@@ -15,6 +14,8 @@ type User = {
   campus: string;
   subscriptionEndDate?: Date | string;
   subscriptionStatus?: string;
+  hasHadSellerAccess?: boolean;
+  subscriptionSource?: 'PAYMENT' | 'OFFER' | null;
   whatsapp?: string | null;
 };
 
@@ -36,19 +37,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     campus: '',
     whatsapp: user?.whatsapp || ''
   });
-  const [_subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   const [upgrading, setUpgrading] = useState(false);
-  const [upgradeRequested, setUpgradeRequested] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showReactivationModal, setShowReactivationModal] = useState(false);
   const [showSupportTooltip, setShowSupportTooltip] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
-  const [showUpgradeContactModal, setShowUpgradeContactModal] = useState(false); // NEW
-
-  // debug: log modal state so we can see if click toggles it
-  useEffect(() => {
-    console.debug('showReactivationModal ->', showReactivationModal);
-  }, [showReactivationModal]);
 
   // Show support tooltip after 30 seconds
   useEffect(() => {
@@ -92,12 +84,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     });
   }, [user]);
 
-  // NEW: Poll for subscription status updates when user has pending request
+  // Poll while a returning seller is waiting for verified payment.
   useEffect(() => {
     if (!user) return;
     
-    const shouldPoll = user.type === 'seller' && 
-                       (user.subscriptionStatus === 'expired' || !user.subscribed);
+    const shouldPoll = user.type === 'seller' && !user.subscribed;
     
     if (shouldPoll && !isPolling) {
       setIsPolling(true);
@@ -108,7 +99,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
           const freshUser = await fetchCurrentUser();
           if (freshUser) {
             // Check if status changed to active
-            if (freshUser.subscribed && freshUser.subscriptionStatus === 'active') {
+            if (freshUser.subscribed && ['ACTIVE', 'TRIAL', 'active', 'trial'].includes(freshUser.subscriptionStatus || '')) {
               console.log('✅ Subscription activated! Stopping poll.');
               setUser(freshUser);
               setSuccessMessage('Your subscription has been activated! You can now add products.');
@@ -180,7 +171,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
     try {
       const status = await getSubscriptionStatus();
-      setSubscriptionInfo(status);
+      if (status) {
+        setUser(current => current ? {
+          ...current,
+          subscribed: status.hasActiveSubscription,
+          subscriptionStatus: status.subscriptionStatus,
+          subscriptionEndDate: status.subscriptionEndDate,
+          hasHadSellerAccess: status.hasHadSellerAccess,
+          subscriptionSource: status.subscriptionSource
+        } : current);
+      }
     } catch (error) {
       console.error('Failed to fetch subscription status:', error);
     }
@@ -201,15 +201,21 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     if (user?.type !== 'seller') return null;
     
     const daysRemaining = getSubscriptionDaysRemaining();
-    const isExpired = user?.subscriptionStatus === 'expired' || (daysRemaining !== null && daysRemaining <= 0);
+    const status = (user?.subscriptionStatus || '').toUpperCase();
+    const isTrial = status === 'TRIAL';
+    const isOffer = user.subscriptionSource === 'OFFER';
+    const isExpired = ['EXPIRED', 'PAYMENT_REQUIRED', 'CANCELLED'].includes(status) || (daysRemaining !== null && daysRemaining <= 0);
     const isExpiringSoon = daysRemaining !== null && daysRemaining > 0 && daysRemaining <= 7;
 
     if (isExpired) {
       return {
         type: 'error',
         icon: AlertTriangle,
-        title: 'Subscription Expired',
-        message: 'Your seller subscription has expired. Renew now to continue selling.',
+        title: user.hasHadSellerAccess ? 'Seller Access Expired' : 'Seller Subscription Required',
+        message: user.hasHadSellerAccess
+          ? 'Pay R25/month or claim an eligible offer to start advertising again.'
+          : 'Subscribe for R25/month to start advertising. Any promotion will appear as a separate claimable offer.',
+        actionLabel: user.hasHadSellerAccess ? 'View Reactivation Options' : 'Start Seller Subscription',
         bgColor: 'bg-red-50',
         borderColor: 'border-red-200',
         textColor: 'text-red-800',
@@ -221,8 +227,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       return {
         type: 'warning',
         icon: Clock,
-        title: 'Subscription Expiring Soon',
-        message: `Your subscription expires in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}. Renew soon to avoid interruption.`,
+        title: isTrial || isOffer ? 'Free Offer Ending Soon' : 'Subscription Expiring Soon',
+        message: `${isTrial || isOffer ? 'Your free seller period' : 'Your subscription'} expires in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}.`,
         bgColor: 'bg-yellow-50',
         borderColor: 'border-yellow-200',
         textColor: 'text-yellow-800',
@@ -234,8 +240,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       return {
         type: 'success',
         icon: CheckCircle,
-        title: 'Subscription Active',
-        message: `Your subscription is active for ${daysRemaining} more days.`,
+        title: isTrial || isOffer ? 'Free Seller Offer Active' : 'Subscription Active',
+        message: `${isTrial || isOffer ? 'Your claimed seller offer is active' : 'Your subscription is active'} for ${daysRemaining} more days.`,
         bgColor: 'bg-blue-50',
         borderColor: 'border-blue-200',
         textColor: 'text-blue-800',
@@ -339,87 +345,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     setError('');
 
     try {
-      const checkout = await upgradeUserToSeller(currentUser._id);
-      if (!checkout.authorizationUrl) throw new Error('Secure checkout URL was not returned.');
-      window.location.assign(checkout.authorizationUrl);
+      const result = await upgradeUserToSeller(currentUser._id);
+      if (result.authorizationUrl) {
+        window.location.assign(result.authorizationUrl);
+        return;
+      }
+      if (!result.user) throw new Error('Seller activation response was incomplete.');
+
+      setUser(result.user);
+      setSuccessMessage(result.claimRequired
+        ? 'You have an eligible seller offer. Claim it from the offer notification to start the free period.'
+        : 'Your seller account is already active.');
+      onUserUpdate?.(result.user);
+      localStorage.setItem('user_data', JSON.stringify(result.user));
     } catch (err: any) {
       setError(err.message || 'Upgrade failed');
     } finally {
       setUpgrading(false);
-    }
-  };
-
-  const handleRequestReactivation = async () => {
-    setError(null);
-    setSuccessMessage(null);
-    if (!user) {
-      setError('User not loaded. Please refresh and try again.');
-      return;
-    }
-
-    const userId = user._id ?? (user.id ? String(user.id) : null);
-    if (!userId) {
-      setError('User ID missing. Please log in again.');
-      return;
-    }
-
-    // open modal immediately so the buyer sees the WhatsApp instructions
-    setShowReactivationModal(true);
-    
-    setLoading(true);
-    try {
-      await requestReactivation(userId);
-      setSuccessMessage('Reactivation request sent to admin. Checking for approval...');
-      
-      // Immediately fetch fresh user data
-      const freshUser = await fetchCurrentUser();
-      if (freshUser && freshUser.subscribed && freshUser.subscriptionStatus === 'active') {
-        setSuccessMessage('Your subscription has been activated! You can now add products.');
-        setShowReactivationModal(false);
-      }
-      
-    } catch (err: any) {
-      console.error('Reactivation request failed:', err);
-      setError(err?.message || 'Failed to send reactivation request');
-    } finally {
-      setLoading(false);
-      setTimeout(() => {
-        if (successMessage?.includes('Checking')) {
-          setSuccessMessage(null);
-        }
-      }, 5000);
-    }
-  };
-
-  const handleRequestUpgrade = async () => {
-    setError(null);
-    setSuccessMessage(null);
-    if (!user) {
-      setError('User not loaded. Please refresh and try again.');
-      return;
-    }
-    const userId = user._id ?? (user.id ? String(user.id) : null);
-    if (!userId) {
-      setError('User ID missing. Please log in again.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await requestUpgrade(userId);
-      setUpgradeRequested(true);
-      setSuccessMessage('Upgrade request sent successfully!');
-      
-      // Show the WhatsApp contact modal
-      setShowUpgradeContactModal(true);
-      
-      // Start polling for approval
-      setIsPolling(false); // Reset to trigger the polling effect
-    } catch (err: any) {
-      setError(err?.message || 'Failed to send upgrade request');
-    } finally {
-      setLoading(false);
-      setTimeout(() => setSuccessMessage(null), 5000);
     }
   };
 
@@ -447,74 +389,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
   return (
     <div className="apple-page profile-page min-h-screen bg-gray-50 py-8">
-      {/* Reactivation Modal - Single instance at top level */}
-      <ReactivateModal
-        isOpen={showReactivationModal}
-        onClose={() => setShowReactivationModal(false)}
-        userEmail={user?.email}
-      />
-
-      {/* NEW: Upgrade Contact Admin Modal */}
-      {showUpgradeContactModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle className="h-10 w-10 text-blue-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent!</h2>
-              <p className="text-gray-600">
-                Your seller upgrade request has been submitted successfully.
-              </p>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start space-x-3">
-                <MessageCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">
-                    Speed Up Your Approval
-                  </h3>
-                  <p className="text-sm text-blue-800">
-                    Contact admin directly on WhatsApp for faster processing of your seller account upgrade.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <a
-                href="https://wa.me/27711126204?text=Hi%2C%20I%20just%20requested%20a%20seller%20account%20upgrade%20for%20FYC%20Marketplace.%20Can%20you%20please%20help%20me%20get%20approved%3F"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowUpgradeContactModal(false)}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span>Contact Admin on WhatsApp</span>
-              </a>
-              
-              <button
-                onClick={() => setShowUpgradeContactModal(false)}
-                className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-              >
-                I'll Wait for Email
-              </button>
-            </div>
-
-            <p className="text-xs text-gray-500 text-center mt-4">
-              You'll receive an email once your request is reviewed
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Polling Indicator */}
       {isPolling && (
         <div className="fixed top-20 right-4 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-lg z-50">
           <div className="flex items-center space-x-3">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <span className="text-sm text-blue-800">Checking for admin approval...</span>
+            <span className="text-sm text-blue-800">Checking payment status...</span>
           </div>
         </div>
       )}
@@ -808,7 +688,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                     disabled={loading || upgrading}
                     className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {upgrading ? 'Starting secure checkout...' : 'Reactivate Subscription'}
+                    {upgrading ? 'Checking seller options...' : subscriptionAlert.actionLabel}
                   </button>
                 )}
 
@@ -920,9 +800,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Subscription</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.subscribed && user.subscriptionStatus !== 'expired' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                      user.subscribed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {user.subscribed && user.subscriptionStatus !== 'expired' ? 'Active' : 'Inactive'}
+                      {(user.subscriptionStatus || (user.subscribed ? 'ACTIVE' : 'NONE')).replace(/_/g, ' ')}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -935,7 +815,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   </div>
                   {user.subscriptionEndDate && (
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Subscription Expires</span>
+                      <span className="text-gray-600">
+                        {user.subscriptionSource === 'OFFER' ? 'Free Offer Ends' : 'Subscription Expires'}
+                      </span>
                       <span className="px-2 py-1 rounded-full text-xs font-medium">
                         {new Date(user.subscriptionEndDate).toLocaleDateString('en-US', {
                           year: 'numeric',
@@ -961,7 +843,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                 <div className="bg-white rounded-xl shadow-sm border p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Become a Seller</h3>
                   <p className="text-gray-600 text-sm mb-4">
-                    Upgrade your account to start selling products on our marketplace.
+                    Activate seller status immediately and start listing products. No admin approval is required.
                   </p>
                   <div className="space-y-2">
                     <button 
@@ -970,10 +852,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                       className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
                       <Zap className="h-4 w-4" />
-                      <span>{upgrading ? 'Starting secure checkout...' : 'Subscribe as Seller'}</span>
+                      <span>{upgrading ? 'Checking seller options...' : 'Become a Seller — R25/month'}</span>
                     </button>
                     <p className="text-xs text-gray-600">
-                      Seller subscription: <span className="font-semibold">R25 / month</span>. Access activates after verified payment.
+                      Eligible free periods and discounts appear as claimable offers. Offers never start automatically.
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { loginUser } from './api';
+import { showNotification } from './AppNotificationModal';
 
 type User = {
   id: number;
@@ -41,10 +42,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
       onLoginSuccess(response.user, response.token);
       setLoginData({ email: '', password: '' });
       
-      // Show success message
-      setTimeout(() => {
-        alert(`Welcome back, ${response.user.name}!`);
-      }, 100);
+      showNotification({
+        type: 'success',
+        title: `Welcome back, ${response.user.name}`,
+        message: 'You are signed in and ready to continue.',
+        actionLabel: 'Continue'
+      });
 
     } catch (error) {
       let errorMessage = 'Login failed. Please try again.';

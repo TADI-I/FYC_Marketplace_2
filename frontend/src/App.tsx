@@ -20,8 +20,10 @@ import {
 } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { User, Product, Message, MessageMap, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber } from './types';
+import { User, Product, Message, MessageMap, SellerOffer, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber } from './types';
 import logo from './assets/facicon.jpeg';
+import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
+import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
 
 import './App.css';
 import {
@@ -29,6 +31,8 @@ import {
   getProducts,
   getCurrentUser,
   upgradeUserToSeller,
+  getEligibleSellerOffers,
+  claimSellerOffer,
   trackWhatsAppClick
 } from './api';
 
@@ -89,6 +93,12 @@ const App = () => {
   const [_error, setError] = useState<string>('');
   const [_loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [sellerOffers, setSellerOffers] = useState<SellerOffer[]>([]);
+  const [dismissedOfferIds, setDismissedOfferIds] = useState<string[]>([]);
+  const [claimingOfferId, setClaimingOfferId] = useState<string | null>(null);
+  const [offerError, setOfferError] = useState<string>('');
+  const [claimedOfferExpiry, setClaimedOfferExpiry] = useState<string | Date | null>(null);
+  const [appNotificationOpen, setAppNotificationOpen] = useState(false);
   const [highlightedProduct, setHighlightedProduct] = useState<Product | null>(null);
   const hasScrolledToHighlighted = useRef(false);
 
@@ -116,6 +126,36 @@ const App = () => {
       }
     };
     restore();
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setSellerOffers([]);
+      return;
+    }
+
+    let cancelled = false;
+    getEligibleSellerOffers()
+      .then(offers => {
+        if (!cancelled) setSellerOffers(offers);
+      })
+      .catch(error => {
+        if (!cancelled) console.warn('Could not load seller offers:', error);
+      });
+    return () => { cancelled = true; };
+  }, [currentUser]);
+
+  useEffect(() => {
+    setDismissedOfferIds([]);
+    setOfferError('');
+  }, [currentUser?._id]);
+
+  useEffect(() => {
+    const handleNotificationVisibility = (event: Event) => {
+      setAppNotificationOpen((event as CustomEvent<boolean>).detail);
+    };
+    window.addEventListener(NOTIFICATION_VISIBILITY_EVENT, handleNotificationVisibility);
+    return () => window.removeEventListener(NOTIFICATION_VISIBILITY_EVENT, handleNotificationVisibility);
   }, []);
 
   // Load dark mode preference
@@ -281,9 +321,17 @@ const App = () => {
     setLoading(true);
     setError('');
     try {
-      const checkout = await upgradeUserToSeller(currentUser._id || String(currentUser.id), 'monthly');
-      if (!checkout.authorizationUrl) throw new Error('Secure checkout URL was not returned.');
-      window.location.assign(checkout.authorizationUrl);
+      const result = await upgradeUserToSeller(currentUser._id || String(currentUser.id), 'monthly');
+      if (result.authorizationUrl) {
+        window.location.assign(result.authorizationUrl);
+        return;
+      }
+      if (!result.user) throw new Error('Seller activation response was incomplete.');
+      setCurrentUser(result.user);
+      localStorage.setItem('user_data', JSON.stringify(result.user));
+      if (result.offers) setSellerOffers(result.offers);
+      setShowUpgrade(false);
+      setCurrentView('my-profile');
     } catch (error) {
       let errorMessage = 'Upgrade failed. Please try again.';
       if (error && typeof error === 'object' && 'message' in error) {
@@ -294,6 +342,40 @@ const App = () => {
       setLoading(false);
     }
   }, [currentUser]);
+
+  const handleClaimOffer = useCallback(async (offer: SellerOffer) => {
+    setClaimingOfferId(offer.id);
+    setOfferError('');
+    try {
+      const result = await claimSellerOffer(offer.id);
+      if (!result.user) throw new Error('The claimed offer did not return an updated account.');
+      setCurrentUser(result.user);
+      localStorage.setItem('user_data', JSON.stringify(result.user));
+      setSellerOffers(current => current.filter(item => item.id !== offer.id));
+      setClaimedOfferExpiry(result.claim?.expiresAt || result.user.subscriptionEndDate || null);
+    } catch (error) {
+      setOfferError(error instanceof Error ? error.message : 'Could not claim this offer.');
+    } finally {
+      setClaimingOfferId(null);
+    }
+  }, []);
+
+  const visibleSellerOffer = useMemo(
+    () => sellerOffers.find(offer => !dismissedOfferIds.includes(offer.id)) || null,
+    [sellerOffers, dismissedOfferIds]
+  );
+
+  const handleDismissSellerOffer = useCallback(() => {
+    if (visibleSellerOffer) {
+      setDismissedOfferIds(current => [...current, visibleSellerOffer.id]);
+    }
+    setOfferError('');
+  }, [visibleSellerOffer]);
+
+  const handleOfferSuccessClose = useCallback(() => {
+    setClaimedOfferExpiry(null);
+    setCurrentView('add-product');
+  }, []);
 
   const handleLogout = useCallback(() => {
     logoutUser();
@@ -321,11 +403,11 @@ const App = () => {
 
   useEffect(() => {
     if (currentView === 'home' && currentUser && currentUser.type === 'seller') {
-      const needsCheck = currentUser.subscriptionStatus === 'expired' || !currentUser.subscribed;
+      const needsCheck = !currentUser.subscribed;
       if (needsCheck) {
         const interval = setInterval(async () => {
           const fresh = await refreshCurrentUser();
-          if (fresh && fresh.subscribed && fresh.subscriptionStatus === 'active') clearInterval(interval);
+          if (fresh && fresh.subscribed) clearInterval(interval);
         }, 10000);
         setTimeout(() => clearInterval(interval), 300000);
         return () => clearInterval(interval);
@@ -363,9 +445,14 @@ const App = () => {
             <li>• Priority listing placement</li>
           </ul>
         </div>
-        <p className="text-lg font-semibold mb-4">Monthly Subscription: R25</p>
+        <p className="text-lg font-semibold mb-1">Monthly Subscription: R25</p>
+        <p className="text-sm text-gray-600 mb-4">
+          Eligible free periods and discounts appear as separate offers and only start after you claim them.
+        </p>
         <div className="flex gap-2">
-          <button onClick={handleUpgrade} className="flex-1 bg-blue-600 text-white p-3 rounded hover:bg-blue-700">Subscribe Now</button>
+          <button onClick={handleUpgrade} className="flex-1 bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
+            Continue
+          </button>
           <button onClick={() => setShowUpgrade(false)} className="flex-1 bg-gray-300 p-3 rounded hover:bg-gray-400">Cancel</button>
         </div>
       </div>
@@ -440,7 +527,11 @@ const App = () => {
           await navigator.share({ url: shareUrl, title: `${product.title} - R${product.price}`, text: `Check out "${product.title}" on FYC Marketplace` });
         } else {
           await navigator.clipboard.writeText(shareUrl);
-          alert('Link copied! Share it on WhatsApp, Facebook, or anywhere.');
+          showNotification({
+            type: 'success',
+            title: 'Link copied',
+            message: 'The listing link is ready to share on WhatsApp, Facebook, or anywhere else.'
+          });
         }
       } catch (err: any) {
         if (err.name !== 'AbortError') console.error('Share failed', err);
@@ -631,6 +722,22 @@ const App = () => {
           </div>
         </div>
       </header>
+
+      {visibleSellerOffer && !claimedOfferExpiry && !appNotificationOpen && (
+        <SellerOfferModal
+          offer={visibleSellerOffer}
+          claiming={claimingOfferId === visibleSellerOffer.id}
+          error={offerError}
+          onClaim={() => handleClaimOffer(visibleSellerOffer)}
+          onClose={handleDismissSellerOffer}
+        />
+      )}
+      {claimedOfferExpiry && (
+        <SellerOfferSuccessModal
+          expiresAt={claimedOfferExpiry}
+          onClose={handleOfferSuccessClose}
+        />
+      )}
 
       <main className="marketplace-main flex-1 max-w-7xl mx-auto px-4 py-4">
         <Analytics />

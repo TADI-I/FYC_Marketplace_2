@@ -218,11 +218,11 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <UserPlus style={{ height: '1.25rem', width: '1.25rem', color: '#10110f' }} />
-                    Register as a Seller
+                    Activate Seller Status
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Create your account and choose "Seller" as your account type. Upgrade to a seller 
-                    subscription for just R25 per month to unlock unlimited listings. This affordable 
+                    Choose Seller during registration, or register as a Buyer and activate seller status later from your profile.
+                    Standard seller access is R25 per month. Eligible free periods or discounts appear as offers and begin only after you claim them. This affordable
                     monthly fee gives you access to thousands of potential buyers across multiple campuses.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>

@@ -330,8 +330,19 @@ export const getSubscriptionStatus = async () => {
     return response;
   } catch (error) {
     console.error('❌ Failed to get subscription status:', error);
-    return { subscribed: false, type: 'customer' };
+    return { subscribed: false, type: 'buyer', subscriptionStatus: 'NONE' };
   }
+};
+
+export const getEligibleSellerOffers = async () => {
+  const response = await apiCall('/api/seller-offers/eligible');
+  return response.offers || [];
+};
+
+export const claimSellerOffer = async (offerId) => {
+  return apiCall(`/api/seller-offers/${offerId}/claim`, {
+    method: 'POST'
+  });
 };
 
 export const updateUserProfile = async (userId, updateData) => {

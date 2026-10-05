@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getReactivationRequests, processReactivationRequest, getVerificationRequests, processVerificationRequest } from './api';
 import AdminUsers from '../src/AdminUsers';
 import { CheckCircle, XCircle, Clock, Eye, MessageCircle } from 'lucide-react';
+import { showNotification } from './AppNotificationModal';
 
 type RequestItem = any;
 type TabKey = 'all' | 'pending' | 'approved' | 'rejected';
@@ -120,7 +121,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
 
   const handleProcess = async (id: string, action: 'approve' | 'reject') => {
     if (!adminNote.trim()) {
-      alert('Please enter a note before processing the request');
+      showNotification({ type: 'warning', title: 'Admin note required', message: 'Enter a note before processing this request.' });
       return;
     }
 
@@ -130,15 +131,15 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       setProcessingId(null);
       setAdminNote('');
       setSubscriptionType('monthly');
-      alert(`Request ${action}ed successfully`);
+      showNotification({ type: 'success', title: `Request ${action}d`, message: 'The reactivation request was processed successfully.' });
     } catch (err: any) {
-      alert(err.message || 'Failed to process');
+      showNotification({ type: 'error', title: 'Request could not be processed', message: err.message || 'Please try again.' });
     }
   };
 
   const handleVerificationProcess = async (requestId: string, action: 'approve' | 'reject') => {
     if (!verificationNote.trim()) {
-      alert('Please enter a note before processing the verification');
+      showNotification({ type: 'warning', title: 'Admin note required', message: 'Enter a note before processing this verification.' });
       return;
     }
 
@@ -166,7 +167,11 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
         window.open(whatsappUrl, '_blank');
       } else {
         console.warn('⚠️ Invalid phone number, cannot open WhatsApp');
-        alert(`Verification ${action}d, but couldn't open WhatsApp (invalid phone number). Please contact the user manually.`);
+        showNotification({
+          type: 'warning',
+          title: `Verification ${action}d`,
+          message: "The request was processed, but WhatsApp could not open because the phone number is invalid. Please contact the user manually."
+        });
       }
       
       // Refresh requests and reset form
@@ -175,7 +180,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       setVerificationNote('');
       
     } catch (err: any) {
-      alert(err.message || `Failed to ${action} verification`);
+      showNotification({ type: 'error', title: 'Verification update failed', message: err.message || `Failed to ${action} verification.` });
     }
   };
 

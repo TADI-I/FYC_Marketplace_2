@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const verificationController = require('./controllers/verificationController');
 const productPageController = require('./controllers/productPageController');
+const { ensureDefaultSellerOffers } = require('./services/sellerOfferService');
 
 
 const app = express();
@@ -59,9 +60,14 @@ async function connectToMongoDB() {
       await db.collection('subscriptionOrders').createIndex({ paymentReference: 1 }, { unique: true, sparse: true });
       await db.collection('subscriptionOrders').createIndex({ userId: 1, status: 1, expiresAt: -1 });
       await db.collection('paymentCallbackEvents').createIndex({ eventId: 1 }, { unique: true });
+      await db.collection('sellerOffers').createIndex({ code: 1 }, { unique: true });
+      await db.collection('sellerOfferClaims').createIndex({ userId: 1, offerId: 1 }, { unique: true });
+      await db.collection('sellerSubscriptions').createIndex({ userId: 1, expiresAt: -1 });
+      await db.collection('sellerSubscriptions').createIndex({ paymentOrderId: 1 }, { unique: true, sparse: true });
     } catch (indexError) {
       console.log('Some indexes already exist');
     }
+    await ensureDefaultSellerOffers(db);
     
     return db;
   } catch (error) {
@@ -140,6 +146,7 @@ const referenceController = require('./controllers/referenceController');
 const healthController = require('./controllers/healthController');
 const analyticsController = require('./controllers/analyticsController');
 const subscriptionPaymentController = require('./controllers/subscriptionPaymentController');
+const sellerOfferController = require('./controllers/sellerOfferController');
 const { warmRequiredServices } = require('./services/serviceWarmup');
 
 const { 
@@ -252,10 +259,12 @@ app.post('/api/auth/login', (req, res) => authController.login(req, res, req.db)
 app.get('/api/users/me', authenticateToken, (req, res) => authController.getCurrentUser(req, res, req.db));
 app.get('/api/users/:id', authenticateToken, validateObjectId('id'), (req, res) => userController.getUserProfile(req, res, req.db));
 app.put('/api/users/:id', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), (req, res) => userController.updateUserProfile(req, res, req.db));
-app.post('/api/users/:id/upgrade', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), (req, res) => subscriptionPaymentController.startCheckout(req, res, req.db));
+app.post('/api/users/:id/upgrade', authenticateToken, validateObjectId('id'), withOwnershipCheck('user'), (req, res) => userController.upgradeUserToSeller(req, res, req.db));
 app.post('/api/subscriptions/checkout', authenticateToken, (req, res) => subscriptionPaymentController.startCheckout(req, res, req.db));
 app.post('/api/webhooks/payments', (req, res) => subscriptionPaymentController.handleCallback(req, res, req.db));
 app.get('/api/user/subscription-status', authenticateToken, (req, res) => userController.getSubscriptionStatus(req, res, req.db));
+app.get('/api/seller-offers/eligible', authenticateToken, (req, res) => sellerOfferController.getEligibleOffers(req, res, req.db));
+app.post('/api/seller-offers/:offerId/claim', authenticateToken, validateObjectId('offerId'), (req, res) => sellerOfferController.claimOffer(req, res, req.db));
 app.post('/api/users/:id/reactivate-request', authenticateToken, validateObjectId('id'), (req, res) => {
   return userController.createReactivationRequest(req, res, req.db);
 });

@@ -10,9 +10,28 @@ export type User = {
   campus: string;
   subscriptionEndDate?: Date | string;
   subscriptionStatus?: string;
+  hasHadSellerAccess?: boolean;
+  sellerActivatedAt?: Date | string | null;
+  subscriptionAmount?: number;
+  subscriptionCurrency?: string;
+  subscriptionSource?: 'PAYMENT' | 'OFFER' | null;
+  currentOfferId?: string | null;
+  currentOfferClaimId?: string | null;
   whatsapp?: string | null;
   verified?: boolean;
   verifiedAt?: Date | string;
+};
+
+export type SellerOffer = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  type: string;
+  durationMonths: number;
+  price: number;
+  currency: string;
+  endsAt?: Date | string | null;
 };
 
 export type ProductImage = {

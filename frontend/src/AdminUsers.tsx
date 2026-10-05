@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAllUsers, updateUser } from './api';
+import { showNotification } from './AppNotificationModal';
 
 const ADMIN_PAGE_SIZE = 10;
 
@@ -38,7 +39,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
       setVisibleCount(ADMIN_PAGE_SIZE);
     } catch (err) {
       console.error(err);
-      alert('Failed to load users');
+      showNotification({ type: 'error', title: 'Users could not be loaded', message: 'Please try loading the user list again.' });
     } finally {
       setLoading(false);
     }
@@ -62,9 +63,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
       setEditingId(null);
       setForm({});
       await load();
-      alert('User updated');
+      showNotification({ type: 'success', title: 'User updated', message: 'The account changes were saved successfully.' });
     } catch (err: any) {
-      alert(err.message || 'Failed to update');
+      showNotification({ type: 'error', title: 'Update failed', message: err.message || 'The user could not be updated.' });
     }
   };
 

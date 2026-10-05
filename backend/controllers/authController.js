@@ -2,6 +2,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { ObjectId } = require('mongodb');
+const {
+  SUBSCRIPTION_STATUS,
+  syncExpiredSellerAccess,
+  publicSubscriptionFields
+} = require('../services/sellerSubscriptionService');
 
 // Validation helpers
 const isValidEmail = (email) => {
@@ -20,7 +25,7 @@ const isValidCampus = (campus) => {
 // Register controller
 exports.register = async (req, res, db) => {
   try {
-    const { name, email, password, campus, whatsapp } = req.body;
+    const { name, email, password, campus, whatsapp, type = 'buyer' } = req.body;
 
     // simple normalize whatsapp: remove non-digits, allow leading country code (E.164 expected)
     const normalizedWhatsapp = whatsapp ? String(whatsapp).replace(/\D/g, '') : null;
@@ -47,6 +52,13 @@ exports.register = async (req, res, db) => {
       });
     }
 
+    if (!['buyer', 'seller'].includes(type)) {
+      return res.status(400).json({
+        error: 'Account type must be buyer or seller',
+        success: false
+      });
+    }
+
     // Check if user already exists
     const existingUser = await db.collection('users').findOne({ 
       email: email.toLowerCase() 
@@ -63,18 +75,24 @@ exports.register = async (req, res, db) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user object
+    const now = new Date();
     const userDoc = {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       campus: campus || null,
-      type: 'buyer',
+      type,
+      hasHadSellerAccess: false,
       subscribed: false,
-      subscriptionStatus: 'expired',
-      createdAt: new Date(),
+      subscriptionStatus: type === 'seller'
+        ? SUBSCRIPTION_STATUS.PAYMENT_REQUIRED
+        : SUBSCRIPTION_STATUS.NONE,
+      subscriptionAmount: 25,
+      subscriptionCurrency: 'ZAR',
+      createdAt: now,
       // store normalized whatsapp (or null)
       whatsapp: normalizedWhatsapp,
       password: hashedPassword,
-      updatedAt: new Date()
+      updatedAt: now
     };
 
     console.log('💾 Inserting user:', { ...userDoc, password: '[HIDDEN]' });
@@ -103,9 +121,7 @@ exports.register = async (req, res, db) => {
       type: userDoc.type,
       campus: userDoc.campus,
       subscribed: userDoc.subscribed,
-      subscriptionStatus: userDoc.subscriptionStatus,
-      subscriptionStartDate: userDoc.subscriptionStartDate,
-      subscriptionEndDate: userDoc.subscriptionEndDate,
+      ...publicSubscriptionFields(userDoc),
       whatsapp: userDoc.whatsapp || null,
       createdAt: userDoc.createdAt,
       updatedAt: userDoc.updatedAt
@@ -145,7 +161,7 @@ exports.login = async (req, res, db) => {
     }
 
     // Find user
-    const user = await db.collection('users').findOne({ 
+    let user = await db.collection('users').findOne({
       email: email.toLowerCase() 
     });
     
@@ -165,6 +181,8 @@ exports.login = async (req, res, db) => {
       });
     }
 
+    user = await syncExpiredSellerAccess(db, user);
+
     // Create JWT token
     const token = jwt.sign(
       { id: user._id.toString(), email: user.email, type: user.type, campus: user.campus },
@@ -180,9 +198,7 @@ exports.login = async (req, res, db) => {
       type: user.type,
       campus: user.campus,
       subscribed: user.subscribed,
-      subscriptionStatus: user.subscriptionStatus,
-      subscriptionStartDate: user.subscriptionStartDate,
-      subscriptionEndDate: user.subscriptionEndDate,
+      ...publicSubscriptionFields(user),
       whatsapp: user.whatsapp || null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -215,13 +231,15 @@ exports.getCurrentUser = async (req, res, db) => {
     }
 
     // Use the ObjectId already imported at the top of the file
-    const user = await db.collection('users').findOne({ 
+    let user = await db.collection('users').findOne({
       _id: new ObjectId(userId) 
     });
     
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
+
+    user = await syncExpiredSellerAccess(db, user);
 
     // only return safe fields (include whatsapp)
     const safeUser = {
@@ -231,9 +249,7 @@ exports.getCurrentUser = async (req, res, db) => {
       type: user.type,
       campus: user.campus,
       subscribed: user.subscribed,
-      subscriptionStatus: user.subscriptionStatus,
-      subscriptionStartDate: user.subscriptionStartDate,
-      subscriptionEndDate: user.subscriptionEndDate,
+      ...publicSubscriptionFields(user),
       whatsapp: user.whatsapp || null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt

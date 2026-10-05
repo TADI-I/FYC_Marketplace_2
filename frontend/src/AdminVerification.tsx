@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Clock, Eye, MessageCircle } from 'lucide-react';
 import { getVerificationRequests, processVerificationRequest } from './api';
+import { showNotification } from './AppNotificationModal';
 
 // CRITICAL: Must match the API_BASE in api.js
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5001';
@@ -73,7 +74,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
 
   const handleProcess = async (requestId: string, action: 'approve' | 'reject', whatsappNumber: string, userName: string) => {
     if (!verificationNote.trim()) {
-      alert('Please enter a note before processing the verification');
+      showNotification({ type: 'warning', title: 'Admin note required', message: 'Enter a note before processing this verification.' });
       return;
     }
 
@@ -96,7 +97,11 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
         window.open(whatsappUrl, '_blank');
       } else {
         console.warn('⚠️ Invalid phone number, cannot open WhatsApp');
-        alert(`Verification ${action}d, but couldn't open WhatsApp (invalid phone number). Please contact the user manually.`);
+        showNotification({
+          type: 'warning',
+          title: `Verification ${action}d`,
+          message: "The request was processed, but WhatsApp could not open because the phone number is invalid. Please contact the user manually."
+        });
       }
       
       // Refresh requests and reset form
@@ -105,7 +110,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ darkMode = false 
       setVerificationNote('');
       
     } catch (err: any) {
-      alert(err.message || `Failed to ${action} verification`);
+      showNotification({ type: 'error', title: 'Verification update failed', message: err.message || `Failed to ${action} verification.` });
     }
   };
 

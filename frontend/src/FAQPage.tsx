@@ -19,12 +19,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'getting-started',
       question: 'How do I create an account on FYC Marketplace?',
-      answer: 'Creating an account is simple and free! Click the "Register" button in the top right corner, fill in your name, email, campus location, and password. Choose "Buyer" if you only want to browse and purchase items, or "Seller" if you plan to list products or services. After registration, you can start browsing immediately. Sellers will need to subscribe (R25/month) before adding listings.'
+      answer: 'Creating an account is simple and free! Click the "Register" button in the top right corner, fill in your name, email, campus location, and password. Choose "Buyer" if you only want to browse and purchase items, or "Seller" if you plan to list products or services. Seller promotions are shown as separate offers and begin only when you claim them.'
     },
     {
       category: 'getting-started',
       question: 'Is FYC Marketplace free to use?',
-      answer: 'Yes! For buyers, FYC Marketplace is completely free – no registration fees, browsing fees, or transaction fees. You can search, browse, and contact sellers without paying anything. For sellers, we charge an affordable R25 per month subscription that allows you to list unlimited products and services. This low monthly fee helps us maintain the platform and provide excellent service to our student community.'
+      answer: 'Yes! For buyers, FYC Marketplace is completely free – no registration fees, browsing fees, or transaction fees. You can search, browse, and contact sellers without paying anything. Standard seller access costs R25 per month. Eligible sellers may also receive claimable free-period or discount offers.'
     },
     {
       category: 'buying',
@@ -49,12 +49,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'selling',
       question: 'How do I become a seller on FYC Marketplace?',
-      answer: 'To become a seller, register for an account and select "Seller" as your account type. After registration, upgrade to a seller subscription for R25 per month. This unlocks the ability to create unlimited product and service listings. Make sure to add your WhatsApp number during registration so buyers can contact you directly. Once subscribed, click "Add Listing" to create your first product or service listing. Your subscription renews monthly until you cancel.'
+      answer: 'You can register as a Seller or register as a Buyer and later choose Profile → Become a Seller. No admin approval is required. Standard access is R25 per month. If you are eligible for a promotion, the marketplace shows a separate offer that you must claim before its free period or discount begins.'
     },
     {
       category: 'selling',
       question: 'How much does the seller subscription cost and how do I pay?',
-      answer: 'The seller subscription costs R25 per month. Start secure checkout from your profile; seller access activates automatically only after the payment provider confirms the payment.'
+      answer: 'The standard seller subscription costs R25 per month. Start secure checkout from your profile; paid access activates only after the payment provider confirms the payment. Promotional periods are claim-based and do not start just because you log in.'
     },
     {
       category: 'selling',
@@ -89,7 +89,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'technical',
       question: 'Why can\'t I add new listings?',
-      answer: 'If you\'re unable to add listings, check the following: (1) Make sure you\'re registered as a seller account type. (2) Verify that your R25 monthly subscription is active and hasn\'t expired. (3) Clear your browser cache and refresh the page. (4) If your account was recently created or reactivated, wait 5-10 minutes for system updates. If the problem persists, contact support on WhatsApp at +27 71 112 6204 with your account email, and we\'ll resolve it within 24 hours.'
+      answer: 'If you\'re unable to add listings, check the following: (1) Activate seller status from your profile. (2) Verify that your claimed offer or R25 monthly subscription is still active. (3) Clear your browser cache and refresh the page. (4) If you just paid, allow a few moments for verified payment confirmation. If the problem persists, contact support on WhatsApp at +27 71 112 6204 with your account email.'
     },
     {
       category: 'technical',

@@ -1,6 +1,11 @@
 // middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const { ObjectId } = require('mongodb');
+const {
+  SUBSCRIPTION_STATUS,
+  hasActiveSellerAccess,
+  syncExpiredSellerAccess
+} = require('../services/sellerSubscriptionService');
 
 // JWT authentication middleware
 exports.authenticateToken = (req, res, next) => {
@@ -147,7 +152,7 @@ exports.processReactivationRequest = async (req, res, db) => {
         {
           $set: {
             subscribed: true,
-            subscriptionStatus: 'active',
+            subscriptionStatus: SUBSCRIPTION_STATUS.ACTIVE,
             subscriptionStartDate: new Date(),
             subscriptionEndDate,
             type: 'seller',
@@ -187,17 +192,8 @@ exports.requireActiveSubscription = async (req, res, next, db) => {
     }
 
     // Check if subscription has expired
-    if (user.subscriptionEndDate && new Date() > new Date(user.subscriptionEndDate)) {
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(req.user.id) },
-        { 
-          $set: { 
-            subscribed: false, 
-            type: 'customer',
-            subscriptionStatus: 'expired'
-          } 
-        }
-      );
+    if (!hasActiveSellerAccess(user)) {
+      await syncExpiredSellerAccess(db, user);
       
       return res.status(403).json({ 
         error: 'Subscription has expired',

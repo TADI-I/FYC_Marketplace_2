@@ -2,8 +2,9 @@
 
 Student marketplace with a React frontend and an Express/MongoDB backend.
 Students browse listings and arrange listing purchases directly with sellers.
-The platform itself charges sellers a server-priced R25 monthly subscription
-through the standalone LBG Payment Service.
+Standard seller access costs R25 per month through the standalone LBG Payment
+Service. Free periods and discounts are configurable offers: eligible users
+must explicitly claim an offer before its access period begins.
 
 ## Architecture
 
@@ -16,9 +17,10 @@ React frontend ──> Marketplace Express API ──> MongoDB
 ```
 
 The Marketplace backend never holds a Paystack secret. It authenticates to LBG
-Payment Service with a Marketplace-specific service credential. Seller access
-is activated or extended only after a signed payment callback matches the local
-subscription order.
+Payment Service with a Marketplace-specific service credential. Paid access is
+activated or extended only after a signed payment callback matches the local
+subscription order. Promotional access is activated only by an eligible,
+recorded offer claim.
 
 Listing purchases are still private transactions between buyers and sellers;
 they are not processed by the platform payment integration.
@@ -156,25 +158,35 @@ The Marketplace backend and Payment Service must use the same Marketplace key
 ID, service secret, and callback secret. Never place either secret in the
 frontend or in this document.
 
-## Seller subscription payment flow
+## Seller activation and subscription flow
 
-1. An authenticated user starts checkout with `POST /api/subscriptions/checkout`.
-2. Marketplace creates a local 30-minute subscription order priced on the server at `2500` minor units (`R25.00`).
-3. Marketplace creates an idempotent central payment using the local order ID.
-4. The browser is redirected to the Paystack-hosted authorization URL.
-5. Paystack notifies LBG Payment Service; the browser return is not payment proof.
-6. LBG Payment Service verifies the provider event and sends Marketplace a signed callback.
-7. Marketplace validates the HMAC signature and five-minute timestamp window, deduplicates the event ID, and compares product, user, order, central payment ID, reference, amount, and currency.
-8. Seller access is activated only after a matching `PAYMENT_SUCCESS` callback.
-9. Any older pending manual reactivation request for that seller is marked
-   approved automatically, and the seller's saved listings become visible
-   immediately through the active-subscription product filter.
+1. A user may choose Seller at registration or later use **Profile → Become a Seller**. This does not automatically start a free period.
+2. The backend checks active `sellerOffers` against configurable eligibility rules and the user's prior `sellerOfferClaims`.
+3. Eligible offers are shown in a premium in-app modal. No browser notification or native alert is used, and login or offer discovery does not activate access.
+4. The user explicitly claims an offer. The backend creates a unique claim, creates a `sellerSubscriptions` access period, and reactivates seller access.
+5. When the promotional period expires, access returns to `PAYMENT_REQUIRED`; the claim history remains, preventing the same offer from being claimed again.
+6. Without an eligible offer, Marketplace starts standard R25 checkout and creates a local order priced at `2500` minor units (`R25.00`).
+7. Paid seller access begins only after a matching, verified `PAYMENT_SUCCESS` callback.
+
+The immediate promotion is seeded as `SELLER_REACTIVATION_2_MONTHS`. It is
+available to previously active sellers whose access has expired and can be
+claimed once per account. Future promotions can use the same infrastructure by
+adding an offer definition rather than rewriting subscription logic.
+
+```text
+users                       account type and current denormalized access state
+sellerSubscriptions         paid or promotional access periods
+sellerOffers                configurable duration, price, schedule, and rules
+sellerOfferClaims           who claimed an offer and when it runs
+```
 
 Relevant endpoints:
 
 ```text
-POST /api/subscriptions/checkout       Authenticated seller checkout
-POST /api/users/:id/upgrade           Authenticated compatibility route
+POST /api/users/:id/upgrade           Seller activation/options or paid checkout
+POST /api/subscriptions/checkout       Authenticated paid renewal checkout
+GET  /api/seller-offers/eligible       Claimable offers for the current user
+POST /api/seller-offers/:offerId/claim Claim an eligible offer
 POST /api/webhooks/payments            Signed internal callback
 GET  /api/health                       Backend health check
 ```
@@ -229,7 +241,7 @@ and subscription-period behavior.
 
 - Never commit `.env` files or production credentials.
 - Never expose Payment Service credentials in the React environment.
-- Never activate seller access from the browser return URL.
+- Never activate paid seller access from the browser return URL.
 - Never accept a client-provided subscription amount.
 - Keep callback processing idempotent and retain the unique callback-event index.
 - Rotate credentials separately per environment when exposure is suspected.

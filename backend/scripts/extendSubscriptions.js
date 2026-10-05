@@ -43,7 +43,7 @@ async function extendAllSubscriptions() {
         {
           $set: {
             subscriptionEndDate: newEndDate,
-            subscriptionStatus: 'active',
+            subscriptionStatus: 'ACTIVE',
             subscribed: true,
             updatedAt: now
           }

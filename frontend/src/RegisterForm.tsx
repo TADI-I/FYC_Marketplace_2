@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { registerUser, requestUpgrade } from "./api";
+import { registerUser } from "./api";
+import { showNotification } from './AppNotificationModal';
 
 type User = {
   id: number;
@@ -44,17 +45,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword || !campus) {
-      alert("Please fill in all fields");
+      showNotification({ type: 'warning', title: 'Complete your details', message: 'Please fill in all required fields before continuing.' });
       return;
     }
 
     if (password.length < 8) {
-      alert("Password must be at least 8 characters long");
+      showNotification({ type: 'warning', title: 'Password is too short', message: 'Your password must be at least 8 characters long.' });
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showNotification({ type: 'warning', title: 'Passwords do not match', message: 'Enter the same password in both password fields.' });
       return;
     }
 
@@ -68,17 +69,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         type: accountType,
       });
 
-      // If registering as a seller, automatically send upgrade request
-      if (accountType === "seller" && response.user._id) {
-        try {
-          await requestUpgrade(response.user._id);
-          console.log("Seller upgrade request sent automatically");
-        } catch (upgradeError) {
-          console.error("Failed to send upgrade request:", upgradeError);
-          // Don't block registration if upgrade request fails
-        }
-      }
-
       // Pass both user AND token to parent component
       onRegisterSuccess(response.user, response.token);
 
@@ -89,19 +79,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       setCampus("");
       setWhatsapp("");
 
-      setTimeout(() => {
-        if (accountType === "seller") {
-          alert(`Welcome to FYC Marketplace, ${response.user.name}! Your seller account request has been sent to admin. You'll be notified once approved.`);
-        } else {
-          alert(`Welcome to FYC Marketplace, ${response.user.name}!`);
-        }
-      }, 100);
+      showNotification({
+        type: 'success',
+        title: `Welcome to FYC Marketplace, ${response.user.name}`,
+        message: accountType === 'seller'
+          ? 'Your seller profile is ready. Subscribe for R25/month, or claim an eligible offer when one appears.'
+          : 'Your buyer account is ready. You can start exploring the marketplace.',
+        actionLabel: 'Get started'
+      });
     } catch (error) {
       let errorMessage = "Registration failed. Please try again.";
       if (error && typeof error === "object" && "message" in error) {
         errorMessage = (error as { message: string }).message;
       }
-      alert(errorMessage);
+      showNotification({ type: 'error', title: 'Registration failed', message: errorMessage, actionLabel: 'Try again' });
     }
   };
 
@@ -180,7 +171,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           </div>
           {accountType === "seller" && (
             <p className="text-xs text-gray-600 mt-2">
-              Your seller account request will be sent to admin for approval. Subscription: R25/month (first month free).
+              Seller status requires an active R25/month subscription. Any free period or discount appears as a separate offer and starts only when you claim it. No admin approval is required.
             </p>
           )}
         </div>

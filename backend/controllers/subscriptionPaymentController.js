@@ -1,11 +1,32 @@
 const { ObjectId } = require('mongodb');
 const paymentService = require('../services/paymentService');
+const {
+  SUBSCRIPTION_STATUS,
+  SELLER_MONTHLY_PRICE_CENTS
+} = require('../services/sellerSubscriptionService');
 
-const MONTHLY_SUBSCRIPTION_CENTS = 2500;
+const MONTHLY_SUBSCRIPTION_CENTS = SELLER_MONTHLY_PRICE_CENTS;
 
 async function activateSubscriptionForPaidOrder(db, order, payment, activatedAt = new Date()) {
   const providerPaidAt = payment.paidAt ? new Date(payment.paidAt) : activatedAt;
   const paidAt = Number.isNaN(providerPaidAt.getTime()) ? activatedAt : providerPaidAt;
+  await db.collection('sellerSubscriptions').updateOne(
+    { _id: order._id },
+    { $setOnInsert: {
+      _id: order._id,
+      userId: order.userId,
+      status: SUBSCRIPTION_STATUS.ACTIVE,
+      source: 'PAYMENT',
+      startedAt: order.servicePeriodStart,
+      expiresAt: order.servicePeriodEnd,
+      price: order.amount / 100,
+      currency: order.currency,
+      paymentOrderId: order._id,
+      createdAt: activatedAt,
+      updatedAt: activatedAt
+    } },
+    { upsert: true }
+  );
 
   await db.collection('users').updateOne(
     { _id: order.userId },
@@ -13,13 +34,21 @@ async function activateSubscriptionForPaidOrder(db, order, payment, activatedAt 
       $set: {
         type: 'seller',
         subscribed: true,
+        hasHadSellerAccess: true,
         subscriptionType: order.plan,
-        subscriptionStatus: 'active',
+        subscriptionStatus: SUBSCRIPTION_STATUS.ACTIVE,
+        subscriptionAmount: order.amount / 100,
+        subscriptionCurrency: order.currency,
+        subscriptionSource: 'PAYMENT',
+        currentOfferId: null,
+        currentOfferClaimId: null,
+        currentSellerSubscriptionId: order._id,
         subscriptionStartDate: order.servicePeriodStart,
         subscriptionPaymentId: order._id.toString(),
         updatedAt: activatedAt
       },
-      $max: { subscriptionEndDate: order.servicePeriodEnd }
+      $max: { subscriptionEndDate: order.servicePeriodEnd },
+      $min: { sellerActivatedAt: order.servicePeriodStart }
     }
   );
 
@@ -176,7 +205,11 @@ exports.handleCallback = async (req, res, db) => {
       );
       await db.collection('users').updateOne(
         { _id: order.userId, subscriptionPaymentId: order._id.toString() },
-        { $set: { subscribed: false, subscriptionStatus: 'payment_refunded', type: 'customer', updatedAt: new Date() } }
+        { $set: {
+          subscribed: false,
+          subscriptionStatus: SUBSCRIPTION_STATUS.PAYMENT_REQUIRED,
+          updatedAt: new Date()
+        } }
       );
     }
 

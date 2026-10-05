@@ -3,6 +3,7 @@ import { Edit, Trash2, ArrowLeft, Plus, Loader, X, TrendingUp } from 'lucide-rea
 import { User, Product, getProductId, getImageUrl as getProductImageUrl } from './types';
 import ProductAnalytics from './ProductAnalytics';
 import { deleteProduct, getProductsBySeller } from './api';
+import { showConfirmation, showNotification } from './AppNotificationModal';
 
 
 interface SellerProductsProps {
@@ -241,11 +242,18 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
     const productId = getProductId(product);
     
     if (!productId) {
-      alert('Invalid product. Please try again.');
+      showNotification({ type: 'error', title: 'Invalid product', message: 'This product could not be identified. Please refresh and try again.' });
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+    const confirmed = await showConfirmation({
+      type: 'warning',
+      title: 'Delete this product?',
+      message: `“${product.title}” will be permanently removed. This action cannot be undone.`,
+      confirmLabel: 'Delete product',
+      cancelLabel: 'Keep product'
+    });
+    if (!confirmed) {
       return;
     }
 
@@ -259,7 +267,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
       const errorMessage = error instanceof Error 
         ? error.message 
         : 'Failed to delete product. Please try again.';
-      alert(errorMessage);
+      showNotification({ type: 'error', title: 'Product could not be deleted', message: errorMessage, actionLabel: 'Try again' });
     } finally {
       setLoading(false);
     }

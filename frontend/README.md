@@ -28,16 +28,25 @@ npm start
 The development server opens at `http://localhost:3000` and expects the backend
 at the configured `REACT_APP_API_BASE`.
 
-## Payments
+## Seller activation and payments
 
-The frontend asks the Marketplace backend to start the R25 seller-subscription
-checkout, then redirects the browser to the authorization URL returned by the
-backend. Returning to the frontend does not prove payment. Seller access changes
-only after the backend receives and verifies the signed callback from LBG
+Seller promotions are claim-based. After login, the frontend asks the backend
+for offers the current user is eligible to claim. Eligible promotions are shown
+in an accessible in-app modal rather than a browser notification or native
+alert. Merely loading the account does not start a free period. Claiming an
+offer creates its access period and removes that offer from the eligible list. Without an eligible offer, the
+frontend starts R25 seller-subscription checkout and redirects to the returned
+authorization URL. Returning to the frontend does not prove payment; paid
+access changes only after the backend verifies the signed callback from LBG
 Payment Service.
 
 Listing purchases are arranged directly between buyers and sellers and do not
 use this subscription checkout.
+
+All application-level feedback—including login and registration messages,
+admin results, sharing feedback, errors, and destructive confirmations—uses the
+shared queued in-app modal system. The frontend does not use browser `alert`,
+`confirm`, or Notification API pop-ups.
 
 ## Verification
 

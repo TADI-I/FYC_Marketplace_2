@@ -1,5 +1,14 @@
 // controllers/userController.js
 const { ObjectId, GridFSBucket } = require('mongodb');
+const subscriptionPaymentController = require('./subscriptionPaymentController');
+const {
+  SUBSCRIPTION_STATUS,
+  hasHistoricalSellerActivation,
+  hasActiveSellerAccess,
+  syncExpiredSellerAccess,
+  publicSubscriptionFields
+} = require('../services/sellerSubscriptionService');
+const { getEligibleOffers } = require('../services/sellerOfferService');
 
 // Get subscription status
 exports.getSubscriptionStatus = async (req, res, db) => {
@@ -14,15 +23,16 @@ exports.getSubscriptionStatus = async (req, res, db) => {
       });
     }
 
-    const hasActiveSubscription = user.subscribed && 
-      (!user.subscriptionEndDate || new Date() <= new Date(user.subscriptionEndDate));
+    const syncedUser = await syncExpiredSellerAccess(db, user);
+    Object.assign(user, syncedUser);
+    const hasActiveSubscription = hasActiveSellerAccess(user);
 
     res.json({
       success: true,
       hasActiveSubscription,
-      subscriptionStatus: user.subscriptionStatus,
-      subscriptionEndDate: user.subscriptionEndDate,
-      canSell: hasActiveSubscription
+      ...publicSubscriptionFields(user),
+      canSell: hasActiveSubscription,
+      requiresPayment: user.type === 'seller' && !hasActiveSubscription && hasHistoricalSellerActivation(user)
     });
 
   } catch (error) {
@@ -191,69 +201,74 @@ exports.getUserProfile = async (req, res, db) => {
   }
 };
 
-// Upgrade user to seller
-exports.upgradeUserToSeller = async (_req, res) => {
-  return res.status(410).json({
-    error: 'Direct seller upgrades are disabled. Start verified subscription checkout.',
-    code: 'PAYMENT_REQUIRED',
-    success: false
-  });
+// Activate seller account type. Offers are presented for an explicit claim;
+// this endpoint never starts a free period automatically.
+exports.upgradeUserToSeller = async (req, res, db) => {
+  try {
+    const userId = req.params.id || req.user.id;
+    const objectId = new ObjectId(userId);
+    let user = await db.collection('users').findOne({ _id: objectId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found.' });
+    }
+
+    if (hasActiveSellerAccess(user)) {
+      const { password, ...safeUser } = user;
+      return res.json({
+        success: true,
+        activation: user.subscriptionStatus === SUBSCRIPTION_STATUS.TRIAL ? 'TRIAL' : 'ACTIVE',
+        alreadyActive: true,
+        user: safeUser
+      });
+    }
+
+    if (user.type !== 'seller') {
+      await db.collection('users').updateOne(
+        { _id: objectId },
+        { $set: {
+          type: 'seller',
+          subscriptionStatus: SUBSCRIPTION_STATUS.PAYMENT_REQUIRED,
+          updatedAt: new Date()
+        } }
+      );
+      user = {
+        ...user,
+        type: 'seller',
+        subscriptionStatus: SUBSCRIPTION_STATUS.PAYMENT_REQUIRED
+      };
+    }
+
+    const offers = await getEligibleOffers(db, user);
+    if (offers.length) {
+      const { password, ...safeUser } = user;
+      return res.json({
+        success: true,
+        activation: 'OFFER_AVAILABLE',
+        claimRequired: true,
+        offers,
+        user: safeUser
+      });
+    }
+
+    return subscriptionPaymentController.startCheckout(req, res, db);
+  } catch (error) {
+    console.error('Seller activation error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Could not activate seller status.'
+    });
+  }
 };
 
-// Create a reactivation request (user requests admin review)
-exports.createReactivationRequest = async (req, res, db) => {
-  try {
-    console.log('🔔 createReactivationRequest called by', req.user?.id);
-    const userId = req.params.id;
-    if (!ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid user ID', success: false });
-    }
-
-    // Only the user themself (or admin) may create this request
-    if (req.user.id !== userId && req.user.type !== 'admin') {
-      return res.status(403).json({ error: 'Not allowed', success: false });
-    }
-
-    // Check target user exists and is not already active
-    const targetUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (!targetUser) {
-      return res.status(404).json({ error: 'User not found', success: false });
-    }
-
-    const hasActiveSubscription = targetUser.subscribed &&
-      (!targetUser.subscriptionEndDate || new Date() <= new Date(targetUser.subscriptionEndDate));
-    if (hasActiveSubscription) {
-      return res.status(409).json({ error: 'Account already active', success: false });
-    }
-
-    const existing = await db.collection('reactivationRequests').findOne({
-      userId: new ObjectId(userId),
-      status: 'pending'
-    });
-
-    if (existing) {
-      return res.status(409).json({ error: 'A pending request already exists', success: false });
-    }
-
-    const doc = {
-      userId: new ObjectId(userId),
-      userNote: req.body.note || '', // Renamed from 'note' to 'userNote' for clarity
-      status: 'pending',
-      requestedAt: new Date(),
-      processedAt: null,
-      adminId: null,
-      adminNote: null
-    };
-
-    const result = await db.collection('reactivationRequests').insertOne(doc);
-    doc._id = result.insertedId;
-
-    console.log('✅ Reactivation request created:', doc._id);
-    res.status(201).json({ success: true, request: doc });
-  } catch (error) {
-    console.error('❌ Create reactivation request error:', error);
-    res.status(500).json({ error: 'Failed to create request', success: false });
-  }
+// Kept as a compatibility response for older clients. Seller activation is
+// automatic and never enters an administrator approval queue.
+exports.createReactivationRequest = async (_req, res) => {
+  return res.status(410).json({
+    success: false,
+    code: 'ADMIN_APPROVAL_REMOVED',
+    error: 'Seller activation no longer requires admin approval. Use Become a Seller from your profile.'
+  });
 };
 
 // Admin: list pending reactivation requests only
@@ -318,56 +333,13 @@ exports.getReactivationRequests = async (req, res, db) => {
   }
 };
 
-// Admin: process (approve/reject) a request
-exports.processReactivationRequest = async (req, res, db) => {
-  try {
-    console.log('🔧 processReactivationRequest called by', req.user?.id, 'body:', req.body);
-    const requestId = req.params.requestId;
-    const { action, adminNote = '' } = req.body;
-
-    if (!ObjectId.isValid(requestId)) {
-      return res.status(400).json({ error: 'Invalid request ID', success: false });
-    }
-
-    if (!action || !['approve', 'reject'].includes(action)) {
-      return res.status(400).json({ error: 'Invalid action. Must be "approve" or "reject"', success: false });
-    }
-
-    const requestDoc = await db.collection('reactivationRequests').findOne({ _id: new ObjectId(requestId) });
-    if (!requestDoc) return res.status(404).json({ error: 'Request not found', success: false });
-    if (requestDoc.status !== 'pending') return res.status(409).json({ error: 'Request already processed', success: false });
-
-    if (action === 'approve') {
-      const paidUser = await db.collection('users').findOne({
-        _id: requestDoc.userId,
-        subscribed: true,
-        subscriptionStatus: 'active',
-        subscriptionPaymentId: { $exists: true }
-      });
-      if (!paidUser) {
-        return res.status(409).json({
-          error: 'Verified subscription payment is required before approval.',
-          code: 'PAYMENT_REQUIRED',
-          success: false
-        });
-      }
-    }
-
-    const adminId = new ObjectId(req.user.id);
-    const patch = {
-      status: action === 'approve' ? 'approved' : 'rejected',
-      processedAt: new Date(),
-      adminId,
-      adminNote: adminNote.trim() // Store admin's note
-    };
-
-    await db.collection('reactivationRequests').updateOne({ _id: new ObjectId(requestId) }, { $set: patch });
-
-    res.json({ success: true, message: `Request ${action}ed successfully` });
-  } catch (error) {
-    console.error('❌ Process reactivation request error:', error);
-    res.status(500).json({ error: 'Failed to process request', success: false });
-  }
+// Historical requests remain readable, but they can no longer grant access.
+exports.processReactivationRequest = async (_req, res) => {
+  return res.status(410).json({
+    success: false,
+    code: 'ADMIN_APPROVAL_REMOVED',
+    error: 'Seller access is activated automatically or by verified subscription payment.'
+  });
 };
 
 // Admin: list users (buyers/sellers/all)

@@ -27,26 +27,33 @@ test('verified payment automatically reactivates seller access and resolves pend
     _id: orderId,
     userId,
     plan: 'monthly',
+    amount: 2500,
+    currency: 'ZAR',
     servicePeriodStart,
     servicePeriodEnd
   }, {
     paidAt: '2026-10-04T09:04:00.000Z'
   }, activatedAt);
 
-  assert.equal(updates.length, 3);
-  assert.deepEqual(updates[0].filter, { _id: userId });
-  assert.equal(updates[0].update.$set.type, 'seller');
-  assert.equal(updates[0].update.$set.subscribed, true);
-  assert.equal(updates[0].update.$set.subscriptionStatus, 'active');
-  assert.equal(updates[0].update.$set.subscriptionPaymentId, orderId.toString());
-  assert.equal(updates[0].update.$max.subscriptionEndDate, servicePeriodEnd);
+  assert.equal(updates.length, 4);
+  assert.equal(updates[0].name, 'sellerSubscriptions');
+  assert.deepEqual(updates[0].filter, { _id: orderId });
+  assert.equal(updates[0].update.$setOnInsert.source, 'PAYMENT');
 
-  assert.deepEqual(updates[1].filter, { _id: orderId });
-  assert.equal(updates[1].update.$set.status, 'PAID');
-  assert.equal(updates[1].update.$set.paidAt.toISOString(), '2026-10-04T09:04:00.000Z');
+  assert.deepEqual(updates[1].filter, { _id: userId });
+  assert.equal(updates[1].update.$set.type, 'seller');
+  assert.equal(updates[1].update.$set.subscribed, true);
+  assert.equal(updates[1].update.$set.subscriptionStatus, 'ACTIVE');
+  assert.equal(updates[1].update.$set.hasHadSellerAccess, true);
+  assert.equal(updates[1].update.$set.subscriptionPaymentId, orderId.toString());
+  assert.equal(updates[1].update.$max.subscriptionEndDate, servicePeriodEnd);
 
-  assert.equal(updates[2].operation, 'updateMany');
-  assert.deepEqual(updates[2].filter, { userId, status: 'pending' });
-  assert.equal(updates[2].update.$set.status, 'approved');
-  assert.equal(updates[2].update.$set.subscriptionPaymentId, orderId.toString());
+  assert.deepEqual(updates[2].filter, { _id: orderId });
+  assert.equal(updates[2].update.$set.status, 'PAID');
+  assert.equal(updates[2].update.$set.paidAt.toISOString(), '2026-10-04T09:04:00.000Z');
+
+  assert.equal(updates[3].operation, 'updateMany');
+  assert.deepEqual(updates[3].filter, { userId, status: 'pending' });
+  assert.equal(updates[3].update.$set.status, 'approved');
+  assert.equal(updates[3].update.$set.subscriptionPaymentId, orderId.toString());
 });
