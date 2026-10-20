@@ -280,7 +280,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <span>
               Powered by{' '}
               <a
-                href="https://lbgsoftware.co.za"
+                href="https://www.lbgsoftware.co.za/products?utm_source=marketplace&utm_medium=product_referral&utm_campaign=lbg_ecosystem"
                 target="_blank"
                 rel="noopener noreferrer"
               >

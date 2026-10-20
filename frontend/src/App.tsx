@@ -18,7 +18,7 @@ import {
   X,
   MessageCircle
 } from 'lucide-react';
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics, track } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { User, Product, Message, MessageMap, SellerOffer, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber } from './types';
 import logo from './assets/facicon.jpeg';
@@ -523,6 +523,7 @@ const App = () => {
     const handleShare = async () => {
       try {
         const shareUrl = `${API_BASE}/p/${cleanProductId}`;
+        track('marketplace_listing_shared', { product_id: cleanProductId });
         if (navigator.share) {
           await navigator.share({ url: shareUrl, title: `${product.title} - R${product.price}`, text: `Check out "${product.title}" on FYC Marketplace` });
         } else {
@@ -644,7 +645,10 @@ const App = () => {
                 target="_blank"
                 rel="noreferrer noopener"
                 onClick={async () => {
-                  if (cleanProductId) trackWhatsAppClick(cleanProductId).catch(err => console.warn('Analytics tracking failed:', err));
+                  if (cleanProductId) {
+                    track('marketplace_seller_contacted', { product_id: cleanProductId });
+                    trackWhatsAppClick(cleanProductId).catch(err => console.warn('Analytics tracking failed:', err));
+                  }
                 }}
                 className="product-action product-action-primary flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
