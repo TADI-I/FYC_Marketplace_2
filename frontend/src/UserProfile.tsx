@@ -2,22 +2,7 @@ import React, { useState, useEffect } from "react";
 import { getSubscriptionStatus, updateUserProfile, upgradeUserToSeller, getCurrentUser } from './api';
 import { User as UserIC, ArrowLeft, Mail, Building, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import VerificationSection from './VerificationSection';
-
-// Use shared types (remove duplicate User type to avoid redeclare)
-type User = {
-  id: number;
-  _id?: string;
-  name: string;
-  email: string;
-  type: string;
-  subscribed: boolean;
-  campus: string;
-  subscriptionEndDate?: Date | string;
-  subscriptionStatus?: string;
-  hasHadSellerAccess?: boolean;
-  subscriptionSource?: 'PAYMENT' | 'OFFER' | null;
-  whatsapp?: string | null;
-};
+import type { User } from './types';
 
 interface UserProfileProps {
   currentUser: User | null;

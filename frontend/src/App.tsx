@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Analytics, track } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { User, Product, Message, MessageMap, SellerOffer, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber } from './types';
+import { User, Product, Message, MessageMap, SellerOffer, conversationIdentifier, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber, userIdentifier } from './types';
 import logo from './assets/facicon.jpeg';
 import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
 import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
@@ -185,7 +185,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCampus, setSelectedCampus] = useState('all');
-  const [chatWith, setChatWith] = useState<number | null>(null);
+  const [chatWith, setChatWith] = useState<string | number | null>(null);
   const [_messages, setMessages] = useState<MessageMap>({});
   const [_newMessage, _setNewMessage] = useState('');
   const [users, _setUsers] = useState<User[]>([]);
@@ -461,13 +461,13 @@ const App = () => {
 
   const handleNewMessage = useCallback((message: Message) => {
     if (!currentUser || !chatWith) return;
-    const key = `${Math.min(currentUser.id, chatWith)}-${Math.max(currentUser.id, chatWith)}`;
+    const key = conversationIdentifier(userIdentifier(currentUser), chatWith);
     setMessages(prev => ({ ...prev, [key]: [...(prev[key] || []), message] }));
   }, [currentUser, chatWith]);
 
   const handleLoadMessages = useCallback((loadedMessages: Message[]) => {
     if (!currentUser || !chatWith) return;
-    const key = `${Math.min(currentUser.id, chatWith)}-${Math.max(currentUser.id, chatWith)}`;
+    const key = conversationIdentifier(userIdentifier(currentUser), chatWith);
     setMessages(prev => ({ ...prev, [key]: loadedMessages }));
   }, [currentUser, chatWith]);
 

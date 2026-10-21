@@ -1,7 +1,7 @@
 // types.ts - Shared type definitions for the marketplace app
 
 export type User = {
-  id: number;
+  id?: string | number;
   _id?: string;
   name: string;
   email: string;
@@ -61,17 +61,25 @@ export type Product = {
 };
 
 export type Message = {
-  id: number;
-  senderId: number;
-  receiverId: number;
+  id?: string | number;
+  _id?: string;
+  senderId: string | number;
+  receiverId: string | number;
   text: string;
-  timestamp: string;
+  timestamp?: string;
+  createdAt?: string;
   read: boolean;
 };
 
 export type MessageMap = {
   [key: string]: Message[];
 };
+
+export const userIdentifier = (user: Pick<User, 'id' | '_id'>): string =>
+  String(user._id || user.id || '');
+
+export const conversationIdentifier = (firstUserId: string | number, secondUserId: string | number): string =>
+  [String(firstUserId), String(secondUserId)].sort().join('-');
 
 export type Category = {
   id: string;

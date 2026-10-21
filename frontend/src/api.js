@@ -301,7 +301,7 @@ export const getMessages = async (conversationId) => {
     return response.messages || [];
   } catch (error) {
     console.error('❌ Failed to get messages:', error);
-    return getMockMessages(conversationId);
+    throw error;
   }
 };
 
@@ -313,10 +313,10 @@ export const sendMessage = async (messageData) => {
       body: JSON.stringify(messageData),
     });
     console.log('✅ Message sent successfully');
-    return response;
+    return response.message;
   } catch (error) {
     console.error('❌ Failed to send message:', error);
-    return sendMockMessage(messageData);
+    throw error;
   }
 };
 

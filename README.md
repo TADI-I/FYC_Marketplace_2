@@ -90,8 +90,9 @@ Use `backend/.env.example` as the source of truth.
 | --- | --- |
 | `PORT` | Express listen port; Render supplies this in production |
 | `MONGODB_URI` | MongoDB connection string |
-| `JWT_SECRET` | Strong, stable JWT signing secret |
+| `JWT_SECRET` | Strong, stable JWT signing secret of at least 32 characters; startup fails closed if missing or left as a placeholder |
 | `FRONTEND_URL` | Public frontend origin used for payment return URLs |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated exact frontend origins allowed to call the API; use `https://marketplace.lbgsoftware.co.za` in production |
 | `PAYMENT_SERVICE_URL` | Public HTTPS base URL of LBG Payment Service |
 | `PAYMENT_SERVICE_KEY_ID` | Marketplace service key ID |
 | `PAYMENT_SERVICE_SECRET` | Marketplace service secret, at least 32 characters |

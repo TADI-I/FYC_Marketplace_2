@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const { ObjectId } = require('mongodb');
+process.env.JWT_SECRET = 'test-only-jwt-secret-with-32-characters';
 const authController = require('../controllers/authController');
 
 function responseRecorder() {

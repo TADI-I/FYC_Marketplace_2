@@ -3,6 +3,22 @@ const { ObjectId } = require('mongodb');
 const multer = require('multer');
 const { GridFSBucket } = require('mongodb');
 
+function isSupportedImage(buffer, mimetype) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 12) return false;
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isPng = buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const header = buffer.subarray(0, 12).toString('ascii');
+  const isGif = header.startsWith('GIF87a') || header.startsWith('GIF89a');
+  const isWebp = header.startsWith('RIFF') && header.slice(8, 12) === 'WEBP';
+  const matchesType = {
+    'image/jpeg': isJpeg,
+    'image/png': isPng,
+    'image/gif': isGif,
+    'image/webp': isWebp
+  };
+  return matchesType[mimetype] === true;
+}
+
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -68,6 +84,13 @@ exports.submitVerificationRequest = async (req, res, db) => {
     if (!req.file) {
       return res.status(400).json({ 
         error: 'ID photo is required',
+        success: false
+      });
+    }
+
+    if (!isSupportedImage(req.file.buffer, req.file.mimetype)) {
+      return res.status(400).json({
+        error: 'The uploaded file is not a valid supported image',
         success: false
       });
     }
@@ -331,11 +354,8 @@ exports.getVerificationImage = async (req, res, db) => {
   try {
     const imageId = req.params.imageId;
     
-    console.log('🖼️ Fetching verification image. Raw imageId:', imageId);
-
     // Validate ObjectId format
     if (!ObjectId.isValid(imageId)) {
-      console.error('❌ Invalid ObjectId format:', imageId);
       return res.status(400).json({ error: 'Invalid image ID format' });
     }
 
@@ -348,35 +368,14 @@ exports.getVerificationImage = async (req, res, db) => {
       .toArray();
 
     if (!files || files.length === 0) {
-      console.error('❌ Image not found in GridFS. ImageId:', imageId);
-      
-      // Debug: List all verification images
-      const allFiles = await db.collection('verification_images.files').find({}).toArray();
-      console.log('📁 All verification images in DB:', allFiles.map(f => ({
-        id: f._id.toString(),
-        filename: f.filename,
-        contentType: f.contentType
-      })));
-      
-      return res.status(404).json({ 
-        error: 'Image not found',
-        imageId: imageId,
-        availableImages: allFiles.map(f => f._id.toString())
-      });
+      return res.status(404).json({ error: 'Image not found' });
     }
 
     const file = files[0];
-    console.log('✅ Found file in GridFS:', {
-      id: file._id.toString(),
-      filename: file.filename,
-      contentType: file.contentType,
-      size: file.length
-    });
-
     // Set response headers BEFORE piping
     res.setHeader('Content-Type', file.contentType || 'image/jpeg');
     res.setHeader('Content-Length', file.length);
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    res.setHeader('Cache-Control', 'private, no-store');
     
     // Create download stream
     const downloadStream = bucket.openDownloadStream(new ObjectId(imageId));
@@ -387,10 +386,6 @@ exports.getVerificationImage = async (req, res, db) => {
       if (!res.headersSent) {
         res.status(500).json({ error: 'Failed to stream image' });
       }
-    });
-
-    downloadStream.on('end', () => {
-      console.log('✅ Image stream completed successfully');
     });
 
     // Pipe the stream to response
@@ -405,3 +400,4 @@ exports.getVerificationImage = async (req, res, db) => {
 };
 
 exports.upload = upload;
+exports.isSupportedImage = isSupportedImage;

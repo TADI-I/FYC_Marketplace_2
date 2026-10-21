@@ -79,6 +79,7 @@ module.exports = (db) => {
     '/verification/:userId/status',
     authenticateToken,
     validateObjectId('userId'),
+    withOwnershipCheck('user'),
     withDb(verificationController.getVerificationStatus)
   );
 

@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Check, CheckCheck } from 'lucide-react';
 import { sendMessage, getMessages, markMessagesAsRead } from './api';
+import { conversationIdentifier, userIdentifier } from './types';
 
 // Define Message type to match the API
 type Message = {
-  id: number;
-  senderId: number;
-  receiverId: number;
+  id?: string | number;
+  _id?: string;
+  senderId: string | number;
+  receiverId: string | number;
   text: string;
-  timestamp: string;
+  timestamp?: string;
+  createdAt?: string;
   read: boolean;
 };
 
 type User = {
-  id: number;
+  id?: string | number;
+  _id?: string;
   name: string;
   email: string;
   type: string;
@@ -23,7 +27,7 @@ type User = {
 
 interface ChatWindowProps {
   currentUser: User | null;
-  chatWith: number | null;
+  chatWith: string | number | null;
   users: User[];
   onCloseChat: () => void;
   onNewMessage: (message: Message) => void;
@@ -43,7 +47,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const otherUser = users.find(user => user.id === chatWith);
+  const otherUser = users.find(user => userIdentifier(user) === String(chatWith));
 
   // Load messages and mark as read when chat opens
   // loadMessages and markAsRead are stable here; avoid exhaustive-deps error in CI
@@ -63,7 +67,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     
     try {
       // Use the conversation ID format expected by the API
-      const conversationId = `${Math.min(currentUser.id, chatWith)}-${Math.max(currentUser.id, chatWith)}`;
+      const conversationId = conversationIdentifier(userIdentifier(currentUser), chatWith);
       const loadedMessages = await getMessages(conversationId);
       setMessages(loadedMessages);
     } catch (err) {
@@ -78,10 +82,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     if (!currentUser || !chatWith) return;
     
     try {
-      await markMessagesAsRead(currentUser.id, chatWith);
+      await markMessagesAsRead(userIdentifier(currentUser), chatWith);
       // Update local messages to mark as read
       setMessages(prev => prev.map(msg => 
-        msg.senderId === chatWith ? { ...msg, read: true } : msg
+        String(msg.senderId) === String(chatWith) ? { ...msg, read: true } : msg
       ));
     } catch (err) {
       console.error('Error marking messages as read:', err);
@@ -90,7 +94,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
  const handleSendMessage = async () => {
   // Add more comprehensive null checks
-  if (!newMessage.trim() || !currentUser || !chatWith || !currentUser.id) {
+  const currentUserId = currentUser ? userIdentifier(currentUser) : '';
+  if (!newMessage.trim() || !currentUserId || !chatWith) {
     setError('Cannot send message: missing required information');
     return;
   }
@@ -100,11 +105,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   
   try {
     const messageData = {
-      senderId: currentUser.id.toString(), // Now safe to call toString()
+      senderId: currentUserId,
       receiverId: chatWith.toString(), // Now safe to call toString()
       text: newMessage.trim(),
       timestamp: new Date().toISOString(),
-      conversationId: `${Math.min(currentUser.id, chatWith)}-${Math.max(currentUser.id, chatWith)}`
+      conversationId: conversationIdentifier(currentUserId, chatWith)
     };
 
     const sentMessage = await sendMessage(messageData);
@@ -198,20 +203,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           ) : (
             messages.map(msg => (
               <div 
-                key={msg.id} 
-                className={`mb-4 flex ${msg.senderId === currentUser.id ? 'justify-end' : 'justify-start'}`}
+                key={msg._id || msg.id}
+                className={`mb-4 flex ${String(msg.senderId) === userIdentifier(currentUser) ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`max-w-xs lg:max-w-md rounded-lg p-3 ${
-                  msg.senderId === currentUser.id
+                  String(msg.senderId) === userIdentifier(currentUser)
                     ? 'bg-blue-600 text-white rounded-br-none' 
                     : 'bg-gray-200 text-gray-800 rounded-bl-none'
                 }`}>
                   <p className="break-words">{msg.text}</p>
                   <div className={`flex items-center gap-1 mt-1 text-xs ${
-                    msg.senderId === currentUser.id ? 'text-blue-200' : 'text-gray-600'
+                    String(msg.senderId) === userIdentifier(currentUser) ? 'text-blue-200' : 'text-gray-600'
                   }`}>
-                    <span>{formatTimestamp(msg.timestamp)}</span>
-                    {msg.senderId === currentUser.id && (
+                    <span>{formatTimestamp(msg.createdAt || msg.timestamp || '')}</span>
+                    {String(msg.senderId) === userIdentifier(currentUser) && (
                       msg.read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />
                     )}
                   </div>

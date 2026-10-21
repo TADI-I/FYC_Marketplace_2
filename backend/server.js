@@ -8,13 +8,35 @@ const path = require('path');
 const verificationController = require('./controllers/verificationController');
 const productPageController = require('./controllers/productPageController');
 const { ensureDefaultSellerOffers } = require('./services/sellerOfferService');
+const { assertSecurityConfiguration, configuredOrigins } = require('./config/security');
+const { createRateLimit } = require('./middleware/rateLimit');
 
-
+assertSecurityConfiguration();
 const app = express();
 const PORT = process.env.PORT || 5001;
+const allowedOrigins = new Set(configuredOrigins());
+const authRateLimit = createRateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many authentication attempts. Please try again later.'
+});
 
 // Middleware
-app.use(cors());
+app.set('trust proxy', 1);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin.replace(/\/+$/, ''))) {
+      return callback(null, true);
+    }
+    const error = new Error('Origin not allowed by CORS policy.');
+    error.code = 'CORS_NOT_ALLOWED';
+    return callback(error);
+  },
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  credentials: false,
+  maxAge: 600
+}));
 app.use(express.json({
   limit: '64kb',
   verify: (req, _res, buffer) => {
@@ -184,41 +206,12 @@ app.get('/api/warmup', async (_req, res) => {
 });
 
 // Verification image endpoint
-app.get('/api/verification/image/:imageId', async (req, res) => {
-  try {
-    const imageId = req.params.imageId;
-
-    if (!ObjectId.isValid(imageId)) {
-      return res.status(400).send('Invalid image ID');
-    }
-
-    const bucket = new GridFSBucket(db, { bucketName: 'verification_images' });
-
-    const files = await db
-      .collection('verification_images.files')
-      .find({ _id: new ObjectId(imageId) })
-      .toArray();
-
-    if (!files || files.length === 0) {
-      return res.status(404).send('Image not found');
-    }
-
-    const file = files[0];
-
-    res.setHeader('Content-Type', file.contentType || 'image/jpeg');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.removeHeader('ETag');
-
-    const downloadStream = bucket.openDownloadStream(new ObjectId(imageId));
-    downloadStream.pipe(res);
-
-  } catch (error) {
-    console.error('❌ Image error:', error);
-    res.status(500).send('Server error');
-  }
-});
+app.get(
+  '/api/verification/image/:imageId',
+  authenticateToken,
+  requireAdmin,
+  (req, res) => verificationController.getVerificationImage(req, res, req.db)
+);
 
 // Verification routes
 app.get(
@@ -240,6 +233,7 @@ app.post(
   '/api/verification/:userId/submit',
   authenticateToken,
   validateObjectId('userId'),
+  withOwnershipCheck('user'),
   requireUpload('idPhoto'),
   (req, res) => verificationController.submitVerificationRequest(req, res, req.db)
 );
@@ -248,12 +242,13 @@ app.get(
   '/api/verification/:userId/status',
   authenticateToken,
   validateObjectId('userId'),
+  withOwnershipCheck('user'),
   (req, res) => verificationController.getVerificationStatus(req, res, req.db)
 );
 
 // Auth routes
-app.post('/api/auth/register', (req, res) => authController.register(req, res, req.db));
-app.post('/api/auth/login', (req, res) => authController.login(req, res, req.db));
+app.post('/api/auth/register', authRateLimit, (req, res) => authController.register(req, res, req.db));
+app.post('/api/auth/login', authRateLimit, (req, res) => authController.login(req, res, req.db));
 
 // User routes
 app.get('/api/users/me', authenticateToken, (req, res) => authController.getCurrentUser(req, res, req.db));
@@ -654,6 +649,9 @@ app.get('/p/:id', validateObjectId('id'), (req, res) => {
 
 // Error handling
 app.use((err, req, res, next) => {
+  if (err?.code === 'CORS_NOT_ALLOWED') {
+    return res.status(403).json({ error: 'Origin not allowed', success: false });
+  }
   console.error('🚨 Server error:', err.stack);
   res.status(500).json({ 
     error: 'Something went wrong!',

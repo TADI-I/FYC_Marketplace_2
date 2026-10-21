@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import type { User } from './types';
 
 type Product = {
   id: number;
@@ -14,15 +15,6 @@ type Product = {
   rating: number;
   type: string;
   imageUrl?: string; // Added for frontend display
-};
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  type: string;
-  subscribed: boolean;
-  campus: string;
 };
 
 type Category = {

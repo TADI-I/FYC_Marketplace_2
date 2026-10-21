@@ -2,6 +2,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { ObjectId } = require('mongodb');
+const { getJwtSecret } = require('../config/security');
 const {
   SUBSCRIPTION_STATUS,
   syncExpiredSellerAccess,
@@ -109,7 +110,7 @@ exports.register = async (req, res, db) => {
         type: userDoc.type, 
         campus: userDoc.campus 
       },
-      process.env.JWT_SECRET || 'tut_marketplace_secret',
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 
@@ -186,7 +187,7 @@ exports.login = async (req, res, db) => {
     // Create JWT token
     const token = jwt.sign(
       { id: user._id.toString(), email: user.email, type: user.type, campus: user.campus },
-      process.env.JWT_SECRET || 'tut_marketplace_secret',
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 
