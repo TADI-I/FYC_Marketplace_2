@@ -2,12 +2,12 @@ function clientAddress(req) {
   return req.ip || req.socket?.remoteAddress || 'unknown';
 }
 
-function createRateLimit({ windowMs, max, message }) {
+function createRateLimit({ windowMs, max, message, keyGenerator = clientAddress }) {
   const requests = new Map();
 
   return (req, res, next) => {
     const now = Date.now();
-    const key = clientAddress(req);
+    const key = keyGenerator(req);
     const current = requests.get(key);
     const entry = !current || current.resetAt <= now
       ? { count: 0, resetAt: now + windowMs }

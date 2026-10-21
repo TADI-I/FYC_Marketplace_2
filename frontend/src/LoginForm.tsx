@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { loginUser } from './api';
+import { loginUser, requestPasswordReset, resendVerificationEmail } from './api';
 import { showNotification } from './AppNotificationModal';
 
 type User = {
@@ -22,6 +22,41 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailActionLoading, setEmailActionLoading] = useState(false);
+
+  const sendPasswordReset = async () => {
+    if (!loginData.email) {
+      setError('Enter your email address first');
+      return;
+    }
+    setEmailActionLoading(true);
+    setError('');
+    try {
+      const response = await requestPasswordReset(loginData.email);
+      showNotification({ type: 'success', title: 'Check your email', message: response.message });
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Could not request a password reset');
+    } finally {
+      setEmailActionLoading(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    if (!loginData.email) {
+      setError('Enter your email address first');
+      return;
+    }
+    setEmailActionLoading(true);
+    setError('');
+    try {
+      const response = await resendVerificationEmail(loginData.email);
+      showNotification({ type: 'success', title: 'Verification email requested', message: response.message });
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Could not resend the verification email');
+    } finally {
+      setEmailActionLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!loginData.email || !loginData.password) {
@@ -89,6 +124,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
           onFocus={(e) => e.target.select()}
           disabled={loading}
         />
+        <div className="flex justify-between gap-3 -mt-1 mb-4 text-sm">
+          <button type="button" className="text-blue-600 hover:underline" onClick={sendPasswordReset} disabled={loading || emailActionLoading}>Forgot password?</button>
+          <button type="button" className="text-blue-600 hover:underline" onClick={resendVerification} disabled={loading || emailActionLoading}>Resend verification</button>
+        </div>
         <div className="flex gap-2">
           <button 
             onClick={handleLogin} 

@@ -69,15 +69,25 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         type: accountType,
       });
 
-      // Pass both user AND token to parent component
-      onRegisterSuccess(response.user, response.token);
-
       setName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
       setCampus("");
       setWhatsapp("");
+
+      if (response.requiresEmailVerification) {
+        onClose();
+        showNotification({
+          type: response.emailSent === false ? 'warning' : 'success',
+          title: response.emailSent === false ? 'Account created — email delayed' : 'Check your email',
+          message: response.message || 'Open the verification link we sent before signing in.',
+          actionLabel: 'Done'
+        });
+        return;
+      }
+
+      onRegisterSuccess(response.user, response.token);
 
       showNotification({
         type: 'success',

@@ -1,5 +1,6 @@
 // controllers/messageController.js
 const { ObjectId } = require('mongodb');
+const { sendNewMessageEmail } = require('../services/emailService');
 
 function canonicalConversationId(firstUserId, secondUserId) {
   return [String(firstUserId), String(secondUserId)].sort().join('-');
@@ -75,6 +76,18 @@ exports.sendMessage = async (req, res, db) => {
     };
 
     const result = await db.collection('messages').insertOne(message);
+
+    try {
+      const [sender, recipientWithEmail] = await Promise.all([
+        db.collection('users').findOne({ _id: senderId }, { projection: { name: 1 } }),
+        db.collection('users').findOne({ _id: recipientId }, { projection: { email: 1, name: 1 } })
+      ]);
+      if (sender && recipientWithEmail?.email) {
+        await sendNewMessageEmail(recipientWithEmail, sender);
+      }
+    } catch (emailError) {
+      console.error('New-message email notification failed:', emailError.message);
+    }
     
     res.status(201).json({
       success: true,

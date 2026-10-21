@@ -2,6 +2,7 @@
 const { ObjectId } = require('mongodb');
 const multer = require('multer');
 const { GridFSBucket } = require('mongodb');
+const { sendVerificationDecisionEmail, sendVerificationSubmittedEmail } = require('../services/emailService');
 
 function isSupportedImage(buffer, mimetype) {
   if (!Buffer.isBuffer(buffer) || buffer.length < 12) return false;
@@ -130,6 +131,12 @@ const verificationRequest = {
 const result = await db.collection('verificationRequests').insertOne(verificationRequest);
 
 console.log('✅ Verification request created with imageId:', fileId);
+
+    try {
+      await sendVerificationSubmittedEmail(user);
+    } catch (emailError) {
+      console.error('Verification submission email failed:', emailError.message);
+    }
 
     
     res.status(201).json({
@@ -332,6 +339,18 @@ exports.processVerificationRequest = async (req, res, db) => {
         }
       );
       console.log('✅ User verified:', request.userId);
+    }
+
+    const user = await db.collection('users').findOne(
+      { _id: request.userId },
+      { projection: { name: 1, email: 1 } }
+    );
+    if (user) {
+      try {
+        await sendVerificationDecisionEmail(user, action, adminNote.trim());
+      } catch (emailError) {
+        console.error('Verification decision email failed:', emailError.message);
+      }
     }
 
     res.json({

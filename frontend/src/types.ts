@@ -5,6 +5,7 @@ export type User = {
   _id?: string;
   name: string;
   email: string;
+  emailVerified?: boolean;
   type: string;
   subscribed: boolean;
   campus: string;

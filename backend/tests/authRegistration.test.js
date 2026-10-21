@@ -2,6 +2,10 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { ObjectId } = require('mongodb');
 process.env.JWT_SECRET = 'test-only-jwt-secret-with-32-characters';
+process.env.RESEND_API_KEY = 're_test-only-not-a-live-key';
+process.env.EMAIL_FROM = 'FYC Marketplace <marketplace@example.test>';
+process.env.FRONTEND_URL = 'https://marketplace.example.test';
+process.env.EMAIL_DELIVERY_DISABLED = 'true';
 const authController = require('../controllers/authController');
 
 function responseRecorder() {
@@ -62,7 +66,11 @@ test('seller registration does not automatically start a free period', async () 
   assert.equal(state.insertedUser.subscriptionStartDate, undefined);
   assert.equal(res.payload.user.subscriptionStatus, 'PAYMENT_REQUIRED');
   assert.equal(res.payload.user.hasHadSellerAccess, false);
-  assert.ok(res.payload.token);
+  assert.equal(res.payload.token, undefined);
+  assert.equal(res.payload.requiresEmailVerification, true);
+  assert.equal(state.insertedUser.emailVerified, false);
+  assert.match(state.insertedUser.emailVerificationTokenHash, /^[a-f0-9]{64}$/);
+  assert.equal(state.insertedUser.emailVerificationToken, undefined);
 });
 
 test('buyer registration starts without seller access or an automatic offer claim', async () => {

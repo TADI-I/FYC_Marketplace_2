@@ -93,12 +93,41 @@ Use `backend/.env.example` as the source of truth.
 | `JWT_SECRET` | Strong, stable JWT signing secret of at least 32 characters; startup fails closed if missing or left as a placeholder |
 | `FRONTEND_URL` | Public frontend origin used for payment return URLs |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated exact frontend origins allowed to call the API; use `https://marketplace.lbgsoftware.co.za` in production |
+| `RESEND_API_KEY` | Marketplace-only Resend key with Sending access, restricted to the verified sending domain |
+| `EMAIL_FROM` | Verified sender, for example `FYC Marketplace <marketplace@lbgsoftware.co.za>` |
+| `EMAIL_REPLY_TO` | Monitored reply-to mailbox |
+| `SUPPORT_EMAIL` | Monitored destination for the Marketplace contact form |
+| `EMAIL_DELIVERY_DISABLED` | `false` in production; tests use `true` to avoid external delivery |
 | `PAYMENT_SERVICE_URL` | Public HTTPS base URL of LBG Payment Service |
 | `PAYMENT_SERVICE_KEY_ID` | Marketplace service key ID |
 | `PAYMENT_SERVICE_SECRET` | Marketplace service secret, at least 32 characters |
 | `PAYMENT_SERVICE_CALLBACK_SECRET` | Secret used to verify signed callbacks |
 
 No `PAYSTACK_SECRET_KEY` belongs in this repository.
+
+`backend/render-env.example` is the copy/paste checklist for Render. It contains names and placeholders only—never put completed secret values in a tracked file.
+
+## Transactional email
+
+The backend sends Marketplace email through a dedicated Resend sending-only key. Supported flows include:
+
+- new-account email verification and verification-link resend;
+- single-use, one-hour password reset links;
+- confirmation and decision notices for seller verification;
+- seller subscription activation notices;
+- private-message alerts that never include the private message body;
+- support-form delivery plus a receipt to the sender; and
+- seller subscription reminders seven days and one day before expiry.
+
+New accounts cannot sign in until the email address is verified. Existing accounts without an `emailVerified` field are grandfathered so deployment does not lock out the current user base. Changing a profile email marks the new address unverified. A password reset stores only a SHA-256 token hash and invalidates JWT sessions issued before the password change.
+
+Run the reminder job once per day:
+
+```bash
+npm run email:reminders
+```
+
+In Render, configure this command as a daily Cron Job using the same Marketplace environment variables. Reminder delivery is recorded in `emailNotificationEvents` to avoid sending the same scheduled reminder again.
 
 ### Payment credential mapping
 

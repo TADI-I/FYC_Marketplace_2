@@ -9,6 +9,8 @@ const {
   publicSubscriptionFields
 } = require('../services/sellerSubscriptionService');
 const { getEligibleOffers } = require('../services/sellerOfferService');
+const { createAccountToken } = require('../services/accountTokenService');
+const { sendVerificationEmail } = require('../services/emailService');
 
 // Get subscription status
 exports.getSubscriptionStatus = async (req, res, db) => {
@@ -48,11 +50,8 @@ exports.getSubscriptionStatus = async (req, res, db) => {
 exports.updateUserProfile = async (req, res, db) => {
   try {
     const userId = req.params.id;
-    console.log('✏️ Updating user profile for user ID:', userId);
-    console.log('👤 Authenticated user ID:', req.user.id);
-    console.log('📦 Request body:', req.body);
-    
     const { name, campus, email, whatsapp } = req.body;
+    const normalizedEmail = String(email || '').toLowerCase().trim();
 
     // Validation
     if (!name?.trim()) {
@@ -64,7 +63,7 @@ exports.updateUserProfile = async (req, res, db) => {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return res.status(400).json({ 
         error: 'Please enter a valid email address',
         success: false,
@@ -87,7 +86,7 @@ exports.updateUserProfile = async (req, res, db) => {
 
     // Check if email already exists (for different user)
     const existingUser = await db.collection('users').findOne({
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       _id: { $ne: new ObjectId(userId) }
     });
 
@@ -99,26 +98,34 @@ exports.updateUserProfile = async (req, res, db) => {
       });
     }
 
+    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (!currentUser) {
+      return res.status(404).json({ error: 'User not found', success: false, code: 'USER_NOT_FOUND' });
+    }
+    const emailChanged = currentUser.email !== normalizedEmail;
+    const verification = emailChanged ? createAccountToken() : null;
+
     // Build update object
     const updateData = {
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       updatedAt: new Date()
     };
+    if (verification) {
+      updateData.emailVerified = false;
+      updateData.emailVerificationTokenHash = verification.hash;
+      updateData.emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
 
     // Only include campus if provided
     if (campus) updateData.campus = campus;
     // Include whatsapp if provided
     if (normalizedWhatsapp !== null) updateData.whatsapp = normalizedWhatsapp;
 
-    console.log('📤 Update data:', updateData);
-
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(userId) },
       { $set: updateData }
     );
-
-    console.log('✅ MongoDB update result:', result);
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ 
@@ -134,12 +141,24 @@ exports.updateUserProfile = async (req, res, db) => {
       { projection: { password: 0 } }
     );
 
-    console.log('✅ User profile updated successfully');
+    let verificationEmailSent = true;
+    if (verification) {
+      try {
+        await sendVerificationEmail(updatedUser, verification.token);
+      } catch (emailError) {
+        verificationEmailSent = false;
+        console.error('Profile email verification delivery failed:', emailError.message);
+      }
+    }
 
     res.json({
       success: true,
-      message: 'Profile updated successfully',
-      user: updatedUser
+      message: emailChanged
+        ? (verificationEmailSent ? 'Profile updated. Verify your new email address.' : 'Profile updated, but the verification email could not be sent.')
+        : 'Profile updated successfully',
+      user: updatedUser,
+      requiresEmailVerification: emailChanged,
+      verificationEmailSent
     });
 
   } catch (error) {

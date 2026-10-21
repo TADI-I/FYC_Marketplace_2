@@ -113,6 +113,31 @@ export const loginUser = async (credentials) => {
   }
 };
 
+export const verifyEmailAddress = (token) => apiCall('/api/auth/verify-email', {
+  method: 'POST',
+  body: JSON.stringify({ token })
+});
+
+export const resendVerificationEmail = (email) => apiCall('/api/auth/resend-verification', {
+  method: 'POST',
+  body: JSON.stringify({ email })
+});
+
+export const requestPasswordReset = (email) => apiCall('/api/auth/forgot-password', {
+  method: 'POST',
+  body: JSON.stringify({ email })
+});
+
+export const resetPassword = (token, password) => apiCall('/api/auth/reset-password', {
+  method: 'POST',
+  body: JSON.stringify({ token, password })
+});
+
+export const submitContactMessage = (contact) => apiCall('/api/contact', {
+  method: 'POST',
+  body: JSON.stringify(contact)
+});
+
 export const logoutUser = () => {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_data');
@@ -139,10 +164,10 @@ export const getCurrentUser = async () => {
         return freshUser;
       }
     } catch (apiError) {
-      console.warn('Failed to fetch user from API, using cached data:', apiError);
-      // If API call fails, fall back to cached data
-      const userData = localStorage.getItem('user_data');
-      return userData ? JSON.parse(userData) : null;
+      console.warn('Failed to validate the saved session:', apiError);
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
+      return null;
     }
     
     return null;

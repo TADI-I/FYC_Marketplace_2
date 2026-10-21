@@ -9,7 +9,7 @@ const {
 } = require('../services/sellerSubscriptionService');
 
 // JWT authentication middleware
-exports.authenticateToken = (req, res, next) => {
+exports.authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -31,16 +31,31 @@ exports.authenticateToken = (req, res, next) => {
     });
   }
 
-  jwt.verify(token, jwtSecret, (err, user) => {
-    if (err) {
-      return res.status(403).json({ 
-        error: 'Invalid or expired token',
-        success: false
-      });
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    if (req.db && decoded?.id && ObjectId.isValid(decoded.id)) {
+      const account = await req.db.collection('users').findOne(
+        { _id: new ObjectId(decoded.id) },
+        { projection: { passwordChangedAt: 1, emailVerified: 1 } }
+      );
+      if (!account) {
+        return res.status(401).json({ error: 'Account not found', success: false });
+      }
+      if (account.emailVerified === false) {
+        return res.status(403).json({ error: 'Verify your email address before continuing', code: 'EMAIL_NOT_VERIFIED', success: false });
+      }
+      if (account.passwordChangedAt && decoded.iat * 1000 < new Date(account.passwordChangedAt).getTime()) {
+        return res.status(403).json({ error: 'Please sign in again after changing your password', code: 'SESSION_REVOKED', success: false });
+      }
     }
-    req.user = user;
-    next();
-  });
+    req.user = decoded;
+    return next();
+  } catch (error) {
+    return res.status(403).json({
+      error: 'Invalid or expired token',
+      success: false
+    });
+  }
 };
 // ...existing code...
 exports.requireAdmin = (req, res, next) => {

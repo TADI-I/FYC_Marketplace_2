@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, MessageCircle, Mail, Clock, MapPin } from 'lucide-react';
+import { submitContactMessage } from './api';
+import { showNotification } from './AppNotificationModal';
 
 interface ContactPageProps {
   onBack: () => void;
@@ -12,19 +14,20 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
     subject: '',
     message: ''
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Create WhatsApp message
-    const waMessage = `*Contact Form Submission*%0A%0A*Name:* ${formData.name}%0A*Email:* ${formData.email}%0A*Subject:* ${formData.subject}%0A*Message:*%0A${formData.message}`;
-    const waLink = `https://wa.me/27711126204?text=${waMessage}`;
-    
-    // Open WhatsApp
-    window.open(waLink, '_blank');
-    
-    // Reset form
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setSubmitting(true);
+    try {
+      const response = await submitContactMessage(formData);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      showNotification({ type: 'success', title: 'Message sent', message: response.message });
+    } catch (error) {
+      showNotification({ type: 'error', title: 'Message not sent', message: error instanceof Error ? error.message : 'Please try again later.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -200,7 +203,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
         <div style={{ backgroundColor: '#fbfaf6', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem' }}>Send Us a Message</h2>
           <p style={{ color: '#3e403a', marginBottom: '1.5rem' }}>
-            Fill out the form below and we'll send your message via WhatsApp to our support team.
+            Fill out the form below and we'll email it securely to our support team. You will receive a confirmation email.
           </p>
           
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -297,6 +300,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
 
             <button
               type="submit"
+              disabled={submitting}
               style={{
                 width: '100%',
                 backgroundColor: '#10110f',
@@ -315,12 +319,12 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000'}
               onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#10110f'}
             >
-              <MessageCircle style={{ height: '1.25rem', width: '1.25rem' }} />
-              Send via WhatsApp
+              <Mail style={{ height: '1.25rem', width: '1.25rem' }} />
+              {submitting ? 'Sending…' : 'Send Email'}
             </button>
             
             <p style={{ fontSize: '0.875rem', color: '#74756f', textAlign: 'center', margin: 0 }}>
-              This will open WhatsApp with your message pre-filled. Click send to submit.
+              Your message is delivered through Resend. WhatsApp support remains available above.
             </p>
           </form>
         </div>

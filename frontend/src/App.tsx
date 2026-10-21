@@ -24,6 +24,7 @@ import { User, Product, Message, MessageMap, SellerOffer, conversationIdentifier
 import logo from './assets/facicon.jpeg';
 import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
 import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
+import EmailActionHandler from './EmailActionHandler';
 
 import './App.css';
 import {
@@ -671,6 +672,7 @@ const App = () => {
 
   return (
     <div className={`app-shell min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <EmailActionHandler />
       <header className={`app-header shadow-sm border-b sticky top-0 z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

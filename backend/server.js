@@ -9,9 +9,11 @@ const verificationController = require('./controllers/verificationController');
 const productPageController = require('./controllers/productPageController');
 const { ensureDefaultSellerOffers } = require('./services/sellerOfferService');
 const { assertSecurityConfiguration, configuredOrigins } = require('./config/security');
+const { assertEmailConfiguration } = require('./config/email');
 const { createRateLimit } = require('./middleware/rateLimit');
 
 assertSecurityConfiguration();
+assertEmailConfiguration();
 const app = express();
 const PORT = process.env.PORT || 5001;
 const allowedOrigins = new Set(configuredOrigins());
@@ -19,6 +21,17 @@ const authRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Too many authentication attempts. Please try again later.'
+});
+const contactRateLimit = createRateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: 'Too many contact requests. Please try again later.'
+});
+const messageRateLimit = createRateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many messages sent. Please try again later.',
+  keyGenerator: (req) => req.user?.id || req.ip || 'unknown'
 });
 
 // Middleware
@@ -86,6 +99,7 @@ async function connectToMongoDB() {
       await db.collection('sellerOfferClaims').createIndex({ userId: 1, offerId: 1 }, { unique: true });
       await db.collection('sellerSubscriptions').createIndex({ userId: 1, expiresAt: -1 });
       await db.collection('sellerSubscriptions').createIndex({ paymentOrderId: 1 }, { unique: true, sparse: true });
+      await db.collection('emailNotificationEvents').createIndex({ eventKey: 1 }, { unique: true });
     } catch (indexError) {
       console.log('Some indexes already exist');
     }
@@ -169,6 +183,7 @@ const healthController = require('./controllers/healthController');
 const analyticsController = require('./controllers/analyticsController');
 const subscriptionPaymentController = require('./controllers/subscriptionPaymentController');
 const sellerOfferController = require('./controllers/sellerOfferController');
+const contactController = require('./controllers/contactController');
 const { warmRequiredServices } = require('./services/serviceWarmup');
 
 const { 
@@ -249,6 +264,11 @@ app.get(
 // Auth routes
 app.post('/api/auth/register', authRateLimit, (req, res) => authController.register(req, res, req.db));
 app.post('/api/auth/login', authRateLimit, (req, res) => authController.login(req, res, req.db));
+app.post('/api/auth/verify-email', authRateLimit, (req, res) => authController.verifyEmail(req, res, req.db));
+app.post('/api/auth/resend-verification', authRateLimit, (req, res) => authController.resendVerification(req, res, req.db));
+app.post('/api/auth/forgot-password', authRateLimit, (req, res) => authController.forgotPassword(req, res, req.db));
+app.post('/api/auth/reset-password', authRateLimit, (req, res) => authController.resetPassword(req, res, req.db));
+app.post('/api/contact', contactRateLimit, contactController.submitContact);
 
 // User routes
 app.get('/api/users/me', authenticateToken, (req, res) => authController.getCurrentUser(req, res, req.db));
@@ -636,7 +656,7 @@ app.get('/api/products/:id/image', async (req, res) => {
 
 // Message routes
 app.get('/api/messages/:conversationId', authenticateToken, (req, res) => messageController.getMessages(req, res, req.db));
-app.post('/api/messages', authenticateToken, (req, res) => messageController.sendMessage(req, res, req.db));
+app.post('/api/messages', authenticateToken, messageRateLimit, (req, res) => messageController.sendMessage(req, res, req.db));
 
 // Reference data routes
 app.get('/api/campuses', referenceController.getCampuses);

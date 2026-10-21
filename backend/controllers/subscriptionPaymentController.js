@@ -1,5 +1,6 @@
 const { ObjectId } = require('mongodb');
 const paymentService = require('../services/paymentService');
+const { sendSubscriptionActivatedEmail } = require('../services/emailService');
 const {
   SUBSCRIPTION_STATUS,
   SELLER_MONTHLY_PRICE_CENTS
@@ -196,7 +197,21 @@ exports.handleCallback = async (req, res, db) => {
     if (!matches) return res.status(409).json({ success: false, error: 'Payment does not match the subscription order.' });
 
     if (payload.type === 'PAYMENT_SUCCESS' && payload.payment.status === 'SUCCESS' && order.status !== 'REFUNDED') {
+      const wasAlreadyPaid = order.status === 'PAID';
       await activateSubscriptionForPaidOrder(db, order, payload.payment);
+      if (!wasAlreadyPaid) {
+        const user = await db.collection('users').findOne(
+          { _id: order.userId },
+          { projection: { name: 1, email: 1 } }
+        );
+        if (user?.email) {
+          try {
+            await sendSubscriptionActivatedEmail(user, order.servicePeriodEnd);
+          } catch (emailError) {
+            console.error('Subscription activation email failed:', emailError.message);
+          }
+        }
+      }
     } else if (payload.type === 'PAYMENT_FAILED') {
       await db.collection('subscriptionOrders').updateOne(
         { _id: order._id, status: { $nin: ['PAID', 'REFUNDED'] } },
