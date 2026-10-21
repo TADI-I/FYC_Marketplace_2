@@ -133,6 +133,11 @@ export const resetPassword = (token, password) => apiCall('/api/auth/reset-passw
   body: JSON.stringify({ token, password })
 });
 
+export const confirmEmailChange = (token) => apiCall('/api/auth/confirm-email-change', {
+  method: 'POST',
+  body: JSON.stringify({ token })
+});
+
 export const submitContactMessage = (contact) => apiCall('/api/contact', {
   method: 'POST',
   body: JSON.stringify(contact)
@@ -401,7 +406,7 @@ export const updateUserProfile = async (userId, updateData) => {
       throw new Error(data.error || `HTTP ${response.status}: Failed to update profile`);
     }
 
-    return data.user || data;
+    return data;
     
   } catch (error) {
     console.error('❌ Failed to update profile:', error);

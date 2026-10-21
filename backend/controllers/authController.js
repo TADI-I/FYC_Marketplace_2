@@ -17,6 +17,19 @@ const isValidEmail = (email) => {
   return emailRegex.test(email);
 };
 
+const clearExpiredPendingEmail = async (db, user) => {
+  if (!user?.pendingEmailExpiresAt || new Date(user.pendingEmailExpiresAt) > new Date()) return user;
+  await db.collection('users').updateOne(
+    { _id: user._id, pendingEmailExpiresAt: { $lte: new Date() } },
+    { $unset: { pendingEmail: '', pendingEmailTokenHash: '', pendingEmailExpiresAt: '' } }
+  );
+  const cleaned = { ...user };
+  delete cleaned.pendingEmail;
+  delete cleaned.pendingEmailTokenHash;
+  delete cleaned.pendingEmailExpiresAt;
+  return cleaned;
+};
+
 const isValidCampus = (campus) => {
   const validCampuses = [
     'pretoria-main', 'soshanguve-S', 'soshanguve-N', 'ga-rankuwa', 'pretoria-west',
@@ -196,6 +209,7 @@ exports.login = async (req, res, db) => {
     }
 
     user = await syncExpiredSellerAccess(db, user);
+    user = await clearExpiredPendingEmail(db, user);
 
     // Create JWT token
     const token = jwt.sign(
@@ -215,6 +229,8 @@ exports.login = async (req, res, db) => {
       ...publicSubscriptionFields(user),
       whatsapp: user.whatsapp || null,
       emailVerified: user.emailVerified !== false,
+      pendingEmail: user.pendingEmail || null,
+      pendingEmailExpiresAt: user.pendingEmailExpiresAt || null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };
@@ -253,6 +269,7 @@ exports.getCurrentUser = async (req, res, db) => {
     }
 
     user = await syncExpiredSellerAccess(db, user);
+    user = await clearExpiredPendingEmail(db, user);
 
     // only return safe fields (include whatsapp)
     const safeUser = {
@@ -265,6 +282,8 @@ exports.getCurrentUser = async (req, res, db) => {
       ...publicSubscriptionFields(user),
       whatsapp: user.whatsapp || null,
       emailVerified: user.emailVerified !== false,
+      pendingEmail: user.pendingEmail || null,
+      pendingEmailExpiresAt: user.pendingEmailExpiresAt || null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };

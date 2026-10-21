@@ -6,7 +6,6 @@ import {
   LogOut,
   MapPin,
   Moon,
-  Plus,
   Search,
   Share2,
   ShoppingBag,
@@ -686,11 +685,11 @@ const App = () => {
                 <button onClick={() => setCurrentView('my-profile')} className="profile-trigger p-2 md:p-2 rounded-lg hover:bg-gray-100 transition-colors group" title="My Profile" aria-label="Open profile">
                   <Useric className="h-5 w-5 md:h-6 md:w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
                 </button>
-                {currentUser.type === 'seller' && currentUser.subscribed && (
-                  <button onClick={() => setCurrentView('add-product')} className="bg-blue-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 text-sm md:text-base">
-                    <Plus className="h-4 w-4" />
-                    <span className="hidden sm:inline">Add Listing</span>
-                    <span className="sm:hidden">Add</span>
+                {currentUser.type === 'seller' && (
+                  <button onClick={() => setCurrentView('my-products')} className="seller-nav-action" aria-label="Manage products">
+                    <ShoppingBag className="h-4 w-4" />
+                    <span className="hidden sm:inline">Manage Products</span>
+                    <span className="sm:hidden">Products</span>
                   </button>
                 )}
                 {currentUser.type === 'admin' && (
@@ -753,7 +752,7 @@ const App = () => {
             <ChatWindow currentUser={currentUser} chatWith={chatWith} users={users} onCloseChat={() => setChatWith(null)} onNewMessage={handleNewMessage} onLoadMessages={handleLoadMessages} />
           ) : currentView === 'add-product' ? (
             currentUser?.type === 'seller' && currentUser?.subscribed ? (
-              <AddProductForm currentUser={currentUser} onProductAdded={(newProduct) => { setProducts(prev => [newProduct, ...prev]); setCurrentView('home'); }} onCancel={() => setCurrentView('home')} />
+              <AddProductForm currentUser={currentUser} onProductAdded={(newProduct) => { setProducts(prev => [newProduct, ...prev]); setCurrentView('my-products'); }} onCancel={() => setCurrentView('my-products')} />
             ) : (
               <div className="text-center py-20">
                 <p className="text-xl text-gray-600">You need a seller subscription to add listings.</p>
@@ -796,14 +795,6 @@ const App = () => {
                     <SlidersHorizontal className="h-5 w-5" />
                   </button>
                 </div>
-              </div>
-
-              <div className="home-toolbar flex justify-between items-center mb-8">
-                {currentUser?.type === 'seller' && (
-                  <button onClick={() => setCurrentView('my-products')} style={{ backgroundColor: '#10110f', color: '#fbfaf6', padding: '0.5rem 1rem', borderRadius: 0, border: '1px solid rgba(16,17,15,.7)', cursor: 'pointer' }}>
-                    My Products
-                  </button>
-                )}
               </div>
 
               {/* Highlighted shared product */}

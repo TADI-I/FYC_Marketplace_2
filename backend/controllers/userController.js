@@ -9,8 +9,28 @@ const {
   publicSubscriptionFields
 } = require('../services/sellerSubscriptionService');
 const { getEligibleOffers } = require('../services/sellerOfferService');
-const { createAccountToken } = require('../services/accountTokenService');
-const { sendVerificationEmail } = require('../services/emailService');
+const { createAccountToken, hashAccountToken } = require('../services/accountTokenService');
+const { sendEmailChangeVerificationEmail } = require('../services/emailService');
+
+const EMAIL_CHANGE_WINDOW_MS = 10 * 60 * 1000;
+
+function publicUser(user) {
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    type: user.type,
+    campus: user.campus,
+    subscribed: user.subscribed,
+    ...publicSubscriptionFields(user),
+    whatsapp: user.whatsapp || null,
+    emailVerified: user.emailVerified !== false,
+    pendingEmail: user.pendingEmail || null,
+    pendingEmailExpiresAt: user.pendingEmailExpiresAt || null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
+  };
+}
 
 // Get subscription status
 exports.getSubscriptionStatus = async (req, res, db) => {
@@ -104,23 +124,23 @@ exports.updateUserProfile = async (req, res, db) => {
     }
     const emailChanged = currentUser.email !== normalizedEmail;
     const verification = emailChanged ? createAccountToken() : null;
+    const now = new Date();
 
     // Build update object
     const updateData = {
       name: name.trim(),
-      email: normalizedEmail,
-      updatedAt: new Date()
+      updatedAt: now
     };
     if (verification) {
-      updateData.emailVerified = false;
-      updateData.emailVerificationTokenHash = verification.hash;
-      updateData.emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      updateData.pendingEmail = normalizedEmail;
+      updateData.pendingEmailTokenHash = verification.hash;
+      updateData.pendingEmailExpiresAt = new Date(now.getTime() + EMAIL_CHANGE_WINDOW_MS);
     }
 
     // Only include campus if provided
     if (campus) updateData.campus = campus;
-    // Include whatsapp if provided
-    if (normalizedWhatsapp !== null) updateData.whatsapp = normalizedWhatsapp;
+    // WhatsApp is optional; an empty value intentionally clears it.
+    updateData.whatsapp = normalizedWhatsapp;
 
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(userId) },
@@ -136,28 +156,33 @@ exports.updateUserProfile = async (req, res, db) => {
     }
 
     // Get updated user to return complete data
-    const updatedUser = await db.collection('users').findOne(
-      { _id: new ObjectId(userId) },
-      { projection: { password: 0 } }
-    );
+    const updatedUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
 
     let verificationEmailSent = true;
     if (verification) {
       try {
-        await sendVerificationEmail(updatedUser, verification.token);
+        await sendEmailChangeVerificationEmail(updatedUser, normalizedEmail, verification.token);
       } catch (emailError) {
         verificationEmailSent = false;
         console.error('Profile email verification delivery failed:', emailError.message);
+        await db.collection('users').updateOne(
+          { _id: new ObjectId(userId), pendingEmailTokenHash: verification.hash },
+          { $unset: { pendingEmail: '', pendingEmailTokenHash: '', pendingEmailExpiresAt: '' } }
+        );
       }
     }
+
+    const responseUser = verificationEmailSent
+      ? updatedUser
+      : await db.collection('users').findOne({ _id: new ObjectId(userId) });
 
     res.json({
       success: true,
       message: emailChanged
-        ? (verificationEmailSent ? 'Profile updated. Verify your new email address.' : 'Profile updated, but the verification email could not be sent.')
+        ? (verificationEmailSent ? 'Profile updated. Confirm the new email within 10 minutes; your current email remains active until then.' : 'Your profile details were saved, but the email-change message could not be sent. Your current email is unchanged.')
         : 'Profile updated successfully',
-      user: updatedUser,
-      requiresEmailVerification: emailChanged,
+      user: publicUser(responseUser),
+      requiresEmailVerification: emailChanged && verificationEmailSent,
       verificationEmailSent
     });
 
@@ -178,6 +203,64 @@ exports.updateUserProfile = async (req, res, db) => {
       success: false,
       code: 'UPDATE_FAILED'
     });
+  }
+};
+
+exports.confirmEmailChange = async (req, res, db) => {
+  try {
+    const token = String(req.body?.token || req.query?.token || '');
+    if (!token || token.length > 200) {
+      return res.status(400).json({ success: false, error: 'This email-change link is invalid or expired' });
+    }
+
+    const tokenHash = hashAccountToken(token);
+    const now = new Date();
+    const user = await db.collection('users').findOne({
+      pendingEmailTokenHash: tokenHash,
+      pendingEmailExpiresAt: { $gt: now }
+    });
+    if (!user?.pendingEmail) {
+      await db.collection('users').updateMany(
+        { pendingEmailTokenHash: tokenHash, pendingEmailExpiresAt: { $lte: now } },
+        { $unset: { pendingEmail: '', pendingEmailTokenHash: '', pendingEmailExpiresAt: '' } }
+      );
+      return res.status(400).json({ success: false, error: 'This email-change link is invalid or expired' });
+    }
+
+    const conflict = await db.collection('users').findOne({
+      email: user.pendingEmail,
+      _id: { $ne: user._id }
+    });
+    if (conflict) {
+      return res.status(409).json({ success: false, error: 'That email address is no longer available. Request a different address from your profile.' });
+    }
+
+    const result = await db.collection('users').updateOne(
+      {
+        _id: user._id,
+        pendingEmailTokenHash: tokenHash,
+        pendingEmailExpiresAt: { $gt: now }
+      },
+      {
+        $set: {
+          email: user.pendingEmail,
+          emailVerified: true,
+          emailVerifiedAt: now,
+          updatedAt: now
+        },
+        $unset: { pendingEmail: '', pendingEmailTokenHash: '', pendingEmailExpiresAt: '' }
+      }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(400).json({ success: false, error: 'This email-change link is invalid or expired' });
+    }
+    return res.json({ success: true, message: 'Your email address has been updated. Use it the next time you sign in.' });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({ success: false, error: 'That email address is no longer available. Request a different address from your profile.' });
+    }
+    console.error('Email change confirmation failed:', error.message);
+    return res.status(500).json({ success: false, error: 'Could not confirm the email change' });
   }
 };
 

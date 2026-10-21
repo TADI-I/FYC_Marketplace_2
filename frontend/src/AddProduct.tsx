@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { ArrowLeft, ImagePlus, Loader2, UploadCloud, X } from 'lucide-react';
+import { showNotification } from './AppNotificationModal';
 import type { User } from './types';
 
 type Product = {
@@ -11,15 +13,10 @@ type Product = {
   sellerId: number;
   sellerName: string;
   sellerCampus: string;
-  image: any; // Changed to handle GridFS reference
+  image: any;
   rating: number;
   type: string;
-  imageUrl?: string; // Added for frontend display
-};
-
-type Category = {
-  id: string;
-  name: string;
+  imageUrl?: string;
 };
 
 interface AddProductFormProps {
@@ -28,8 +25,7 @@ interface AddProductFormProps {
   onCancel: () => void;
 }
 
-const categories: Category[] = [
-  { id: 'all', name: 'All Items' },
+const categories = [
   { id: 'books', name: 'Books' },
   { id: 'electronics', name: 'Electronics' },
   { id: 'services', name: 'Services' },
@@ -38,324 +34,159 @@ const categories: Category[] = [
   { id: 'other', name: 'Other' }
 ];
 
+type FieldErrors = Partial<Record<'title' | 'description' | 'price' | 'category' | 'image', string>>;
+
 const AddProductForm: React.FC<AddProductFormProps> = ({ currentUser, onProductAdded, onCancel }) => {
   const API_BASE = process.env.REACT_APP_API_BASE;
-  
-  const [productData, setProductData] = useState({
-    title: '', 
-    description: '', 
-    price: '', 
-    category: '', 
-    type: 'product'
-  });
+  const [productData, setProductData] = useState({ title: '', description: '', price: '', category: '', type: 'product' });
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  // Disable all inputs if seller account is not active
-  const isSeller = currentUser?.type === 'seller';
-  const canPost = isSeller && (currentUser?.subscribed === true);
-  const disabledMessage = isSeller && !canPost
-    ? 'Your seller account is not active. Please renew or request reactivation from the profile page before adding listings.'
+  const canPost = currentUser?.type === 'seller' && currentUser.subscribed === true;
+  const disabledMessage = currentUser?.type === 'seller' && !canPost
+    ? 'Your seller account is inactive. Renew or reactivate it from your profile before creating a listing.'
     : null;
- 
-  // Handle image selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file (JPEG, PNG, etc.)');
-        return;
-      }
-      if (!canPost) {
-        setError('Cannot add image while seller account is inactive.');
-        return;
-      }
- 
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
- 
-      setImageFile(file);
-      setError('');
- 
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+
+  const setField = (field: keyof typeof productData, value: string) => {
+    setProductData(current => ({ ...current, [field]: value }));
+    setFieldErrors(current => ({ ...current, [field]: undefined }));
   };
- 
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview('');
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setFieldErrors(current => ({ ...current, image: 'Choose a JPEG, PNG, WebP, or GIF image.' }));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setFieldErrors(current => ({ ...current, image: 'The image must be smaller than 5 MB.' }));
+      return;
+    }
+    setImageFile(file);
+    setFieldErrors(current => ({ ...current, image: undefined }));
+    const reader = new FileReader();
+    reader.onload = loadEvent => setImagePreview(String(loadEvent.target?.result || ''));
+    reader.readAsDataURL(file);
   };
- 
-  const handleAddProduct = async () => {
-    if (!canPost) {
-      setError('Your seller account is not active. Please update your account before adding listings.');
-      return;
-    }
-    if (!currentUser) {
-      setError('You must be logged in to add a product');
-      return;
-    }
- 
-    if (!productData.title || !productData.description || !productData.price || !productData.category) {
-      setError('Please fill all required fields.');
-      return;
-    }
- 
-    if (parseFloat(productData.price) <= 0) {
-      setError('Price must be greater than 0');
-      return;
-    }
- 
+
+  const validate = () => {
+    const next: FieldErrors = {};
+    if (!productData.title.trim()) next.title = 'Add a clear listing title.';
+    if (!productData.description.trim()) next.description = 'Describe what you are offering.';
+    if (!productData.category) next.category = 'Choose a category.';
+    const price = Number(productData.price);
+    if (!productData.price || !Number.isFinite(price) || price <= 0) next.price = 'Enter a price greater than R0.';
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (loading) return;
+    if (!canPost) return setError('Your seller account must be active before you can add a listing.');
+    if (!currentUser) return setError('Sign in as a seller to add a listing.');
+    if (!validate()) return;
+
     setLoading(true);
     setError('');
- 
     try {
-      // Create FormData for multipart form upload
-      const formData = new FormData();
-      
-      // Add product data fields
-      formData.append('title', productData.title);
-      formData.append('description', productData.description);
-      formData.append('price', productData.price);
-      formData.append('category', productData.category);
-      formData.append('type', productData.type);
-      // Don't need to send sellerName/sellerCampus - backend gets from token
-      
-      // Add image file if selected
-      if (imageFile) {
-        formData.append('image', imageFile);
-        console.log('📁 Adding image file to GridFS:', {
-          name: imageFile.name,
-          type: imageFile.type,
-          size: imageFile.size
-        });
-      }
- 
-      // If somehow posting while disabled, prevent
-      if (!canPost) {
-        throw new Error('Account inactive');
-      }
- 
-      // Get auth token
+      const body = new FormData();
+      Object.entries(productData).forEach(([key, value]) => body.append(key, value.trim()));
+      if (imageFile) body.append('image', imageFile);
       const token = localStorage.getItem('auth_token');
-      
-      if (!token) {
-        throw new Error('Authentication token not found. Please log in again.');
-      }
- 
-      console.log('📤 Sending FormData to GridFS backend...');
- 
-      // Send FormData to backend
+      if (!token) throw new Error('Your session has expired. Please sign in again.');
       const response = await fetch(`${API_BASE}/api/products`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // Don't set Content-Type for FormData - browser will set it
-        },
-        body: formData,
+        headers: { Authorization: `Bearer ${token}` },
+        body
       });
- 
       const data = await response.json();
-      console.log('📥 Backend response:', data);
-      
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}: Failed to create product`);
-      }
- 
-      console.log('✅ Product added successfully with GridFS image:', data);
-      
-      // Add imageUrl to product for frontend display
-      const productWithImageUrl = {
+      if (!response.ok) throw new Error(data.error || 'The listing could not be created.');
+      const product = {
         ...data.product,
-        imageUrl: data.product.imageUrl || 
-                 (data.product.image?.id ? `${API_BASE}/api/images/${data.product.image.id}` : null)
+        imageUrl: data.product.imageUrl || (data.product.image?.id ? `${API_BASE}/api/images/${data.product.image.id}` : null)
       };
-      
-      // Call the parent callback with the created product
-      onProductAdded(productWithImageUrl);
-      
-      // Reset form
-      setProductData({ title: '', description: '', price: '', category: '', type: 'product' });
-      setImageFile(null);
-      setImagePreview('');
-      
-    } catch (error) {
-      console.error('❌ Failed to add product:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Failed to add product. Please try again.';
-      setError(errorMessage);
+      showNotification({ type: 'success', title: 'Listing published', message: `${product.title} is now visible in the marketplace.`, actionLabel: 'Continue' });
+      onProductAdded(product);
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : 'The listing could not be created. Please try again.');
     } finally {
       setLoading(false);
     }
   };
- 
-  const handleInputChange = (field: string, value: string) => {
-    setProductData(prev => ({ ...prev, [field]: value }));
-  };
- 
+
   return (
-    <div className="apple-page apple-form-shell max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Add New Product/Service</h2>
-      
-      {disabledMessage && (
-        <div className="bg-gray-50 border border-gray-300 text-gray-800 px-4 py-3 rounded mb-4">
-          <p className="font-medium mb-2">Seller account inactive</p>
-          <p className="text-sm">{disabledMessage}</p>
-          <div className="mt-3">
-            <button
-              onClick={onCancel}
-              className="bg-blue-600 text-white px-3 py-1 rounded"
-            >
-              Go to Profile
-            </button>
+    <div className="apple-page listing-editor-page">
+      <div className="listing-editor-heading">
+        <button type="button" className="listing-back-button" onClick={onCancel} disabled={loading}>
+          <ArrowLeft aria-hidden="true" /> Manage products
+        </button>
+        <p className="listing-eyebrow">Seller workspace</p>
+        <h1>Create a listing</h1>
+        <p>Give buyers the essentials first. You can update the listing later from Manage Products.</p>
+      </div>
+
+      {disabledMessage && <div className="listing-banner" role="alert"><strong>Seller account inactive</strong><span>{disabledMessage}</span></div>}
+      {error && <div className="listing-banner listing-banner-error" role="alert">{error}</div>}
+
+      <form className="listing-editor" onSubmit={handleSubmit} noValidate>
+        <section className="listing-section" aria-labelledby="listing-basics-title">
+          <div className="listing-section-heading">
+            <span>01</span><div><h2 id="listing-basics-title">Listing details</h2><p>Help buyers understand what you’re offering.</p></div>
           </div>
-        </div>
-      )}
-       
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-      
-      {/* Image Upload Section */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Product Image (Optional - will be stored in database)
-        </label>
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={loading}
-              // fully disable file selection if account inactive
-              aria-disabled={!canPost}
-              tabIndex={canPost ? 0 : -1}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              JPEG, PNG, WebP accepted. Max 5MB. Image will be stored securely in database.
-            </p>
-          </div>
-          
-          {imagePreview && (
-            <div className="relative">
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                style={{
-                  width: '7rem',
-                  height: '7rem',
-                  objectFit: 'cover',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc'
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                disabled={loading}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-              >
-                ×
-              </button>
+          <div className="listing-field-grid">
+            <div className="listing-field listing-field-wide">
+              <label htmlFor="listing-title">Title <span>Required</span></label>
+              <input id="listing-title" value={productData.title} onChange={event => setField('title', event.target.value)} placeholder="e.g. Calculus textbook, excellent condition" disabled={loading || !canPost} aria-invalid={Boolean(fieldErrors.title)} />
+              {fieldErrors.title && <p className="listing-field-error">{fieldErrors.title}</p>}
             </div>
-          )}
+            <div className="listing-field">
+              <label htmlFor="listing-type">Listing type <span>Required</span></label>
+              <select id="listing-type" value={productData.type} onChange={event => setField('type', event.target.value)} disabled={loading || !canPost}>
+                <option value="product">Physical product</option><option value="service">Service</option>
+              </select>
+            </div>
+            <div className="listing-field">
+              <label htmlFor="listing-category">Category <span>Required</span></label>
+              <select id="listing-category" value={productData.category} onChange={event => setField('category', event.target.value)} disabled={loading || !canPost} aria-invalid={Boolean(fieldErrors.category)}>
+                <option value="">Choose a category</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+              </select>
+              {fieldErrors.category && <p className="listing-field-error">{fieldErrors.category}</p>}
+            </div>
+            <div className="listing-field listing-field-wide">
+              <label htmlFor="listing-description">Description <span>Required</span></label>
+              <textarea id="listing-description" rows={7} value={productData.description} onChange={event => setField('description', event.target.value)} placeholder="Include condition, what is included, collection or delivery details, and anything a buyer should know." disabled={loading || !canPost} aria-invalid={Boolean(fieldErrors.description)} />
+              <div className="listing-field-meta"><span>{fieldErrors.description || 'Be specific—clear listings get better enquiries.'}</span><span>{productData.description.length} characters</span></div>
+            </div>
+            <div className="listing-field">
+              <label htmlFor="listing-price">Price in rand <span>Required</span></label>
+              <div className="listing-price-input"><span>R</span><input id="listing-price" type="number" min="0.01" step="0.01" inputMode="decimal" value={productData.price} onChange={event => setField('price', event.target.value)} placeholder="0.00" disabled={loading || !canPost} aria-invalid={Boolean(fieldErrors.price)} /></div>
+              {fieldErrors.price && <p className="listing-field-error">{fieldErrors.price}</p>}
+            </div>
+          </div>
+        </section>
+
+        <section className="listing-section" aria-labelledby="listing-image-title">
+          <div className="listing-section-heading"><span>02</span><div><h2 id="listing-image-title">Listing image</h2><p>Optional, but a clear photo helps buyers decide.</p></div></div>
+          <label className={`listing-upload${imagePreview ? ' has-preview' : ''}`}>
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageChange} disabled={loading || !canPost} />
+            {imagePreview ? <img src={imagePreview} alt="Selected listing preview" /> : <div><UploadCloud aria-hidden="true" /><strong>Choose an image</strong><span>JPEG, PNG, WebP or GIF · Maximum 5 MB</span></div>}
+          </label>
+          {imagePreview && <div className="listing-upload-actions"><span><ImagePlus aria-hidden="true" />{imageFile?.name}</span><button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} disabled={loading}><X aria-hidden="true" /> Remove</button></div>}
+          {fieldErrors.image && <p className="listing-field-error">{fieldErrors.image}</p>}
+        </section>
+
+        <div className="listing-actions">
+          <button type="button" className="listing-secondary" onClick={onCancel} disabled={loading}>Cancel</button>
+          <button type="submit" className="listing-primary" disabled={loading || !canPost}>{loading ? <><Loader2 className="listing-spinner" aria-hidden="true" /> Publishing…</> : 'Publish listing'}</button>
         </div>
-      </div>
- 
-      <div className="grid md:grid-cols-2 gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Product/Service Title"
-          className="p-3 border rounded"
-          value={productData.title}
-          onChange={(e) => handleInputChange('title', e.target.value)}
-          disabled={loading || !canPost}
-        />
-        <select 
-          className="p-3 border rounded" 
-          value={productData.category}
-          onChange={(e) => handleInputChange('category', e.target.value)}
-          disabled={loading || !canPost}
-        >
-          <option value="">Select Category</option>
-          {categories.slice(1).map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-          ))}
-        </select>
-      </div>
-      
-      <textarea
-        placeholder="Detailed description, delivery options, etc."
-        className="w-full p-3 border rounded mb-4"
-        rows={4}
-        value={productData.description}
-        onChange={(e) => handleInputChange('description', e.target.value)}
-        disabled={loading || !canPost}
-      />
-      
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        <input
-          type="number"
-          placeholder="Price (R)"
-          className="p-3 border rounded"
-          value={productData.price}
-          onChange={(e) => handleInputChange('price', e.target.value)}
-          min="0"
-          step="0.01"
-          disabled={loading || !canPost}
-        />
-        <select 
-          className="p-3 border rounded" 
-          value={productData.type}
-          onChange={(e) => handleInputChange('type', e.target.value)}
-          disabled={loading || !canPost}
-        >
-          <option value="product">Physical Product</option>
-          <option value="service">Service</option>
-        </select>
-      </div>
-      
-      <div className="flex gap-2">
-        <button 
-          onClick={handleAddProduct} 
-          disabled={loading || !canPost}
-          className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {loading ? (
-            <>
-              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-              Adding...
-            </>
-          ) : (
-            'Add Listing'
-          )}
-        </button>
-        <button 
-          onClick={onCancel} 
-          disabled={loading}
-          className="bg-gray-300 px-6 py-3 rounded hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed"
-        >
-          Cancel
-        </button>
-      </div>
+      </form>
     </div>
   );
 };
+
 export default AddProductForm;

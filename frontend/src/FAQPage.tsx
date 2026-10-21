@@ -69,7 +69,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'selling',
       question: 'Can I edit or delete my listings after posting them?',
-      answer: 'Yes! You have full control over your listings. Go to "My Products" from your dashboard to see all your active listings. Click "Edit" on any listing to update the title, description, price, photos, or category. You can also delete listings once items are sold or if you no longer want to sell them. Keep your listings updated and remove sold items promptly to maintain a good seller reputation.'
+      answer: 'Yes! You have full control over your listings. Go to "Manage Products" from the seller navigation to see all your active listings. Click "Edit" on any listing to update the title, description, price, photos, or category. You can also delete listings once items are sold or if you no longer want to sell them. Keep your listings updated and remove sold items promptly to maintain a good seller reputation.'
     },
     {
       category: 'safety',

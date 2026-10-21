@@ -6,6 +6,8 @@ export type User = {
   name: string;
   email: string;
   emailVerified?: boolean;
+  pendingEmail?: string | null;
+  pendingEmailExpiresAt?: Date | string | null;
   type: string;
   subscribed: boolean;
   campus: string;

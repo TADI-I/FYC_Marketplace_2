@@ -53,6 +53,7 @@ module.exports = (db) => {
   router.post('/auth/resend-verification', withDb(authController.resendVerification));
   router.post('/auth/forgot-password', withDb(authController.forgotPassword));
   router.post('/auth/reset-password', withDb(authController.resetPassword));
+  router.post('/auth/confirm-email-change', withDb(userController.confirmEmailChange));
 
   // User routes
   router.get('/users/me', authenticateToken, withDb(authController.getCurrentUser));

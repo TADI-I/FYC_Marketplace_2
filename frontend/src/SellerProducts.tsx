@@ -444,18 +444,18 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
         }
       `}</style>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
+      <div className="seller-products-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div>
           <button 
             onClick={onBack}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            className="seller-products-back"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="font-medium">Back to Home</span>
           </button>
-          
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold">My Products</h1>
+          <p className="listing-eyebrow">Seller workspace</p>
+          <div className="flex items-center gap-3 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold">Manage Products</h1>
             <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs sm:text-sm">
               {products.length} {products.length === 1 ? 'item' : 'items'}
             </span>
@@ -468,7 +468,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
           className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          Add New Product
+          Add Product
         </button>
       </div>
 

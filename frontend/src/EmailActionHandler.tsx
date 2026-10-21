@@ -1,76 +1,103 @@
-import React, { useEffect, useState } from 'react';
-import { resetPassword, verifyEmailAddress } from './api';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, KeyRound } from 'lucide-react';
+import { confirmEmailChange, resetPassword, verifyEmailAddress } from './api';
 import { showNotification } from './AppNotificationModal';
 
-function removeEmailActionQuery() {
-  const url = new URL(window.location.href);
-  url.searchParams.delete('verify-email');
-  url.searchParams.delete('reset-password');
-  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-}
-
 const EmailActionHandler: React.FC = () => {
-  const [resetToken, setResetToken] = useState<string | null>(null);
+  const action = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (window.location.pathname === '/reset-password') return { type: 'reset', token: params.get('token') };
+    if (window.location.pathname === '/confirm-email-change') return { type: 'email-change', token: params.get('token') };
+    const legacyReset = params.get('reset-password');
+    if (legacyReset) return { type: 'reset', token: legacyReset };
+    const verification = params.get('verify-email');
+    return verification ? { type: 'verify', token: verification } : null;
+  }, []);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [completedMessage, setCompletedMessage] = useState('');
+  const [actionError, setActionError] = useState('');
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const verificationToken = params.get('verify-email');
-    const passwordToken = params.get('reset-password');
-    if (passwordToken) setResetToken(passwordToken);
-    if (!verificationToken) return;
-
-    verifyEmailAddress(verificationToken)
-      .then((response) => showNotification({
-        type: 'success',
-        title: 'Email verified',
-        message: response.message || 'Your email is verified. You can now sign in.'
-      }))
-      .catch((error) => showNotification({
-        type: 'error',
-        title: 'Verification link problem',
-        message: error.message || 'This verification link is invalid or expired.'
-      }))
-      .finally(removeEmailActionQuery);
-  }, []);
-
-  if (!resetToken) return null;
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (password.length < 8) {
-      showNotification({ type: 'warning', title: 'Password is too short', message: 'Use at least 8 characters.' });
-      return;
-    }
-    if (password !== confirmPassword) {
-      showNotification({ type: 'warning', title: 'Passwords do not match', message: 'Enter the same password twice.' });
+    if (!action || action.type === 'reset') return;
+    if (!action.token) {
+      setActionError('This link is incomplete or invalid.');
       return;
     }
     setLoading(true);
+    const request = action.type === 'email-change'
+      ? confirmEmailChange(action.token)
+      : verifyEmailAddress(action.token);
+    request
+      .then(response => setCompletedMessage(response.message || 'Your email address has been confirmed.'))
+      .catch(error => setActionError(error.message || 'This link is invalid or expired.'))
+      .finally(() => setLoading(false));
+  }, [action]);
+
+  if (!action) return null;
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setActionError('');
+    if (!action.token) return setActionError('This reset link is incomplete or invalid.');
+    if (password.length < 8) return setActionError('Use a password with at least 8 characters.');
+    if (password !== confirmPassword) return setActionError('The passwords do not match.');
+    setLoading(true);
     try {
-      const response = await resetPassword(resetToken, password);
-      setResetToken(null);
-      removeEmailActionQuery();
-      showNotification({ type: 'success', title: 'Password updated', message: response.message || 'You can now sign in.' });
+      const response = await resetPassword(action.token, password);
+      setCompletedMessage(response.message || 'Password updated. You can now sign in.');
     } catch (error) {
-      showNotification({ type: 'error', title: 'Reset link problem', message: error instanceof Error ? error.message : 'Could not reset password.' });
+      setActionError(error instanceof Error ? error.message : 'Could not reset password.');
     } finally {
       setLoading(false);
     }
   };
 
+  const close = () => {
+    window.history.replaceState({}, '', '/');
+    if (completedMessage) {
+      showNotification({ type: 'success', title: 'Account updated', message: completedMessage, actionLabel: 'Continue' });
+    } else {
+      window.location.assign('/');
+    }
+  };
+
   return (
-    <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <form onSubmit={submit} className="apple-modal-card bg-white rounded-lg p-6 w-full max-w-sm">
-        <h2 className="text-xl font-bold mb-2">Choose a new password</h2>
-        <p className="text-sm text-gray-600 mb-4">This secure link can be used once.</p>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password (8+ characters)" className="w-full p-3 border rounded mb-3" autoFocus disabled={loading} />
-        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className="w-full p-3 border rounded mb-4" disabled={loading} />
-        <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:bg-blue-400" disabled={loading}>{loading ? 'Updating…' : 'Update password'}</button>
-      </form>
-    </div>
+    <main className="email-action-page" aria-live="polite">
+      <section className="email-action-card">
+        <div className={`email-action-icon${completedMessage ? ' is-complete' : ''}`} aria-hidden="true">
+          {completedMessage ? <CheckCircle2 /> : <KeyRound />}
+        </div>
+        {completedMessage ? (
+          <>
+            <p className="email-action-eyebrow">Completed</p>
+            <h1>All set</h1>
+            <p>{completedMessage}</p>
+            <button type="button" className="email-action-primary" onClick={close}>Return to marketplace</button>
+          </>
+        ) : action.type === 'reset' ? (
+          <form onSubmit={submit}>
+            <p className="email-action-eyebrow">Account security</p>
+            <h1>Choose a new password</h1>
+            <p>This secure link works once. Use at least 8 characters.</p>
+            {actionError && <div className="email-action-error" role="alert">{actionError}</div>}
+            <label htmlFor="new-password">New password</label>
+            <input id="new-password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" autoFocus disabled={loading} />
+            <label htmlFor="confirm-password">Confirm new password</label>
+            <input id="confirm-password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} autoComplete="new-password" disabled={loading} />
+            <button className="email-action-primary" type="submit" disabled={loading}>{loading ? 'Updating…' : 'Update password'}</button>
+          </form>
+        ) : (
+          <>
+            <p className="email-action-eyebrow">Email confirmation</p>
+            <h1>{loading ? 'Confirming your email…' : 'We couldn’t confirm that link'}</h1>
+            <p>{actionError || 'Please wait while we securely verify your request.'}</p>
+            {!loading && <button type="button" className="email-action-primary" onClick={close}>Return to marketplace</button>}
+          </>
+        )}
+      </section>
+    </main>
   );
 };
 

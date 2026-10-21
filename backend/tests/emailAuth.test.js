@@ -10,6 +10,7 @@ process.env.FRONTEND_URL = 'https://marketplace.example.test';
 process.env.EMAIL_DELIVERY_DISABLED = 'true';
 
 const authController = require('../controllers/authController');
+const userController = require('../controllers/userController');
 const { createAccountToken, hashAccountToken } = require('../services/accountTokenService');
 const { escapeHtml } = require('../services/emailService');
 const { authenticateToken } = require('../middleware/authMiddleware');
@@ -73,6 +74,112 @@ test('password reset replaces the hash and consumes the reset token', async () =
   assert.notEqual(updateDocument.$set.password, 'new-password-123');
   assert.equal(updateDocument.$unset.passwordResetTokenHash, '');
   assert.equal(updateDocument.$unset.passwordResetExpiresAt, '');
+});
+
+test('password reset requests use a generic response and store only a token hash', async () => {
+  const userId = new ObjectId();
+  let savedUpdate;
+  const db = { collection() { return {
+    async findOne() { return { _id: userId, name: 'Student', email: 'student@example.test' }; },
+    async updateOne(_filter, update) { savedUpdate = update; return { matchedCount: 1 }; }
+  }; } };
+  const res = responseRecorder();
+
+  await authController.forgotPassword({ body: { email: 'STUDENT@example.test' } }, res, db);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.payload.message, 'If an account exists for that email, a reset link has been sent.');
+  assert.match(savedUpdate.$set.passwordResetTokenHash, /^[a-f0-9]{64}$/);
+  assert.ok(savedUpdate.$set.passwordResetExpiresAt > new Date());
+});
+
+test('confirming an email change consumes a current token and promotes only the pending address', async () => {
+  const token = createAccountToken();
+  const userId = new ObjectId();
+  let updateFilter;
+  let updateDocument;
+  let findCount = 0;
+  const db = { collection() { return {
+    async findOne(filter) {
+      findCount += 1;
+      if (findCount === 1) {
+        assert.equal(filter.pendingEmailTokenHash, token.hash);
+        return { _id: userId, email: 'old@example.test', pendingEmail: 'new@example.test' };
+      }
+      return null;
+    },
+    async updateOne(filter, update) { updateFilter = filter; updateDocument = update; return { matchedCount: 1 }; },
+    async updateMany() { return { matchedCount: 0 }; }
+  }; } };
+  const res = responseRecorder();
+
+  await userController.confirmEmailChange({ body: { token: token.token }, query: {} }, res, db);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(updateFilter.pendingEmailTokenHash, token.hash);
+  assert.equal(updateDocument.$set.email, 'new@example.test');
+  assert.equal(updateDocument.$unset.pendingEmailTokenHash, '');
+  assert.equal(updateDocument.$unset.pendingEmail, '');
+});
+
+test('expired email-change tokens are rejected and cleared without changing email', async () => {
+  const token = createAccountToken();
+  let cleared = false;
+  const db = { collection() { return {
+    async findOne() { return null; },
+    async updateMany(filter, update) {
+      assert.equal(filter.pendingEmailTokenHash, token.hash);
+      assert.equal(update.$unset.pendingEmail, '');
+      cleared = true;
+      return { matchedCount: 1 };
+    }
+  }; } };
+  const res = responseRecorder();
+
+  await userController.confirmEmailChange({ body: { token: token.token }, query: {} }, res, db);
+
+  assert.equal(res.statusCode, 400);
+  assert.equal(cleared, true);
+});
+
+test('profile email changes stay pending for exactly ten minutes', async () => {
+  const userId = new ObjectId();
+  const original = {
+    _id: userId,
+    name: 'Student',
+    email: 'old@example.test',
+    campus: 'arts',
+    type: 'buyer',
+    subscribed: false,
+    emailVerified: true
+  };
+  let storedSet;
+  let lookupCount = 0;
+  const db = { collection() { return {
+    async findOne() {
+      lookupCount += 1;
+      if (lookupCount === 1) return null;
+      if (lookupCount === 2) return original;
+      return { ...original, ...storedSet };
+    },
+    async updateOne(_filter, update) { storedSet = update.$set; return { matchedCount: 1 }; }
+  }; } };
+  const res = responseRecorder();
+  const before = Date.now();
+
+  await userController.updateUserProfile({
+    params: { id: userId.toString() },
+    body: { name: 'Student', campus: 'arts', email: 'new@example.test', whatsapp: '27123456789' }
+  }, res, db);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(storedSet.email, undefined);
+  assert.equal(storedSet.pendingEmail, 'new@example.test');
+  assert.ok(storedSet.pendingEmailTokenHash);
+  assert.equal(storedSet.pendingEmailExpiresAt.getTime() - storedSet.updatedAt.getTime(), 10 * 60 * 1000);
+  assert.ok(storedSet.updatedAt.getTime() >= before);
+  assert.equal(res.payload.user.email, 'old@example.test');
+  assert.equal(res.payload.user.pendingEmail, 'new@example.test');
 });
 
 test('email templates escape user-controlled HTML', () => {

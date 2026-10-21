@@ -86,6 +86,8 @@ async function connectToMongoDB() {
     // Create indexes for better performance
     try {
       await db.collection('users').createIndex({ email: 1 }, { unique: true });
+      await db.collection('users').createIndex({ passwordResetTokenHash: 1 }, { unique: true, sparse: true });
+      await db.collection('users').createIndex({ pendingEmailTokenHash: 1 }, { unique: true, sparse: true });
       await db.collection('products').createIndex({ sellerId: 1 });
       await db.collection('products').createIndex({ category: 1 });
       await db.collection('products').createIndex({ sellerCampus: 1 });
@@ -268,6 +270,7 @@ app.post('/api/auth/verify-email', authRateLimit, (req, res) => authController.v
 app.post('/api/auth/resend-verification', authRateLimit, (req, res) => authController.resendVerification(req, res, req.db));
 app.post('/api/auth/forgot-password', authRateLimit, (req, res) => authController.forgotPassword(req, res, req.db));
 app.post('/api/auth/reset-password', authRateLimit, (req, res) => authController.resetPassword(req, res, req.db));
+app.post('/api/auth/confirm-email-change', authRateLimit, (req, res) => userController.confirmEmailChange(req, res, req.db));
 app.post('/api/contact', contactRateLimit, contactController.submitContact);
 
 // User routes

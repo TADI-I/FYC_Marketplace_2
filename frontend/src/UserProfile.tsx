@@ -12,6 +12,7 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack, onUserUpdate }) => {
+  const currentUserId = currentUser?._id || currentUser?.id;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);  
@@ -54,20 +55,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       }
     };
     init();
-  }, [currentUser]);
+  // Reinitialize only when the viewed account changes. Parent cache refreshes for
+  // the same user must not restart this request or overwrite an open editor.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchSubscriptionStatus(); }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || editing) return;
     setFormData({
       name: user.name || '',
       email: user.email || '',
       campus: user.campus || '',
       whatsapp: user.whatsapp || ''
     });
-  }, [user]);
+  }, [user, editing]);
 
   // Poll while a returning seller is waiting for verified payment.
   useEffect(() => {
@@ -238,8 +242,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
   };
 
   const handleEditToggle = () => {
-    setEditing(!editing);
-    if (editing) {
+    if (!editing) {
       setFormData({
         name: user?.name || '',
         email: user?.email || '',
@@ -247,6 +250,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         whatsapp: user?.whatsapp || ''
       });
     }
+    setEditing(!editing);
     setError('');
     setSuccessMessage('');
   };
@@ -294,12 +298,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     setError('');
 
     try {
-      const updatedProfile = await updateUserProfile(userId, {
+      const result = await updateUserProfile(userId, {
         name: formData.name.trim(),
         campus: formData.campus,
         email: formData.email.toLowerCase().trim(),
         whatsapp: normalizedWhatsapp !== undefined ? normalizedWhatsapp : null
       });
+      const updatedProfile = result.user;
       
       setUser(updatedProfile);
       
@@ -310,7 +315,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       localStorage.setItem('user_data', JSON.stringify(updatedProfile));
       
       setEditing(false);
-      setSuccessMessage('Profile updated successfully!');
+      setSuccessMessage(result.message || 'Profile updated successfully!');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       console.error('Update error details:', error);
@@ -432,6 +437,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
+                  {user?.pendingEmail && (
+                    <p className="text-xs text-blue-700 mt-1">
+                      Confirmation pending for {user.pendingEmail}. The link expires after 10 minutes.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -744,6 +754,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                         <div>
                           <p className="text-sm text-gray-600">Email</p>
                           <p className="font-medium text-gray-900">{user.email}</p>
+                          {user.pendingEmail && (
+                            <p className="text-xs text-blue-700 mt-1">Pending confirmation: {user.pendingEmail}</p>
+                          )}
                         </div>
                       </div>
                     </div>

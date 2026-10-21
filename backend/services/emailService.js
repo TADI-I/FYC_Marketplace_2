@@ -53,7 +53,7 @@ async function sendVerificationEmail(user, token) {
 
 async function sendPasswordResetEmail(user, token) {
   const { frontendUrl } = getEmailConfiguration();
-  const url = `${frontendUrl}/?reset-password=${encodeURIComponent(token)}`;
+  const url = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
   return sendEmail({
     to: user.email,
     subject: 'Reset your FYC Marketplace password',
@@ -62,6 +62,22 @@ async function sendPasswordResetEmail(user, token) {
       heading: 'Reset your password',
       body: '<p>Use the secure link below to choose a new password. The link can be used once and expires in one hour.</p>',
       actionLabel: 'Reset password',
+      actionUrl: url
+    })
+  });
+}
+
+async function sendEmailChangeVerificationEmail(user, pendingEmail, token) {
+  const { frontendUrl } = getEmailConfiguration();
+  const url = `${frontendUrl}/confirm-email-change?token=${encodeURIComponent(token)}`;
+  return sendEmail({
+    to: pendingEmail,
+    subject: 'Confirm your new FYC Marketplace email address',
+    text: `Confirm your new email address: ${url}\n\nThis single-use link expires in 10 minutes. Your current email remains active until confirmation succeeds.`,
+    html: emailLayout({
+      heading: 'Confirm your new email address',
+      body: `<p>${escapeHtml(user.name)}, confirm this address to finish updating your FYC Marketplace account.</p><p>This single-use link expires in <strong>10 minutes</strong>. Your current sign-in email will remain active until confirmation succeeds.</p>`,
+      actionLabel: 'Confirm new email',
       actionUrl: url
     })
   });
@@ -172,6 +188,7 @@ async function sendContactEmails({ name, email, subject, message }) {
 module.exports = {
   escapeHtml,
   sendContactEmails,
+  sendEmailChangeVerificationEmail,
   sendNewMessageEmail,
   sendPasswordResetEmail,
   sendSubscriptionActivatedEmail,
