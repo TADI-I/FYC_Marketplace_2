@@ -1,9 +1,10 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import lbgMonogram from './lbg-monogram-cream-transparent.png';
+import type { AppView } from './navigation';
 
 interface FooterProps {
-  onNavigate: (view: string) => void;
+  onNavigate: (view: AppView) => void;
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
@@ -13,7 +14,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const muted = '#9c9d97';
   const line = 'rgba(251,250,246,.16)';
 
-  const handleNavigate = (view: string) => {
+  const handleNavigate = (view: AppView) => {
     // Scroll to top first
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Then navigate

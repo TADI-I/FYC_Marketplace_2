@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, KeyRound } from 'lucide-react';
 import { confirmEmailChange, resetPassword, verifyEmailAddress } from './api';
-import { showNotification } from './AppNotificationModal';
 
 const EmailActionHandler: React.FC = () => {
   const action = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     if (window.location.pathname === '/reset-password') return { type: 'reset', token: params.get('token') };
     if (window.location.pathname === '/confirm-email-change') return { type: 'email-change', token: params.get('token') };
+    if (window.location.pathname === '/verify-email') return { type: 'verify', token: params.get('token') };
     const legacyReset = params.get('reset-password');
     if (legacyReset) return { type: 'reset', token: legacyReset };
     const verification = params.get('verify-email');
@@ -55,12 +55,9 @@ const EmailActionHandler: React.FC = () => {
   };
 
   const close = () => {
-    window.history.replaceState({}, '', '/');
-    if (completedMessage) {
-      showNotification({ type: 'success', title: 'Account updated', message: completedMessage, actionLabel: 'Continue' });
-    } else {
-      window.location.assign('/');
-    }
+    // This is a deliberate full navigation: it clears the action-route state
+    // and remounts the component-based marketplace at its canonical URL.
+    window.location.replace('/');
   };
 
   return (

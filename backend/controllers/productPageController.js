@@ -70,7 +70,7 @@ exports.serveProductPage = async (req, res, db) => {
     
     // IMPORTANT: Redirect to FRONTEND (port 3000 in dev, your domain in prod)
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const redirectUrl = `${frontendUrl}/?product=${productId}`;
+    const redirectUrl = `${frontendUrl}/products/${productId}`;
     
    // console.log('🔗 Will redirect to:', redirectUrl);
     

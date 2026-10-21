@@ -37,7 +37,10 @@ const apiCall = async (endpoint, options = {}) => {
         statusText: response.statusText,
         data
       });
-      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+      const apiError = new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+      apiError.code = data && typeof data === 'object' ? data.code : undefined;
+      apiError.status = response.status;
+      throw apiError;
     }
     return data;
   } catch (error) {

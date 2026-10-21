@@ -39,7 +39,7 @@ export const showConfirmation = (
 });
 
 const notificationPresentation = {
-  success: { Icon: CheckCircle2, eyebrow: 'Completed' },
+  success: { Icon: CheckCircle2, eyebrow: 'FYC Marketplace' },
   error: { Icon: XCircle, eyebrow: 'Something went wrong' },
   warning: { Icon: AlertTriangle, eyebrow: 'Attention needed' },
   info: { Icon: Info, eyebrow: 'Marketplace update' }
@@ -56,7 +56,7 @@ const ActiveNotificationModal: React.FC<{
   const isConfirmation = Boolean(notification.resolve);
 
   return (
-    <div className="premium-modal-layer" role="presentation" onMouseDown={event => {
+    <div className="premium-modal-layer app-notification-layer" role="presentation" onMouseDown={event => {
       if (event.target === event.currentTarget) close();
     }}>
       <div

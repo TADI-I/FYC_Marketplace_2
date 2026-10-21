@@ -24,6 +24,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
   const [error, setError] = useState('');
   const [emailActionLoading, setEmailActionLoading] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
 
   const sendPasswordReset = async () => {
     if (!loginData.email) {
@@ -68,6 +69,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
 
     setLoading(true);
     setError('');
+    setShowResendVerification(false);
 
     try {
       const response = await loginUser({
@@ -91,6 +93,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
       if (error && typeof error === 'object' && 'message' in error) {
         errorMessage = (error as { message: string }).message;
       }
+      setShowResendVerification(Boolean(
+        error && typeof error === 'object' && 'code' in error && (error as { code?: string }).code === 'EMAIL_NOT_VERIFIED'
+      ));
       console.error('❌ Login failed:', errorMessage);
       setError(errorMessage);
     } finally {
@@ -114,7 +119,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
           placeholder="Email Address"
           className="w-full p-3 border rounded mb-4"
           value={loginData.email}
-          onChange={e => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+          onChange={e => {
+            setLoginData(prev => ({ ...prev, email: e.target.value }));
+            setShowResendVerification(false);
+          }}
           autoFocus
           disabled={loading}
         />
@@ -127,10 +135,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
           onFocus={(e) => e.target.select()}
           disabled={loading}
         />}
-        {!recoveryMode && <div className="flex justify-between gap-3 -mt-1 mb-4 text-sm">
+        {!recoveryMode && <div className="flex -mt-1 mb-4 text-sm">
           <button type="button" className="text-blue-600 hover:underline" onClick={() => { setRecoveryMode(true); setError(''); }} disabled={loading || emailActionLoading}>Forgot password?</button>
-          <button type="button" className="text-blue-600 hover:underline" onClick={resendVerification} disabled={loading || emailActionLoading}>Resend verification</button>
         </div>}
+        {!recoveryMode && showResendVerification && (
+          <div className="mb-4 text-sm">
+            <button type="button" className="text-blue-600 hover:underline" onClick={resendVerification} disabled={loading || emailActionLoading}>
+              {emailActionLoading ? 'Sending verification email…' : 'Send a new verification link'}
+            </button>
+          </div>
+        )}
         <div className="flex gap-2">
           <button 
             onClick={recoveryMode ? sendPasswordReset : handleLogin}

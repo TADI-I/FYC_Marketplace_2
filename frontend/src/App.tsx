@@ -24,6 +24,7 @@ import logo from './assets/facicon.jpeg';
 import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
 import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
 import EmailActionHandler from './EmailActionHandler';
+import { AppView, pathForView, resolveAppRoute } from './navigation';
 
 import './App.css';
 import {
@@ -178,20 +179,62 @@ const App = () => {
     }
   };
 
-  const [currentView, setCurrentView] = useState('home');
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [route, setRoute] = useState(() => resolveAppRoute(window.location.pathname, window.location.search));
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCampus, setSelectedCampus] = useState('all');
-  const [chatWith, setChatWith] = useState<string | number | null>(null);
+  const currentView = route.view;
+  const showLogin = route.modal === 'login';
+  const showRegister = route.modal === 'register';
+  const chatWith = route.chatWith || null;
   const [_messages, setMessages] = useState<MessageMap>({});
   const [_newMessage, _setNewMessage] = useState('');
   const [users, _setUsers] = useState<User[]>([]);
   const [maximizedImage, setMaximizedImage] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  const navigate = useCallback((path: string, options: { replace?: boolean } = {}) => {
+    if (options.replace) window.history.replaceState({}, '', path);
+    else window.history.pushState({}, '', path);
+    setRoute(resolveAppRoute(window.location.pathname, window.location.search));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+
+  const setCurrentView = useCallback((view: AppView) => {
+    navigate(pathForView(view));
+  }, [navigate]);
+
+  useEffect(() => {
+    const handlePopState = () => setRoute(resolveAppRoute(window.location.pathname, window.location.search));
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const titles: Record<AppView, string> = {
+      home: 'FYC Marketplace',
+      'add-product': 'Create Listing | FYC Marketplace',
+      'my-products': 'Manage Products | FYC Marketplace',
+      'my-profile': 'Profile | FYC Marketplace',
+      'admin-reactivation': 'Admin Reactivation | FYC Marketplace',
+      about: 'About | FYC Marketplace',
+      'how-it-works': 'How It Works | FYC Marketplace',
+      faq: 'FAQ | FYC Marketplace',
+      contact: 'Contact | FYC Marketplace',
+      terms: 'Terms | FYC Marketplace',
+      privacy: 'Privacy | FYC Marketplace',
+      'not-found': 'Page Not Found | FYC Marketplace'
+    };
+    document.title = route.modal === 'login'
+      ? 'Login | FYC Marketplace'
+      : route.modal === 'register'
+        ? 'Register | FYC Marketplace'
+        : route.productId
+          ? 'Listing | FYC Marketplace'
+          : titles[route.view];
+  }, [route]);
 
   // All products fetched once — no pagination
   const [products, setProducts] = useState<Product[]>([]);
@@ -249,16 +292,17 @@ const App = () => {
     }
   }, [API_BASE]);
 
-  // Handle ?product= URL param
+  // Load direct product routes and upgrade legacy ?product= links in place.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const productId = params.get('product');
+    const productId = route.productId;
     if (productId && API_BASE) {
       setHighlightedProduct(null);
       fetchAndHighlightProduct(productId);
-      window.history.replaceState({}, '', '/');
+      if (window.location.pathname === '/') {
+        window.history.replaceState({}, '', `/products/${encodeURIComponent(productId)}`);
+      }
     }
-  }, [API_BASE, fetchAndHighlightProduct]);
+  }, [API_BASE, fetchAndHighlightProduct, route.productId]);
 
   // Scroll to highlighted product once rendered
   useEffect(() => {
@@ -341,7 +385,7 @@ const App = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, setCurrentView]);
 
   const handleClaimOffer = useCallback(async (offer: SellerOffer) => {
     setClaimingOfferId(offer.id);
@@ -375,13 +419,13 @@ const App = () => {
   const handleOfferSuccessClose = useCallback(() => {
     setClaimedOfferExpiry(null);
     setCurrentView('add-product');
-  }, []);
+  }, [setCurrentView]);
 
   const handleLogout = useCallback(() => {
     logoutUser();
     setCurrentUser(null);
     setCurrentView('home');
-  }, []);
+  }, [setCurrentView]);
 
   const refreshCurrentUser = useCallback(async () => {
     try {
@@ -421,8 +465,8 @@ const App = () => {
       if (token) localStorage.setItem('auth_token', token);
       localStorage.setItem('user_data', JSON.stringify(user));
     } catch (e) { console.warn('Failed to persist session', e); }
-    setShowLogin(false);
-  }, []);
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   const handleEditProduct = useCallback((updatedProduct: Product) => {
     setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
@@ -720,8 +764,8 @@ const App = () => {
               </div>
             ) : (
               <div className="header-actions header-actions-public space-x-2">
-                <button onClick={() => setShowLogin(true)} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base font-medium">Login</button>
-                <button onClick={() => setShowRegister(true)} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base font-medium">Register</button>
+                <button onClick={() => navigate('/login')} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base font-medium">Login</button>
+                <button onClick={() => navigate('/register')} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base font-medium">Register</button>
               </div>
             )}
           </div>
@@ -749,7 +793,7 @@ const App = () => {
         <SpeedInsights />
         <Suspense fallback={<LoadingFallback />}>
           {chatWith ? (
-            <ChatWindow currentUser={currentUser} chatWith={chatWith} users={users} onCloseChat={() => setChatWith(null)} onNewMessage={handleNewMessage} onLoadMessages={handleLoadMessages} />
+            <ChatWindow currentUser={currentUser} chatWith={chatWith} users={users} onCloseChat={() => navigate('/')} onNewMessage={handleNewMessage} onLoadMessages={handleLoadMessages} />
           ) : currentView === 'add-product' ? (
             currentUser?.type === 'seller' && currentUser?.subscribed ? (
               <AddProductForm currentUser={currentUser} onProductAdded={(newProduct) => { setProducts(prev => [newProduct, ...prev]); setCurrentView('my-products'); }} onCancel={() => setCurrentView('my-products')} />
@@ -763,8 +807,17 @@ const App = () => {
             <SellerProducts currentUser={currentUser} onEditProduct={handleEditProduct} onDeleteProduct={handleDeleteProduct} onBack={() => setCurrentView('home')} onAddProduct={() => setCurrentView('add-product')} />
           ) : currentView === 'my-profile' ? (
             <UserProfile currentUser={currentUser} onLogout={handleLogout} onBack={() => setCurrentView('home')} onUserUpdate={(updatedUser) => { setCurrentUser(updatedUser); localStorage.setItem('user_data', JSON.stringify(updatedUser)); }} />
-          ) : currentView === 'admin-reactivation' && currentUser?.type === 'admin' ? (
-            <AdminReactivation darkMode={darkMode} />
+          ) : currentView === 'admin-reactivation' ? (
+            currentUser?.type === 'admin' ? (
+              <AdminReactivation darkMode={darkMode} />
+            ) : (
+              <section className="empty-state text-center py-20">
+                <p className="eyebrow">Restricted</p>
+                <h1>Administrator access required</h1>
+                <p>This page is available only to authorised administrators.</p>
+                <button type="button" className="bg-blue-600 text-white px-6 py-3 rounded-lg" onClick={() => navigate('/', { replace: true })}>Return to marketplace</button>
+              </section>
+            )
           ) : currentView === 'about' ? (
             <AboutPage onBack={() => setCurrentView('home')} />
           ) : currentView === 'how-it-works' ? (
@@ -777,6 +830,13 @@ const App = () => {
             <TermsPage onBack={() => setCurrentView('home')} />
           ) : currentView === 'privacy' ? (
             <PrivacyPage onBack={() => setCurrentView('home')} />
+          ) : currentView === 'not-found' ? (
+            <section className="empty-state text-center py-20" aria-labelledby="not-found-title">
+              <p className="eyebrow">404</p>
+              <h1 id="not-found-title">Page not found</h1>
+              <p>The page you requested does not exist or may have moved.</p>
+              <button type="button" className="bg-blue-600 text-white px-6 py-3 rounded-lg" onClick={() => navigate('/', { replace: true })}>Return to marketplace</button>
+            </section>
           ) : (
             <>
               <div className="mobile-commerce-topbar" aria-label="Mobile marketplace controls">
@@ -896,13 +956,13 @@ const App = () => {
 
       <Suspense fallback={null}>
         {showLogin && (
-          <LoginForm onLoginSuccess={handleLoginSuccess} onShowRegister={() => { setShowLogin(false); setShowRegister(true); }} onClose={() => setShowLogin(false)} />
+          <LoginForm onLoginSuccess={handleLoginSuccess} onShowRegister={() => navigate('/register', { replace: true })} onClose={() => navigate('/', { replace: true })} />
         )}
         {showRegister && (
           <RegisterForm
-            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); setShowRegister(false); }}
-            onShowLogin={() => { setShowRegister(false); setShowLogin(true); }}
-            onClose={() => setShowRegister(false)}
+            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); navigate('/', { replace: true }); }}
+            onShowLogin={() => navigate('/login', { replace: true })}
+            onClose={() => navigate('/', { replace: true })}
           />
         )}
         {showUpgrade && <UpgradeModal />}

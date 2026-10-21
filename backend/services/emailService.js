@@ -37,7 +37,7 @@ async function sendEmail({ to, subject, html, text, replyTo }) {
 
 async function sendVerificationEmail(user, token) {
   const { frontendUrl } = getEmailConfiguration();
-  const url = `${frontendUrl}/?verify-email=${encodeURIComponent(token)}`;
+  const url = `${frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
   return sendEmail({
     to: user.email,
     subject: 'Verify your FYC Marketplace email address',
