@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, ArrowLeft, Plus, X, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Edit3, Image as ImageIcon, Loader2, PackageOpen, Plus, Trash2, TrendingUp, UploadCloud, X } from 'lucide-react';
 import { User, Product, getProductId, getImageUrl as getProductImageUrl } from './types';
 import ProductAnalytics from './ProductAnalytics';
 import { deleteProduct, getProductsBySeller } from './api';
@@ -72,6 +72,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
         setProducts(sortedProducts);
       } catch (err) {
         setError('Failed to load your products. Please try again.');
+        showNotification({ type: 'error', title: 'Products could not be loaded', message: 'Refresh the page to try again.' });
       } finally {
         setFetching(false);
       }
@@ -173,11 +174,6 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
       // Add new image if selected
       if (imageFile) {
         formData.append('image', imageFile);
-        console.log('📁 Adding new image to update:', {
-          name: imageFile.name,
-          type: imageFile.type,
-          size: imageFile.size
-        });
       }
 
       const token = localStorage.getItem('auth_token');
@@ -185,9 +181,6 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
         throw new Error('Authentication token not found. Please log in again.');
       }
 
-      console.log('📤 Sending update request for product:', productId);
-
-      // Use the correct endpoint without /api prefix (API_BASE already includes it)
       const response = await fetch(`${API_BASE}/api/products/${productId}`, {
         method: 'PUT',
         headers: {
@@ -198,29 +191,25 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
       });
 
       const data = await response.json();
-      console.log('📥 Update response:', data);
-      
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update product');
       }
 
       // Fetch the updated product to get complete data
-      const updatedProductResponse = await fetch(`${API_BASE}/products/${productId}`, {
+      const updatedProductResponse = await fetch(`${API_BASE}/api/products/${productId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
       const updatedProductData = await updatedProductResponse.json();
-      console.log('✅ Product updated successfully:', updatedProductData);
-
       const updatedProduct = {
         ...editingProduct,
         ...editFormData,
         price: parseFloat(editFormData.price),
         image: updatedProductData.product?.image || editingProduct.image,
         imageUrl: updatedProductData.product?.imageUrl || 
-                 (updatedProductData.product?.image?.id ? `${API_BASE}/images/${updatedProductData.product.image.id}` : null)
+                 (updatedProductData.product?.image?.id ? `${API_BASE}/api/images/${updatedProductData.product.image.id}` : null)
       };
 
       setProducts(prev => prev.map(p => 
@@ -229,11 +218,12 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
       
       onEditProduct(updatedProduct);
       handleCancelEdit();
+      showNotification({ type: 'success', title: 'Listing updated', message: `${updatedProduct.title} now shows your latest changes.` });
     } catch (error) {
       const errorMessage = error && typeof error === 'object' && 'message' in error
         ? (error as { message: string }).message
         : 'Failed to update product. Please try again.';
-      console.error('❌ Update failed:', errorMessage);
+      console.error('Update failed:', errorMessage);
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -265,6 +255,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
       setProducts(prev => prev.filter(p => getProductId(p) !== productId));
       const numericId = product.id || parseInt(productId) || 0;
       onDeleteProduct(numericId);
+      showNotification({ type: 'success', title: 'Listing deleted', message: `${product.title} was removed from the marketplace.` });
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? error.message 
@@ -443,328 +434,207 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
         }
       `}</style>
 
-      <div className="seller-products-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-        <div>
-          <button 
-            onClick={onBack}
-            className="seller-products-back"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="font-medium">Back to Home</span>
+      <header className="seller-products-heading">
+        <div className="seller-products-heading-copy">
+          <button type="button" onClick={onBack} className="seller-products-back">
+            <ArrowLeft aria-hidden="true" />
+            Marketplace
           </button>
           <p className="listing-eyebrow">Seller workspace</p>
-          <div className="flex items-center gap-3 mt-1">
-            <h1 className="text-2xl sm:text-3xl font-bold">Manage Products</h1>
-            <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs sm:text-sm">
-              {products.length} {products.length === 1 ? 'item' : 'items'}
-            </span>
+          <div className="seller-products-title-row">
+            <h1>Manage products</h1>
+            <span className="seller-products-count">{products.length} {products.length === 1 ? 'listing' : 'listings'}</span>
           </div>
+          <p>Keep your listings accurate, review buyer interest, and manage what is currently visible.</p>
         </div>
-        
-        <button 
-          onClick={onAddProduct}
-          disabled={loading}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed w-full sm:w-auto"
-        >
-          <Plus className="h-4 w-4" />
-          Add Product
+        <button type="button" onClick={onAddProduct} disabled={loading} className="seller-products-add">
+          <Plus aria-hidden="true" />
+          Add listing
         </button>
-      </div>
+      </header>
+
+      {error && !editingProduct && <div className="listing-banner listing-banner-error" role="alert">{error}</div>}
 
       {/* Edit Modal */}
       {editingProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
-              <h2 className="text-2xl font-bold">Edit Product</h2>
+        <div className="seller-modal-layer" role="presentation" onMouseDown={event => {
+          if (event.target === event.currentTarget && !loading) handleCancelEdit();
+        }}>
+          <section className="seller-edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-product-title" aria-describedby="edit-product-description">
+            <header className="seller-modal-header">
+              <div>
+                <p className="listing-eyebrow">Listing editor</p>
+                <h2 id="edit-product-title">Edit product</h2>
+                <p id="edit-product-description">Update the information buyers see in the marketplace.</p>
+              </div>
               <button
+                type="button"
                 onClick={handleCancelEdit}
                 disabled={loading}
-                className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                className="seller-modal-close"
+                aria-label="Close product editor"
               >
-                <X className="h-6 w-6" />
+                <X aria-hidden="true" />
               </button>
-            </div>
+            </header>
 
-            <div className="p-6">
+            <form className="seller-edit-form" onSubmit={event => { event.preventDefault(); handleUpdateProduct(); }} noValidate>
               {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <div className="listing-banner listing-banner-error" role="alert">
                   {error}
                 </div>
               )}
 
-              {/* Image Upload Section */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Image (Optional - will be stored in database)
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      disabled={loading}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      JPEG, PNG, WebP accepted. Max 5MB. Image will be stored securely in database.
-                    </p>
-                  </div>
-                  
+              <section className="seller-edit-section" aria-labelledby="edit-image-title">
+                <div className="seller-edit-section-heading">
+                  <div className="seller-edit-section-icon"><ImageIcon aria-hidden="true" /></div>
+                  <div><h3 id="edit-image-title">Listing image</h3><p>Choose a clear image that represents the item or service.</p></div>
+                </div>
+                <div className="seller-image-editor">
                   {imagePreview && (
-                    <div className="relative flex-shrink-0">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
-                        style={{
-                          width: '7rem',
-                          height: '7rem',
-                          objectFit: 'cover',
-                          borderRadius: '0.5rem',
-                          border: '1px solid #ccc'
-                        }}
-                      />
+                    <div className="seller-image-preview">
+                      <img src={imagePreview} alt="Current listing preview" />
                       <button
                         type="button"
                         onClick={handleRemoveImage}
                         disabled={loading}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        className="seller-image-remove"
+                        aria-label="Remove selected image"
                       >
-                        ×
+                        <X aria-hidden="true" />
                       </button>
                     </div>
                   )}
+                  {!imagePreview && <div className="seller-image-placeholder"><ImageIcon aria-hidden="true" /><span>No image selected</span></div>}
+                  <div className="seller-image-controls">
+                    <label className="seller-file-picker">
+                      <UploadCloud aria-hidden="true" />
+                      <span>{imagePreview ? 'Replace image' : 'Choose image'}</span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageChange} disabled={loading} />
+                    </label>
+                    <p>JPEG, PNG, WebP or GIF. Maximum file size 5 MB.</p>
+                  </div>
                 </div>
-              </div>
+              </section>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Product/Service Title"
-                  className="p-3 border rounded text-base"
-                  value={editFormData.title}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-                  disabled={loading}
-                />
-                <select 
-                  className="p-3 border rounded text-base" 
-                  value={editFormData.category}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
-                  disabled={loading}
-                >
-                  <option value="">Select Category</option>
-                  <option value="books">Books</option>
-                  <option value="electronics">Electronics</option>
-                  <option value="services">Services</option>
-                  <option value="clothing">Clothing</option>
-                  <option value="food">Food</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              
-              <textarea
-                placeholder="Detailed description, cell number, location, delivery options, etc."
-                className="w-full p-3 border rounded mb-4 text-base"
-                rows={4}
-                value={editFormData.description}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                disabled={loading}
-              />
-              
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <input
-                  type="number"
-                  placeholder="Price (R)"
-                  className="p-3 border rounded text-base"
-                  value={editFormData.price}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, price: e.target.value }))}
-                  min="0"
-                  step="0.01"
-                  disabled={loading}
-                />
-                <select 
-                  className="p-3 border rounded text-base" 
-                  value={editFormData.type}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, type: e.target.value }))}
-                  disabled={loading}
-                >
-                  <option value="product">Physical Product</option>
-                  <option value="service">Service</option>
-                </select>
-              </div>
-              
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleUpdateProduct}
-                  disabled={loading}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Product'
-                  )}
+              <section className="seller-edit-section" aria-labelledby="edit-details-title">
+                <div className="seller-edit-section-heading">
+                  <div className="seller-edit-section-number">02</div>
+                  <div><h3 id="edit-details-title">Listing details</h3><p>Use clear, specific information that is easy to scan.</p></div>
+                </div>
+                <div className="seller-edit-fields">
+                  <div className="listing-field seller-edit-wide">
+                    <label htmlFor="edit-product-name">Title <span>Required</span></label>
+                    <input id="edit-product-name" type="text" value={editFormData.title} onChange={event => setEditFormData(current => ({ ...current, title: event.target.value }))} disabled={loading} placeholder="e.g. Scientific calculator" />
+                  </div>
+                  <div className="listing-field">
+                    <label htmlFor="edit-product-category">Category <span>Required</span></label>
+                    <select id="edit-product-category" value={editFormData.category} onChange={event => setEditFormData(current => ({ ...current, category: event.target.value }))} disabled={loading}>
+                      <option value="">Choose a category</option><option value="books">Books</option><option value="electronics">Electronics</option><option value="services">Services</option><option value="clothing">Clothing</option><option value="food">Food</option><option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="listing-field">
+                    <label htmlFor="edit-product-type">Listing type <span>Required</span></label>
+                    <select id="edit-product-type" value={editFormData.type} onChange={event => setEditFormData(current => ({ ...current, type: event.target.value }))} disabled={loading}>
+                      <option value="product">Physical product</option><option value="service">Service</option>
+                    </select>
+                  </div>
+                  <div className="listing-field seller-edit-wide">
+                    <label htmlFor="edit-product-description">Description <span>Required</span></label>
+                    <textarea id="edit-product-description" rows={6} value={editFormData.description} onChange={event => setEditFormData(current => ({ ...current, description: event.target.value }))} disabled={loading} placeholder="Include condition, collection or delivery details, and anything the buyer should know." />
+                    <div className="listing-field-meta"><span>Clear details lead to better enquiries.</span><span>{editFormData.description.length} characters</span></div>
+                  </div>
+                  <div className="listing-field">
+                    <label htmlFor="edit-product-price">Price in rand <span>Required</span></label>
+                    <div className="listing-price-input"><span>R</span><input id="edit-product-price" type="number" value={editFormData.price} onChange={event => setEditFormData(current => ({ ...current, price: event.target.value }))} min="0.01" step="0.01" inputMode="decimal" disabled={loading} placeholder="0.00" /></div>
+                  </div>
+                </div>
+              </section>
+
+              <footer className="seller-modal-actions">
+                <button type="button" onClick={handleCancelEdit} disabled={loading} className="listing-secondary">Cancel</button>
+                <button type="submit" disabled={loading} className="listing-primary">
+                  {loading ? <><Loader2 className="listing-spinner" aria-hidden="true" /> Saving changes…</> : 'Save changes'}
                 </button>
-                <button 
-                  onClick={handleCancelEdit}
-                  disabled={loading}
-                  className="bg-gray-300 px-6 py-3 rounded hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+              </footer>
+            </form>
+          </section>
         </div>
       )}
 
       {/* Analytics Modal - NEW */}
       {viewingAnalytics && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
-              <h2 className="text-2xl font-bold">Product Analytics</h2>
+        <div className="seller-modal-layer" role="presentation" onMouseDown={event => {
+          if (event.target === event.currentTarget) setViewingAnalytics(null);
+        }}>
+          <section className="seller-analytics-modal" role="dialog" aria-modal="true" aria-labelledby="product-analytics-title">
+            <header className="seller-modal-header">
+              <div><p className="listing-eyebrow">Listing performance</p><h2 id="product-analytics-title">Product analytics</h2><p>See how buyers are engaging with this listing.</p></div>
               <button
+                type="button"
                 onClick={() => setViewingAnalytics(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="seller-modal-close"
+                aria-label="Close product analytics"
               >
-                <X className="h-6 w-6" />
+                <X aria-hidden="true" />
               </button>
-            </div>
+            </header>
 
-            <div className="p-6">
+            <div className="seller-analytics-body">
               <ProductAnalytics 
                 productId={viewingAnalytics}
                 productTitle={products.find(p => getProductId(p) === viewingAnalytics)?.title || ''}
               />
             </div>
-          </div>
+          </section>
         </div>
       )}
 
       {/* Products Grid */}
       {products.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-12 text-center">
-          <div className="text-gray-400 text-4xl sm:text-6xl mb-4">📦</div>
-          <h3 className="text-lg sm:text-xl font-bold text-gray-600 mb-2">No products yet</h3>
-          <p className="text-gray-500 mb-4 text-sm sm:text-base">Start by adding your first product listing!</p>
-          <button 
-            onClick={onAddProduct}
-            disabled={loading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed w-full sm:w-auto"
-          >
-            Add Your First Product
-          </button>
-        </div>
+        <section className="seller-products-empty">
+          <div className="seller-products-empty-icon"><PackageOpen aria-hidden="true" /></div>
+          <h2>No listings yet</h2>
+          <p>Create your first listing to make it visible to buyers.</p>
+          <button type="button" onClick={onAddProduct} disabled={loading} className="seller-products-add"><Plus aria-hidden="true" />Create first listing</button>
+        </section>
       ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="seller-products-grid">
           {products.map(product => {
             const imageUrl = getImageUrl(product);
             return (
-              <div key={getProductId(product)} className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 flex flex-col h-full">
-                <div className="flex-shrink-0 h-40 sm:h-48 overflow-hidden">
+              <article key={getProductId(product)} className="seller-product-card">
+                <button type="button" className="seller-product-media" onClick={() => imageUrl && setMaximizedImage(imageUrl)} disabled={!imageUrl} aria-label={imageUrl ? `View ${product.title} image` : undefined}>
                   {imageUrl ? (
                     <img 
                       src={imageUrl}
                       alt={product.title}
-                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
-                      onClick={() => setMaximizedImage(imageUrl)}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image';
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
+                    <span className="seller-product-image-empty"><ImageIcon aria-hidden="true" />No image</span>
                   )}
-                </div>
+                </button>
                 
-                <div className="p-3 sm:p-4 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start mb-2 gap-2">
-                    <h3 className="font-bold text-base sm:text-lg line-clamp-2 flex-1 min-h-[2.5rem]">
-                      {product.title}
-                    </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
-                      product.type === 'service' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {product.type}
-                    </span>
+                <div className="seller-product-body">
+                  <div className="seller-product-card-heading">
+                    <h2>{product.title}</h2>
+                    <span>{product.type === 'service' ? 'Service' : 'Product'}</span>
                   </div>
-                  
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">
-                    {product.description}
-                  </p>
-                  
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="font-bold text-blue-600 text-base">R{product.price}</span>
-                    <span className="text-xs text-gray-500 capitalize">{product.category}</span>
+                  <p className="seller-product-description">{product.description}</p>
+                  <div className="seller-product-meta">
+                    <strong>R{Number(product.price).toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</strong>
+                    <span>{product.category}</span>
                   </div>
-                  
-                  <div className="flex gap-2 mt-auto">
-                    {/* Analytics Button - NEW */}
-                    <button 
-                      onClick={() => setViewingAnalytics(getProductId(product) || null)}
-                      disabled={loading}
-                      className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white py-2 px-1 rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-sm"
-                      title="View Analytics"
-                    >
-                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Stats</span>
-                    </button>
-
-                    {/* Edit button */}
-                    <button 
-                      onClick={() => handleEditClick(product)}
-                      disabled={loading}
-                      className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white py-2 px-1 rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-sm"
-                    >
-                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Edit</span>
-                    </button>
-                    
-                    {/* Delete button */}
-                    <button
-                      onClick={() => handleDeleteClick(product)}
-                      disabled={loading}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.25rem',
-                        backgroundColor: loading ? '#f87171' : '#000000',
-                        color: 'white',
-                        padding: '0.5rem',
-                        borderRadius: '0.5rem',
-                        fontSize: '0.875rem',
-                        border: 'none',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        transition: 'background-color 0.3s ease',
-                        flex: 1
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!loading) {
-                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#b91c1c';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!loading) {
-                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000';
-                        }
-                      }}
-                    >
-                      <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
-                      <span>Delete</span>
-                    </button>
+                  <div className="seller-product-actions">
+                    <button type="button" onClick={() => setViewingAnalytics(getProductId(product) || null)} disabled={loading} className="seller-card-action"><TrendingUp aria-hidden="true" />Analytics</button>
+                    <button type="button" onClick={() => handleEditClick(product)} disabled={loading} className="seller-card-action seller-card-action-primary"><Edit3 aria-hidden="true" />Edit</button>
+                    <button type="button" onClick={() => handleDeleteClick(product)} disabled={loading} className="seller-card-delete" aria-label={`Delete ${product.title}`} title="Delete listing"><Trash2 aria-hidden="true" /></button>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
@@ -773,32 +643,25 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
       {/* Image Maximization Modal */}
       {maximizedImage && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4"
+          className="seller-image-lightbox"
           onClick={() => setMaximizedImage(null)}
-          style={{ cursor: 'pointer' }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Listing image preview"
         >
           <button
             onClick={(e) => {
               e.stopPropagation();
               setMaximizedImage(null);
             }}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white bg-red-600 hover:bg-red-700 rounded-full transition-all z-50 shadow-lg"
-            aria-label="Close"
-            style={{ cursor: 'pointer' }}
+            className="seller-lightbox-close"
+            aria-label="Close image preview"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X aria-hidden="true" />
           </button>
           <img
             src={maximizedImage}
-            alt="Maximized view"
-            className="object-contain"
-            style={{ 
-              maxWidth: '90vw', 
-              maxHeight: '90vh',
-              cursor: 'default'
-            }}
+            alt="Full-size listing"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

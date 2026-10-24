@@ -1,6 +1,6 @@
 // VerificationSection.tsx - Add to your components
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Upload, Shield } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Upload, Shield, Loader2 } from 'lucide-react';
 import { submitVerificationRequest, getVerificationStatus } from './api';
 import { showNotification } from './AppNotificationModal';
 import { ListSkeleton } from './LoadingSkeletons';
@@ -88,103 +88,76 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ userId, userT
 
   if (loading) {
     return (
-      <div className="apple-surface bg-white rounded-xl shadow-sm border p-6">
+      <section className="profile-panel profile-verification-panel">
         <ListSkeleton rows={2} />
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="apple-surface verification-section bg-white rounded-xl shadow-sm border p-6">
-      <div className="flex items-center space-x-2 mb-4">
-        <Shield className="h-5 w-5 text-blue-600" />
-        <h3 className="text-lg font-semibold text-gray-900">Seller Verification</h3>
+    <section className="profile-panel profile-verification-panel verification-section" aria-labelledby="seller-verification-title">
+      <div className="profile-panel-heading">
+        <div>
+          <p className="listing-eyebrow">Trust and safety</p>
+          <h2 id="seller-verification-title">Seller verification</h2>
+        </div>
+        <div className="profile-verification-shield"><Shield aria-hidden="true" /></div>
       </div>
 
       {status?.verified ? (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <CheckCircle className="h-6 w-6 text-blue-600" />
-            <div>
-              <p className="font-semibold text-blue-800">Verified Seller</p>
-              <p className="text-sm text-blue-600">
-                Your account was verified on {new Date(status.verifiedAt).toLocaleDateString()}
-              </p>
-            </div>
+        <div className="profile-verification-state is-verified">
+          <CheckCircle aria-hidden="true" />
+          <div>
+            <strong>Verified seller</strong>
+            <p>Verified on {new Date(status.verifiedAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
           </div>
         </div>
       ) : status?.hasPendingRequest ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <Clock className="h-6 w-6 text-yellow-600" />
-            <div>
-              <p className="font-semibold text-yellow-800">Verification Pending</p>
-              <p className="text-sm text-yellow-600">
-                Your verification request is being reviewed by our admin team.
-              </p>
-            </div>
+        <div className="profile-verification-state is-pending">
+          <Clock aria-hidden="true" />
+          <div>
+            <strong>Review in progress</strong>
+            <p>Your verification request is with the admin team.</p>
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800 mb-2">
-              <strong>Get verified!</strong> Upload a photo of yourself holding your ID to gain a verified seller badge.
-            </p>
-            <ul className="text-xs text-blue-700 space-y-1 ml-4 list-disc">
-              <li>Increases buyer trust</li>
-              <li>Your products appear first in search results</li>
-              <li>Stand out from unverified sellers</li>
-            </ul>
+        <div className="profile-verification-form">
+          <div className="profile-verification-intro">
+            <strong>Build buyer confidence</strong>
+            <p>Upload a clear photo of yourself holding your ID to request a verified seller badge.</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="flex items-center space-x-2">
-                <XCircle className="h-4 w-4 text-red-600" />
-                <span className="text-sm text-red-800">{error}</span>
-              </div>
+            <div className="profile-verification-error" role="alert">
+              <XCircle aria-hidden="true" />
+              <span>{error}</span>
             </div>
           )}
 
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload ID Photo
-            </label>
-            <p className="text-xs text-gray-500 mb-3">
-              Take a clear photo of yourself holding your ID card. Make sure your face and ID details are visible.
-            </p>
-            
+          <div className="profile-verification-upload-wrap">
             {preview ? (
-              <div className="relative">
-                <img 
-                  src={preview} 
-                  alt="ID preview" 
-                  className="w-full h-64 object-cover rounded-lg border"
-                />
+              <div className="profile-verification-preview">
+                <img src={preview} alt="Selected verification preview" />
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedFile(null);
                     setPreview(null);
                   }}
-                  className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                  aria-label="Remove verification photo"
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">PNG, JPG (MAX. 5MB)</p>
+              <label className="profile-verification-upload">
+                <div>
+                  <Upload aria-hidden="true" />
+                  <strong>Choose verification photo</strong>
+                  <span>JPEG or PNG · Maximum 5 MB</span>
                 </div>
                 <input
                   type="file"
-                  className="hidden"
                   accept="image/*"
                   onChange={handleFileSelect}
                 />
@@ -194,26 +167,17 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ userId, userT
 
           {selectedFile && (
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={uploading}
-              className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
+              className="profile-verification-submit"
             >
-              {uploading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Submitting...</span>
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4" />
-                  <span>Submit for Verification</span>
-                </>
-              )}
+              {uploading ? <><Loader2 className="listing-spinner" aria-hidden="true" />Submitting…</> : <><Shield aria-hidden="true" />Submit for verification</>}
             </button>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

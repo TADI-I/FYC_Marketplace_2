@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getSubscriptionStatus, updateUserProfile, upgradeUserToSeller, getCurrentUser } from './api';
-import { User as UserIC, ArrowLeft, Mail, Building, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { User as UserIC, ArrowLeft, Mail, MapPin, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle, Phone, CalendarDays, Store, Loader2 } from 'lucide-react';
 import VerificationSection from './VerificationSection';
 import type { User } from './types';
 import { showNotification } from './AppNotificationModal';
@@ -88,15 +88,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     
     if (shouldPoll && !isPolling) {
       setIsPolling(true);
-      console.log('🔄 Starting to poll for subscription updates...');
-      
       const pollInterval = setInterval(async () => {
         try {
           const freshUser = await fetchCurrentUser();
           if (freshUser) {
             // Check if status changed to active
             if (freshUser.subscribed && ['ACTIVE', 'TRIAL', 'active', 'trial'].includes(freshUser.subscriptionStatus || '')) {
-              console.log('✅ Subscription activated! Stopping poll.');
               setUser(freshUser);
               showNotification({ type: 'success', title: 'Subscription activated', message: 'You can now add products.' });
               clearInterval(pollInterval);
@@ -120,7 +117,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       setTimeout(() => {
         clearInterval(pollInterval);
         setIsPolling(false);
-        console.log('⏱️ Stopped polling after timeout');
       }, 300000); // 5 minutes
       
       return () => {
@@ -384,130 +380,110 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
   const subscriptionAlert = getSubscriptionAlert();
 
   return (
-    <div className="apple-page profile-page min-h-screen bg-gray-50 py-8">
+    <div className="apple-page profile-page">
       {/* Polling Indicator */}
       {isPolling && (
-        <div className="fixed top-20 right-4 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-lg z-50">
-          <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <span className="text-sm text-blue-800">Checking payment status...</span>
-          </div>
+        <div className="profile-payment-check" role="status">
+          <Loader2 aria-hidden="true" />
+          <span>Checking payment status…</span>
         </div>
       )}
 
       {editing && (
-        <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="profile-edit-title">
-          <div className="apple-modal-card bg-white rounded-xl shadow-2xl max-w-2xl w-full">
-            <div className="flex items-center justify-between mb-5">
+        <div className="seller-modal-layer" role="presentation" onMouseDown={event => {
+          if (event.target === event.currentTarget && !loading) handleEditToggle();
+        }}>
+          <section className="profile-editor-modal" role="dialog" aria-modal="true" aria-labelledby="profile-edit-title" aria-describedby="profile-edit-description">
+            <header className="seller-modal-header">
               <div>
-                <h2 id="profile-edit-title" className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-                <p className="text-sm text-gray-600">Update your account details in one focused step.</p>
+                <p className="listing-eyebrow">Account settings</p>
+                <h2 id="profile-edit-title">Edit profile</h2>
+                <p id="profile-edit-description">Keep your contact and marketplace information up to date.</p>
               </div>
               <button
                 type="button"
                 onClick={handleEditToggle}
-                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="seller-modal-close"
                 aria-label="Close profile editor"
               >
-                <X className="h-5 w-5" />
+                <X aria-hidden="true" />
               </button>
-            </div>
+            </header>
 
-            <form onSubmit={handleProfileUpdate} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
+            <form onSubmit={handleProfileUpdate} className="profile-edit-form">
+              <div className="profile-edit-fields">
+                <div className="listing-field">
+                  <label htmlFor="profile-name">Full name <span>Required</span></label>
                   <input
                     type="text"
                     id="profile-name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                     autoFocus
                   />
                 </div>
-                <div>
-                  <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
+                <div className="listing-field">
+                  <label htmlFor="profile-email">Email address <span>Required</span></label>
                   <input
                     type="email"
                     id="profile-email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                   {user?.pendingEmail && (
-                    <p className="text-xs text-blue-700 mt-1">
+                    <p className="profile-field-note">
                       Confirmation pending for {user.pendingEmail}. The link expires after 10 minutes.
                     </p>
                   )}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="profile-campus" className="block text-sm font-medium text-gray-700 mb-1">
-                    Location
-                  </label>
+                <div className="listing-field">
+                  <label htmlFor="profile-campus">Location <span>Required</span></label>
                   <select
                     id="profile-campus"
                     name="campus"
                     value={formData.campus}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">{campuses[0].name}</option>
-                    {campuses.map((campus) => (
+                    {campuses.slice(1).map((campus) => (
                       <option key={campus.id} value={campus.id}>
                         {campus.name}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="profile-whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
-                    WhatsApp Number
-                  </label>
+                <div className="listing-field">
+                  <label htmlFor="profile-whatsapp">WhatsApp number <span>Optional</span></label>
                   <input
                     type="tel"
                     id="profile-whatsapp"
                     name="whatsapp"
                     value={formData.whatsapp}
                     onChange={handleInputChange}
-                    placeholder="+27123456789"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. 27821234567"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Include country code, for example 27...</p>
+                  <p className="profile-field-note">Include the country code without spaces.</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <footer className="seller-modal-actions">
+                <button type="button" onClick={handleEditToggle} disabled={loading} className="listing-secondary">Cancel</button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="listing-primary"
                 >
-                  <Save className="h-4 w-4" />
-                  <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+                  {loading ? <><Loader2 className="listing-spinner" aria-hidden="true" />Saving changes…</> : <><Save aria-hidden="true" />Save changes</>}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleEditToggle}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+              </footer>
             </form>
-          </div>
+          </section>
         </div>
       )}
 
@@ -647,205 +623,83 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button 
-          onClick={onBack}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2 mb-6"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="font-medium">Back to Home</span>
+      <main className="profile-shell">
+        <button type="button" onClick={onBack} className="seller-products-back profile-back">
+          <ArrowLeft aria-hidden="true" /> Marketplace
         </button>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <UserIC className="h-12 w-12 text-black" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">User Profile</h1>
-                <p className="text-gray-600">Manage your account settings and preferences</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Subscription Alert */}
-        {subscriptionAlert && (
-          <div className={`${subscriptionAlert.bgColor} border ${subscriptionAlert.borderColor} rounded-lg p-4 mb-6`}>
-            <div className="flex items-start">
-              <subscriptionAlert.icon className={`h-5 w-5 ${subscriptionAlert.iconColor} mr-3 mt-0.5 flex-shrink-0`} />
-              <div className="flex-1">
-                <h3 className={`font-semibold ${subscriptionAlert.textColor} mb-1`}>
-                  {subscriptionAlert.title}
-                </h3>
-                <p className={`text-sm ${subscriptionAlert.textColor} mb-3`}>
-                  {subscriptionAlert.message}
-                </p>
-
-                {subscriptionAlert.type === 'error' && (
-                  <button
-                    onClick={handleRenewSubscription}
-                    disabled={loading || upgrading}
-                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {upgrading ? 'Checking seller options...' : subscriptionAlert.actionLabel}
-                  </button>
-                )}
-
-                {subscriptionAlert.type === 'warning' && (
-                  <button
-                    onClick={handleRenewSubscription}
-                    disabled={upgrading}
-                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {upgrading ? 'Processing...' : 'Renew Subscription'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {profileLoading && !user && <ProfileSkeleton />}
 
         {user && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
-                  <button 
-                    onClick={handleEditToggle}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                    <span>Edit Profile</span>
+          <>
+            <header className="profile-identity-card">
+              <div className="profile-avatar" aria-hidden="true">{user.name?.trim()?.charAt(0)?.toUpperCase() || <UserIC />}</div>
+              <div className="profile-identity-copy">
+                <p className="listing-eyebrow">Your account</p>
+                <h1>{user.name}</h1>
+                <p>{user.email}</p>
+                <div className="profile-identity-badges">
+                  <span><Store aria-hidden="true" />{user.type === 'seller' ? 'Seller account' : 'Buyer account'}</span>
+                  <span className={user.subscribed ? 'is-active' : ''}>{user.subscribed ? 'Seller access active' : 'Standard access'}</span>
+                </div>
+              </div>
+              <button type="button" onClick={handleEditToggle} className="profile-edit-button"><Edit3 aria-hidden="true" />Edit profile</button>
+            </header>
+
+            {subscriptionAlert && (
+              <section className={`profile-subscription-alert is-${subscriptionAlert.type}`} aria-label="Subscription status">
+                <div className="profile-alert-icon"><subscriptionAlert.icon aria-hidden="true" /></div>
+                <div>
+                  <h2>{subscriptionAlert.title}</h2>
+                  <p>{subscriptionAlert.message}</p>
+                </div>
+                {(subscriptionAlert.type === 'error' || subscriptionAlert.type === 'warning') && (
+                  <button type="button" onClick={handleRenewSubscription} disabled={loading || upgrading}>
+                    {upgrading ? 'Checking options…' : subscriptionAlert.type === 'warning' ? 'Renew subscription' : subscriptionAlert.actionLabel}
                   </button>
-                </div>
+                )}
+              </section>
+            )}
 
-                <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-3">
-                        <UserIC className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-600">Name</p>
-                          <p className="font-medium text-gray-900">{user.name}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Mail className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-600">Email</p>
-                          <p className="font-medium text-gray-900">{user.email}</p>
-                          {user.pendingEmail && (
-                            <p className="text-xs text-blue-700 mt-1">Pending confirmation: {user.pendingEmail}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-3">
-                        <Building className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-600">Campus</p>
-                          <p className="font-medium text-gray-900">{user.campus || 'Not specified'}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CreditCard className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-600">Account Type</p>
-                          <p className="font-medium text-gray-900 capitalize">{user.type}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-3">
-                        <Mail className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-600">WhatsApp</p>
-                          <p className="font-medium text-gray-900">{user.whatsapp || 'Not provided'}</p>
-                        </div>
-                      </div>
-                    </div>
+            <div className="profile-content-grid">
+              <section className="profile-panel profile-details-panel" aria-labelledby="personal-information-title">
+                <div className="profile-panel-heading">
+                  <div><p className="listing-eyebrow">Account details</p><h2 id="personal-information-title">Personal information</h2></div>
                 </div>
-              </div>
+                <div className="profile-detail-grid">
+                  <div className="profile-detail-item"><span><UserIC aria-hidden="true" /></span><div><small>Name</small><strong>{user.name}</strong></div></div>
+                  <div className="profile-detail-item"><span><Mail aria-hidden="true" /></span><div><small>Email</small><strong>{user.email}</strong>{user.pendingEmail && <em>Pending: {user.pendingEmail}</em>}</div></div>
+                  <div className="profile-detail-item"><span><MapPin aria-hidden="true" /></span><div><small>Location</small><strong>{campuses.find(campus => campus.id === user.campus)?.name || user.campus || 'Not specified'}</strong></div></div>
+                  <div className="profile-detail-item"><span><Phone aria-hidden="true" /></span><div><small>WhatsApp</small><strong>{user.whatsapp || 'Not provided'}</strong></div></div>
+                  <div className="profile-detail-item"><span><CreditCard aria-hidden="true" /></span><div><small>Account type</small><strong>{user.type.charAt(0).toUpperCase() + user.type.slice(1)}</strong></div></div>
+                </div>
+              </section>
+
+              <aside className="profile-side-column">
+                <section className="profile-panel profile-status-panel" aria-labelledby="account-status-title">
+                  <div className="profile-panel-heading"><div><p className="listing-eyebrow">Current plan</p><h2 id="account-status-title">Account status</h2></div></div>
+                  <dl className="profile-status-list">
+                    <div><dt>Subscription</dt><dd className={user.subscribed ? 'is-active' : ''}>{(user.subscriptionStatus || (user.subscribed ? 'ACTIVE' : 'NONE')).replace(/_/g, ' ')}</dd></div>
+                    <div><dt>Account role</dt><dd>{user.type.charAt(0).toUpperCase() + user.type.slice(1)}</dd></div>
+                    {user.subscriptionEndDate && <div><dt><CalendarDays aria-hidden="true" />{user.subscriptionSource === 'OFFER' ? 'Offer ends' : 'Renews or expires'}</dt><dd>{new Date(user.subscriptionEndDate).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</dd></div>}
+                  </dl>
+                </section>
+
+                {user.type === 'seller' && <VerificationSection userId={user._id || String(user.id)} userType={user.type} />}
+
+                {(user.type === 'customer' || user.type === 'buyer') && (
+                  <section className="profile-panel profile-seller-cta">
+                    <div className="profile-seller-cta-icon"><Zap aria-hidden="true" /></div>
+                    <h2>Start selling</h2>
+                    <p>Activate seller access and publish listings for R25 per month. Eligible offers appear separately.</p>
+                    <button type="button" onClick={handleUpgradeToSeller} disabled={loading || upgrading}>{upgrading ? 'Checking options…' : 'Become a seller'}</button>
+                  </section>
+                )}
+              </aside>
             </div>
-
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Status</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Subscription</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.subscribed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {(user.subscriptionStatus || (user.subscribed ? 'ACTIVE' : 'NONE')).replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">User Type</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.type === 'seller' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {user.type.charAt(0).toUpperCase() + user.type.slice(1)}
-                    </span>
-                  </div>
-                  {user.subscriptionEndDate && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">
-                        {user.subscriptionSource === 'OFFER' ? 'Free Offer Ends' : 'Subscription Expires'}
-                      </span>
-                      <span className="px-2 py-1 rounded-full text-xs font-medium">
-                        {new Date(user.subscriptionEndDate).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {user?.type === 'seller' && (
-                <div className="bg-white rounded-xl shadow-sm border p-6">
-                  <VerificationSection 
-                    userId={user._id || String(user.id)} 
-                    userType={user.type}
-                  />
-                </div>
-              )}
-
-              {(user.type === 'customer' || user.type === 'buyer') && (
-                <div className="bg-white rounded-xl shadow-sm border p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Become a Seller</h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Activate seller status immediately and start listing products. No admin approval is required.
-                  </p>
-                  <div className="space-y-2">
-                    <button 
-                      onClick={handleUpgradeToSeller}
-                      disabled={loading || upgrading}
-                      className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
-                    >
-                      <Zap className="h-4 w-4" />
-                      <span>{upgrading ? 'Checking seller options...' : 'Become a Seller — R25/month'}</span>
-                    </button>
-                    <p className="text-xs text-gray-600">
-                      Eligible free periods and discounts appear as claimable offers. Offers never start automatically.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          </>
         )}
-      </div>
+      </main>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 // ProductAnalytics.tsx - Component to show analytics for each product
 import React, { useState, useEffect } from 'react';
-import { Eye, MessageCircle, TrendingUp, Calendar } from 'lucide-react';
+import { Eye, MessageCircle, TrendingUp, Calendar, Monitor, Smartphone } from 'lucide-react';
 import { getProductAnalytics } from './api';
 import { DashboardSkeleton } from './LoadingSkeletons';
 
@@ -136,8 +136,9 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ productId, productT
                 <span className="text-gray-600">
                   {new Date(redirect.timestamp).toLocaleString()}
                 </span>
-                <span className="text-gray-400 truncate max-w-xs ml-2">
-                  {redirect.userAgent.includes('Mobile') ? '📱 Mobile' : '💻 Desktop'}
+                <span className="text-gray-400 truncate max-w-xs ml-2 flex items-center gap-1">
+                  {redirect.userAgent.includes('Mobile') ? <Smartphone className="h-3 w-3" aria-hidden="true" /> : <Monitor className="h-3 w-3" aria-hidden="true" />}
+                  {redirect.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
                 </span>
               </div>
             ))}
