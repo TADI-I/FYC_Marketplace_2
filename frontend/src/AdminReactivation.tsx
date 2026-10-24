@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { getReactivationRequests, processReactivationRequest, getVerificationRequests, processVerificationRequest } from './api';
+import React, { useCallback, useEffect, useState } from 'react';
+import { getAdminOverview, getReactivationRequests, processReactivationRequest, getVerificationRequests, processVerificationRequest } from './api';
 import AdminUsers from '../src/AdminUsers';
 import { CheckCircle, XCircle, Clock, Eye, MessageCircle } from 'lucide-react';
 import { showNotification } from './AppNotificationModal';
+import { DashboardSkeleton, ListSkeleton } from './LoadingSkeletons';
 
 type RequestItem = any;
 type TabKey = 'all' | 'pending' | 'approved' | 'rejected';
@@ -64,6 +65,20 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
   const [verificationNote, setVerificationNote] = useState<string>('');
   const [reactivationVisibleCount, setReactivationVisibleCount] = useState(ADMIN_PAGE_SIZE);
   const [verificationVisibleCount, setVerificationVisibleCount] = useState(ADMIN_PAGE_SIZE);
+  const [overview, setOverview] = useState<Record<string, number> | null>(null);
+
+  const loadOverview = useCallback(() => {
+    getAdminOverview()
+      .then(setOverview)
+      .catch(error => {
+        setOverview({});
+        showNotification({ type: 'error', title: 'Overview unavailable', message: error.message || 'Could not load dashboard totals.' });
+      });
+  }, []);
+
+  useEffect(() => {
+    loadOverview();
+  }, [loadOverview]);
 
   // Build proper image URL with API_BASE
   const buildImageUrl = (imageUrl: string): string => {
@@ -82,7 +97,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
     return fullUrl;
   };
 
-  const loadReactivation = async () => {
+  const loadReactivation = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getReactivationRequests();
@@ -94,9 +109,9 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadVerification = async () => {
+  const loadVerification = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getVerificationRequests(verificationFilter);
@@ -108,12 +123,12 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
     } finally {
       setLoading(false);
     }
-  };
+  }, [verificationFilter]);
 
   useEffect(() => { 
     if (mainTab === 'reactivation') loadReactivation();
     else if (mainTab === 'verification') loadVerification();
-  }, [mainTab, verificationFilter]);
+  }, [loadReactivation, loadVerification, mainTab]);
 
   useEffect(() => {
     setReactivationVisibleCount(ADMIN_PAGE_SIZE);
@@ -178,6 +193,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       await loadVerification();
       setVerificationProcessingId(null);
       setVerificationNote('');
+      showNotification({ type: 'success', title: `Verification ${action}d`, message: `${userName}'s verification status is now updated.` });
       
     } catch (err: any) {
       showNotification({ type: 'error', title: 'Verification update failed', message: err.message || `Failed to ${action} verification.` });
@@ -233,10 +249,6 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
     );
   };
 
-  if (loading && (mainTab === 'reactivation' ? requests.length === 0 : verificationRequests.length === 0)) {
-    return <div>Loading...</div>;
-  }
-
   const filtered = requests.filter(r => tab === 'all' ? true : r.status === tab);
   const visibleReactivationRequests = filtered.slice(0, reactivationVisibleCount);
   const hasMoreReactivationRequests = reactivationVisibleCount < filtered.length;
@@ -246,6 +258,19 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
   return (
     <div className="apple-page admin-page p-4">
       <h2 className="text-xl font-bold mb-4">Admin Panel</h2>
+
+      {!overview ? <DashboardSkeleton /> : (
+        <section className="admin-overview" aria-label="Marketplace overview">
+          {[
+            ['Users', overview.users],
+            ['Sellers', overview.sellers],
+            ['Active sellers', overview.activeSellers],
+            ['Live listings', overview.products],
+            ['Pending checks', overview.pendingVerifications],
+            ['Suspended', overview.suspendedUsers]
+          ].map(([label, value]) => <div className="admin-overview-card" key={String(label)}><span>{label}</span><strong>{value ?? '—'}</strong></div>)}
+        </section>
+      )}
 
       {/* Main Tabs */}
       <div className="flex gap-2 mb-6">
@@ -294,10 +319,11 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       </div>
 
       {/* Users Tab */}
-      {mainTab === 'users' && <AdminUsers />}
+      {mainTab === 'users' && <AdminUsers onUsersChanged={loadOverview} />}
 
       {/* Reactivation Requests Tab */}
       {mainTab === 'reactivation' && (
+        loading && requests.length === 0 ? <ListSkeleton rows={5} /> :
         <div>
           <h3 className="text-lg font-semibold mb-3">Reactivation Requests</h3>
           
@@ -561,6 +587,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
 
       {/* Verification Requests Tab */}
       {mainTab === 'verification' && (
+        loading && verificationRequests.length === 0 ? <ListSkeleton rows={5} /> :
         <div>
           <h3 className="text-lg font-semibold mb-3">Seller Verification Requests</h3>
 

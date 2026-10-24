@@ -1,5 +1,10 @@
 // controllers/productController.js - Updated with whatsappRedirects support
 const { ObjectId } = require('mongodb');
+const {
+  isValidCoordinates,
+  rankNearbyProducts,
+  recognizeCampus
+} = require('../services/campusLocationService');
 
 const isValidCategory = (category) => {
   const validCategories = [
@@ -8,69 +13,76 @@ const isValidCategory = (category) => {
   return validCategories.includes(category);
 };
 
-// Get all products - no pagination, client handles lazy rendering
+const escapeRegex = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const buildFilter = ({ category, campus, search }) => {
+  const filter = { status: 'active' };
+  if (category && category !== 'all') filter.category = category;
+  if (campus && campus !== 'all') filter.sellerCampus = campus;
+  if (search) {
+    const safeSearch = escapeRegex(String(search).trim().slice(0, 100));
+    filter.$or = [
+      { title: { $regex: safeSearch, $options: 'i' } },
+      { description: { $regex: safeSearch, $options: 'i' } }
+    ];
+  }
+  return filter;
+};
+
+const buildEligibleProductPipeline = filter => {
+  const now = new Date();
+  return [
+    { $match: filter },
+    { $lookup: { from: 'users', localField: 'sellerId', foreignField: '_id', as: 'seller' } },
+    { $unwind: '$seller' },
+    {
+      $match: {
+        'seller.subscribed': true,
+        'seller.accountStatus': { $ne: 'suspended' },
+        $or: [
+          { 'seller.subscriptionEndDate': { $exists: false } },
+          { 'seller.subscriptionEndDate': { $gte: now } }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'campuses',
+        localField: 'seller.campus',
+        foreignField: 'id',
+        as: 'campus'
+      }
+    },
+    { $unwind: { path: '$campus', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        sellerWhatsApp: '$seller.whatsapp',
+        sellerVerified: { $ifNull: ['$seller.verified', false] },
+        sellerName: '$seller.name',
+        sellerCampus: '$seller.campus',
+        whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
+      }
+    }
+  ];
+};
+
+const sanitizeNearbyProduct = product => {
+  const { seller, campus, pickupLocation, ...publicProduct } = product;
+  return {
+    ...publicProduct,
+    distanceMeters: product.distanceMeters === null ? null : Math.round(product.distanceMeters / 10) * 10
+  };
+};
+
+// Existing feed behaviour when location discovery is disabled.
 exports.getProducts = async (req, res, db) => {
   try {
-    console.log('📦 Getting products with filters:', req.query);
-    
     const { category, campus, search } = req.query;
-    
-    // Build filter query
-    let filter = { status: 'active' };
-    
-    if (category && category !== 'all') {
-      filter.category = category;
-    }
-    
-    if (campus && campus !== 'all') {
-      filter.sellerCampus = campus;
-    }
-    
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    console.log('🔍 Filter:', filter);
-
-    const now = new Date();
-
+    const filter = buildFilter({ category, campus, search });
     const pipeline = [
-      { $match: filter },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'sellerId',
-          foreignField: '_id',
-          as: 'seller'
-        }
-      },
-      { $unwind: '$seller' },
-      // Seller must be subscribed and subscription not expired
-      {
-        $match: {
-          'seller.subscribed': true,
-          $or: [
-            { 'seller.subscriptionEndDate': { $exists: false } },
-            { 'seller.subscriptionEndDate': { $gte: now } }
-          ]
-        }
-      },
-      // Add seller fields dynamically
-      {
-        $addFields: {
-          sellerWhatsApp: '$seller.whatsapp',
-          sellerVerified: { $ifNull: ['$seller.verified', false] },
-          sellerName: '$seller.name',
-          sellerCampus: '$seller.campus',
-          whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
-        }
-      },
-      { $project: { seller: 0 } },
-      // Verified sellers first, then alphabetically
-      { $sort: { sellerVerified: -1, title: 1 } }
+      ...buildEligibleProductPipeline(filter),
+      { $project: { seller: 0, campus: 0, pickupLocation: 0 } },
+      { $sort: { sellerVerified: -1, title: 1, _id: 1 } }
     ];
 
     const products = await db.collection('products').aggregate(pipeline).toArray();
@@ -89,6 +101,59 @@ exports.getProducts = async (req, res, db) => {
       error: 'Failed to retrieve products: ' + error.message,
       success: false
     });
+  }
+};
+
+// Location is sent in a POST body so precise coordinates do not appear in URLs.
+exports.getNearbyProducts = async (req, res, db) => {
+  try {
+    const latitude = typeof req.body?.latitude === 'number' ? req.body.latitude : NaN;
+    const longitude = typeof req.body?.longitude === 'number' ? req.body.longitude : NaN;
+    const accuracy = typeof req.body?.accuracy === 'number' ? req.body.accuracy : NaN;
+    const page = Math.max(1, Math.min(100000, Number.parseInt(req.body?.page, 10) || 1));
+    const limit = Math.max(1, Math.min(100, Number.parseInt(req.body?.limit, 10) || 24));
+    const allowedRadii = new Set([0.1, 0.5, 1, 5, 10]);
+    const radiusKm = req.body?.radiusKm === null || req.body?.radiusKm === 'all'
+      ? null
+      : Number(req.body?.radiusKm ?? 1);
+
+    if (!isValidCoordinates(latitude, longitude)) {
+      return res.status(400).json({ success: false, error: 'Valid latitude and longitude are required.' });
+    }
+    if (radiusKm !== null && !allowedRadii.has(radiusKm)) {
+      return res.status(400).json({ success: false, error: 'Unsupported search radius.' });
+    }
+
+    const filter = buildFilter(req.body?.filters || {});
+    const products = await db.collection('products')
+      .aggregate(buildEligibleProductPipeline(filter))
+      .toArray();
+    const ranked = rankNearbyProducts(products, { latitude, longitude }, radiusKm);
+    const offset = (page - 1) * limit;
+    const campuses = await db.collection('campuses').find({}).toArray();
+    const detected = recognizeCampus(campuses, {
+      latitude,
+      longitude,
+      accuracy: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : Infinity
+    });
+
+    return res.set('Cache-Control', 'no-store').json({
+      success: true,
+      products: ranked.slice(offset, offset + limit).map(sanitizeNearbyProduct),
+      total: ranked.length,
+      page,
+      limit,
+      hasMore: offset + limit < ranked.length,
+      radiusKm,
+      detectedCampus: detected ? {
+        id: detected.campus.id,
+        name: detected.campus.name,
+        distanceMeters: Math.round(detected.distanceMeters)
+      } : null
+    });
+  } catch (error) {
+    console.error('Nearby product lookup failed:', error.message);
+    return res.status(500).json({ success: false, error: 'Failed to retrieve nearby products.' });
   }
 };
 
@@ -119,6 +184,7 @@ exports.getProductById = async (req, res, db) => {
       {
         $match: {
           'seller.subscribed': true,
+          'seller.accountStatus': { $ne: 'suspended' },
           $or: [
             { 'seller.subscriptionEndDate': { $exists: false } },
             { 'seller.subscriptionEndDate': { $gte: new Date() } }
@@ -134,7 +200,7 @@ exports.getProductById = async (req, res, db) => {
           whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
         }
       },
-      { $project: { seller: 0 } }
+      { $project: { seller: 0, pickupLocation: 0 } }
     ];
 
     const results = await db.collection('products').aggregate(pipeline).toArray();
@@ -178,11 +244,14 @@ exports.getProductsBySeller = async (req, res, db) => {
 
     const seller = await db.collection('users').findOne(
       { _id: new ObjectId(sellerId) },
-      { projection: { subscribed: 1, subscriptionEndDate: 1, verified: 1, whatsapp: 1, name: 1, campus: 1 } }
+      { projection: { subscribed: 1, subscriptionEndDate: 1, verified: 1, whatsapp: 1, name: 1, campus: 1, accountStatus: 1 } }
     );
     
     if (!seller) {
       return res.status(404).json({ error: 'Seller not found', success: false });
+    }
+    if (seller.accountStatus === 'suspended') {
+      return res.status(404).json({ error: 'Seller account not active', success: false });
     }
     
     const hasActiveSubscription = seller.subscribed && (!seller.subscriptionEndDate || new Date() <= new Date(seller.subscriptionEndDate));
@@ -198,14 +267,17 @@ exports.getProductsBySeller = async (req, res, db) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    const enhancedProducts = products.map(product => ({
-      ...product,
-      sellerWhatsApp: seller.whatsapp || null,
-      sellerVerified: seller.verified || false,
-      sellerName: seller.name,
-      sellerCampus: seller.campus,
-      whatsappRedirects: product.whatsappRedirects || 0
-    }));
+    const enhancedProducts = products.map(product => {
+      const { pickupLocation, ...publicProduct } = product;
+      return {
+        ...publicProduct,
+        sellerWhatsApp: seller.whatsapp || null,
+        sellerVerified: seller.verified || false,
+        sellerName: seller.name,
+        sellerCampus: seller.campus,
+        whatsappRedirects: product.whatsappRedirects || 0
+      };
+    });
 
     console.log(`✅ Found ${enhancedProducts.length} products for seller ${sellerId}`);
     

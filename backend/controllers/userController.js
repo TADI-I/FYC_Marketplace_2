@@ -28,7 +28,8 @@ function publicUser(user) {
     pendingEmail: user.pendingEmail || null,
     pendingEmailExpiresAt: user.pendingEmailExpiresAt || null,
     createdAt: user.createdAt,
-    updatedAt: user.updatedAt
+    updatedAt: user.updatedAt,
+    accountStatus: user.accountStatus || 'active'
   };
 }
 
@@ -459,7 +460,14 @@ exports.getAllUsers = async (req, res, db) => {
 
     const users = await db.collection('users')
       .find(filter)
-      .project({ password: 0 }) // Don't send passwords
+      .project({
+        password: 0,
+        passwordResetTokenHash: 0,
+        passwordResetExpiresAt: 0,
+        emailVerificationTokenHash: 0,
+        emailVerificationExpiresAt: 0,
+        pendingEmailTokenHash: 0
+      })
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -476,5 +484,79 @@ exports.getAllUsers = async (req, res, db) => {
       error: 'Failed to retrieve users',
       success: false
     });
+  }
+};
+
+exports.getAdminOverview = async (_req, res, db) => {
+  try {
+    const now = new Date();
+    const [users, sellers, activeSellers, products, pendingVerifications, suspendedUsers] = await Promise.all([
+      db.collection('users').countDocuments({}),
+      db.collection('users').countDocuments({ type: 'seller' }),
+      db.collection('users').countDocuments({ type: 'seller', subscribed: true, accountStatus: { $ne: 'suspended' }, $or: [
+        { subscriptionEndDate: { $exists: false } },
+        { subscriptionEndDate: { $gte: now } }
+      ] }),
+      db.collection('products').countDocuments({ status: 'active' }),
+      db.collection('verificationRequests').countDocuments({ status: 'pending' }),
+      db.collection('users').countDocuments({ accountStatus: 'suspended' })
+    ]);
+    return res.json({ success: true, overview: { users, sellers, activeSellers, products, pendingVerifications, suspendedUsers } });
+  } catch (error) {
+    console.error('Admin overview failed:', error.message);
+    return res.status(500).json({ success: false, error: 'Failed to load the admin overview.' });
+  }
+};
+
+exports.adminUpdateUser = async (req, res, db) => {
+  try {
+    const targetId = req.params.id;
+    const target = await db.collection('users').findOne({ _id: new ObjectId(targetId) });
+    if (!target) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const update = { updatedAt: new Date() };
+    if (typeof req.body.name === 'string' && req.body.name.trim()) update.name = req.body.name.trim();
+    if (typeof req.body.email === 'string') {
+      const email = req.body.email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, error: 'Enter a valid email address.' });
+      const duplicate = await db.collection('users').findOne({ email, _id: { $ne: target._id } });
+      if (duplicate) return res.status(409).json({ success: false, error: 'That email address is already in use.' });
+      update.email = email;
+    }
+    if (typeof req.body.campus === 'string' && req.body.campus) update.campus = req.body.campus;
+    if (req.body.whatsapp === null || typeof req.body.whatsapp === 'string') update.whatsapp = req.body.whatsapp ? req.body.whatsapp.replace(/\D/g, '') : null;
+    if (typeof req.body.verified === 'boolean') {
+      update.verified = req.body.verified;
+      update.verifiedAt = req.body.verified ? new Date() : null;
+    }
+    if (['buyer', 'seller'].includes(req.body.type) && target.type !== 'admin') {
+      update.type = req.body.type;
+      if (req.body.type === 'buyer') {
+        update.subscribed = false;
+        update.subscriptionStatus = SUBSCRIPTION_STATUS.NONE;
+      }
+    }
+    if (['active', 'suspended'].includes(req.body.accountStatus)) {
+      if (String(target._id) === String(req.user.id) && req.body.accountStatus === 'suspended') {
+        return res.status(400).json({ success: false, error: 'You cannot suspend your own administrator account.' });
+      }
+      update.accountStatus = req.body.accountStatus;
+      update.suspendedAt = req.body.accountStatus === 'suspended' ? new Date() : null;
+      update.suspendedBy = req.body.accountStatus === 'suspended' ? new ObjectId(req.user.id) : null;
+    }
+
+    await db.collection('users').updateOne({ _id: target._id }, { $set: update });
+    const user = await db.collection('users').findOne({ _id: target._id }, { projection: {
+      password: 0,
+      passwordResetTokenHash: 0,
+      passwordResetExpiresAt: 0,
+      emailVerificationTokenHash: 0,
+      emailVerificationExpiresAt: 0,
+      pendingEmailTokenHash: 0
+    } });
+    return res.json({ success: true, user });
+  } catch (error) {
+    console.error('Admin user update failed:', error.message);
+    return res.status(500).json({ success: false, error: 'Failed to update the user.' });
   }
 };

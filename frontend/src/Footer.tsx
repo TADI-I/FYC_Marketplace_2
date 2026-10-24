@@ -2,6 +2,7 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import lbgMonogram from './lbg-monogram-cream-transparent.png';
 import type { AppView } from './navigation';
+import { supportWhatsAppUrl } from './siteConfig';
 
 interface FooterProps {
   onNavigate: (view: AppView) => void;
@@ -149,7 +150,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
                 <a 
-                  href="https://wa.me/27711126204?text=Hi%2C%20I%20need%20support%20with%20FYC%20Marketplace"
+                  href={supportWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

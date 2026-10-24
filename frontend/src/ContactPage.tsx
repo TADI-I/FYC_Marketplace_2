@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, MessageCircle, Mail, Clock, MapPin } from 'lucide-react';
 import { submitContactMessage } from './api';
 import { showNotification } from './AppNotificationModal';
+import { SITE_CONTACT, supportWhatsAppUrl } from './siteConfig';
 
 interface ContactPageProps {
   onBack: () => void;
@@ -86,7 +87,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               Get instant help via WhatsApp! Our support team responds within minutes during business hours.
             </p>
             <a
-              href="https://wa.me/27711126204?text=Hi%2C%20I%20need%20support%20with%20FYC%20Marketplace"
+              href={supportWhatsAppUrl()}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -108,7 +109,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               Chat on WhatsApp
             </a>
             <p style={{ fontSize: '0.875rem', color: '#3e403a', marginTop: '0.75rem' }}>
-              <strong>Phone:</strong> +27 71 112 6204
+              <strong>Phone:</strong> {SITE_CONTACT.supportPhoneDisplay}
             </p>
           </div>
 
@@ -129,7 +130,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               Prefer email? Send us a detailed message and we'll respond within 24 hours.
             </p>
             <a
-              href="mailto:support@firstyearcouncil.co.za"
+              href={`mailto:${SITE_CONTACT.supportEmail}`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -149,7 +150,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               Email Us
             </a>
             <p style={{ fontSize: '0.875rem', color: '#3e403a', marginTop: '0.75rem' }}>
-              <strong>Email:</strong> support@firstyearcouncil.co.za
+              <strong>Email:</strong> {SITE_CONTACT.supportEmail}
             </p>
           </div>
 
@@ -176,7 +177,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Location */}
+          {/* Company */}
           <div style={{ 
             backgroundColor: '#fbfaf6', 
             border: '1px solid rgba(16, 17, 15, .17)', 
@@ -187,14 +188,13 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               <div style={{ backgroundColor: '#10110f', borderRadius: '50%', padding: '0.75rem' }}>
                 <MapPin style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Location</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>{SITE_CONTACT.companyName}</h3>
             </div>
             <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-              We serve students across all TUT campuses in South Africa, including Pretoria Central, 
-              Soshanguve, Ga-Rankuwa, and more.
+              FYC Marketplace is supported by {SITE_CONTACT.companyName}. Visit our website for company information and other products.
             </p>
             <p style={{ fontSize: '0.875rem', color: '#3e403a', margin: 0 }}>
-              <strong>Headquarters:</strong> Pretoria, Gauteng, South Africa
+              <strong>Website:</strong>{' '}<a href={SITE_CONTACT.companyWebsite} target="_blank" rel="noopener noreferrer" style={{ color: '#10110f', textDecoration: 'underline' }}>{SITE_CONTACT.companyWebsite}</a>
             </p>
           </div>
         </div>

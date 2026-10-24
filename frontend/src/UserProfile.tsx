@@ -3,6 +3,9 @@ import { getSubscriptionStatus, updateUserProfile, upgradeUserToSeller, getCurre
 import { User as UserIC, ArrowLeft, Mail, Building, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import VerificationSection from './VerificationSection';
 import type { User } from './types';
+import { showNotification } from './AppNotificationModal';
+import { ProfileSkeleton } from './LoadingSkeletons';
+import { supportWhatsAppUrl } from './siteConfig';
 
 interface UserProfileProps {
   currentUser: User | null;
@@ -14,7 +17,6 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack, onUserUpdate }) => {
   const currentUserId = currentUser?._id || currentUser?.id;
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);  
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,9 +26,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     whatsapp: user?.whatsapp || ''
   });
   const [upgrading, setUpgrading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showSupportTooltip, setShowSupportTooltip] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // Show support tooltip after 30 seconds
   useEffect(() => {
@@ -45,13 +47,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
   useEffect(() => {
     // try to fetch fresh user from API (so latest whatsapp and other fields are present)
     const init = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setProfileLoading(false);
+        return;
+      }
       try {
         const fresh = await fetchCurrentUser();
         setUser(fresh || currentUser);
       } catch (err) {
         // fallback to prop if API call fails
         setUser(currentUser);
+      } finally {
+        setProfileLoading(false);
       }
     };
     init();
@@ -91,7 +98,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
             if (freshUser.subscribed && ['ACTIVE', 'TRIAL', 'active', 'trial'].includes(freshUser.subscriptionStatus || '')) {
               console.log('✅ Subscription activated! Stopping poll.');
               setUser(freshUser);
-              setSuccessMessage('Your subscription has been activated! You can now add products.');
+              showNotification({ type: 'success', title: 'Subscription activated', message: 'You can now add products.' });
               clearInterval(pollInterval);
               setIsPolling(false);
               
@@ -102,7 +109,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
               localStorage.setItem('user_data', JSON.stringify(freshUser));
               
               // Auto-hide success message after 5 seconds
-              setTimeout(() => setSuccessMessage(null), 5000);
             }
           }
         } catch (err) {
@@ -251,8 +257,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       });
     }
     setEditing(!editing);
-    setError('');
-    setSuccessMessage('');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -270,17 +274,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     const userId = currentUser._id;
     
     if (!userId) {
-      setError('User ID not found. Please log in again.');
+      showNotification({ type: 'error', title: 'Session unavailable', message: 'User ID not found. Please log in again.' });
       return;
     }
 
     if (!formData.email?.includes('@')) {
-      setError('Please enter a valid email address');
+      showNotification({ type: 'warning', title: 'Check your email', message: 'Please enter a valid email address.' });
       return;
     }
 
     if (!formData.name?.trim()) {
-      setError('Name is required');
+      showNotification({ type: 'warning', title: 'Name required', message: 'Please enter your name.' });
       return;
     }
 
@@ -289,13 +293,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     if (formData.whatsapp && formData.whatsapp.trim() !== '') {
       normalizedWhatsapp = String(formData.whatsapp).replace(/\D/g, '');
       if (normalizedWhatsapp.length < 7) {
-        setError('Please enter a valid WhatsApp number (include country code if possible)');
+        showNotification({ type: 'warning', title: 'Check your number', message: 'Enter a valid WhatsApp number, including the country code if possible.' });
         return;
       }
     }
 
     setLoading(true);
-    setError('');
 
     try {
       const result = await updateUserProfile(userId, {
@@ -315,11 +318,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       localStorage.setItem('user_data', JSON.stringify(updatedProfile));
       
       setEditing(false);
-      setSuccessMessage(result.message || 'Profile updated successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showNotification({ type: 'success', title: 'Profile updated', message: result.message || 'Your changes were saved successfully.' });
     } catch (error) {
       console.error('Update error details:', error);
-      setError(error instanceof Error ? error.message : 'Failed to update profile');
+      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      showNotification({ type: 'error', title: 'Profile update failed', message });
     } finally {
       setLoading(false);
     }
@@ -327,12 +330,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
   const handleUpgradeToSeller = async () => {
     if (!currentUser?._id) {
-      setError('User ID missing. Please log in again.');
+      showNotification({ type: 'error', title: 'Session unavailable', message: 'User ID missing. Please log in again.' });
       return;
     }
 
     setUpgrading(true);
-    setError('');
 
     try {
       const result = await upgradeUserToSeller(currentUser._id);
@@ -343,13 +345,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       if (!result.user) throw new Error('Seller activation response was incomplete.');
 
       setUser(result.user);
-      setSuccessMessage(result.claimRequired
-        ? 'You have an eligible seller offer. Claim it from the offer notification to start the free period.'
-        : 'Your seller account is already active.');
+      showNotification({
+        type: 'success',
+        title: result.claimRequired ? 'Seller offer available' : 'Seller account active',
+        message: result.claimRequired
+          ? 'Claim the offer from the notification to start the free period.'
+          : 'Your seller account is already active.'
+      });
       onUserUpdate?.(result.user);
       localStorage.setItem('user_data', JSON.stringify(result.user));
     } catch (err: any) {
-      setError(err.message || 'Upgrade failed');
+      showNotification({ type: 'error', title: 'Seller activation failed', message: err.message || 'Upgrade failed.' });
     } finally {
       setUpgrading(false);
     }
@@ -588,7 +594,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         )}
 
         <a
-          href="https://wa.me/27711126204?text=Hi%2C%20I%20need%20support%20with%20FYC%20Marketplace"
+          href={supportWhatsAppUrl()}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -701,29 +707,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <X className="h-5 w-5 text-red-600 mr-2" />
-              <span className="text-red-800">{error}</span>
-            </div>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <Save className="h-5 w-5 text-blue-600 mr-2" />
-              <span className="text-blue-800">{successMessage}</span>
-            </div>
-          </div>
-        )}
-
-        {loading && !user && (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        )}
+        {profileLoading && !user && <ProfileSkeleton />}
 
         {user && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Clock, Upload, Shield } from 'lucide-react';
 import { submitVerificationRequest, getVerificationStatus } from './api';
+import { showNotification } from './AppNotificationModal';
+import { ListSkeleton } from './LoadingSkeletons';
 
 interface VerificationSectionProps {
   userId: string;
@@ -15,7 +17,6 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ userId, userT
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (userType === 'seller') {
@@ -61,22 +62,23 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ userId, userT
 
   const handleSubmit = async () => {
     if (!selectedFile) {
-      setError('Please select an ID photo');
+      showNotification({ type: 'warning', title: 'Photo required', message: 'Please select an ID photo before submitting.' });
       return;
     }
 
     setUploading(true);
     setError(null);
-    setSuccess(null);
 
     try {
       await submitVerificationRequest(userId, selectedFile);
-      setSuccess('Verification request submitted! Admin will review your ID shortly.');
+      showNotification({ type: 'success', title: 'Verification submitted', message: 'Your ID is queued for administrator review.' });
       setSelectedFile(null);
       setPreview(null);
       await fetchStatus();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit verification request');
+      const message = err.message || 'Failed to submit verification request';
+      setError(message);
+      showNotification({ type: 'error', title: 'Verification not submitted', message });
     } finally {
       setUploading(false);
     }
@@ -87,10 +89,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ userId, userT
   if (loading) {
     return (
       <div className="apple-surface bg-white rounded-xl shadow-sm border p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
-        </div>
+        <ListSkeleton rows={2} />
       </div>
     );
   }
@@ -148,14 +147,6 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ userId, userT
             </div>
           )}
 
-          {success && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-800">{success}</span>
-              </div>
-            </div>
-          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

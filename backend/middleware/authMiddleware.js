@@ -33,22 +33,26 @@ exports.authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, jwtSecret);
+    let currentAccount = null;
     if (req.db && decoded?.id && ObjectId.isValid(decoded.id)) {
-      const account = await req.db.collection('users').findOne(
+      currentAccount = await req.db.collection('users').findOne(
         { _id: new ObjectId(decoded.id) },
-        { projection: { passwordChangedAt: 1, emailVerified: 1 } }
+        { projection: { passwordChangedAt: 1, emailVerified: 1, type: 1, accountStatus: 1 } }
       );
-      if (!account) {
+      if (!currentAccount) {
         return res.status(401).json({ error: 'Account not found', success: false });
       }
-      if (account.emailVerified === false) {
+      if (currentAccount.emailVerified === false) {
         return res.status(403).json({ error: 'Verify your email address before continuing', code: 'EMAIL_NOT_VERIFIED', success: false });
       }
-      if (account.passwordChangedAt && decoded.iat * 1000 < new Date(account.passwordChangedAt).getTime()) {
+      if (currentAccount.accountStatus === 'suspended') {
+        return res.status(403).json({ error: 'This account has been suspended. Contact support for assistance.', code: 'ACCOUNT_SUSPENDED', success: false });
+      }
+      if (currentAccount.passwordChangedAt && decoded.iat * 1000 < new Date(currentAccount.passwordChangedAt).getTime()) {
         return res.status(403).json({ error: 'Please sign in again after changing your password', code: 'SESSION_REVOKED', success: false });
       }
     }
-    req.user = decoded;
+    req.user = { ...decoded, ...(currentAccount ? { type: currentAccount.type } : {}) };
     return next();
   } catch (error) {
     return res.status(403).json({
@@ -208,6 +212,10 @@ exports.requireActiveSubscription = async (req, res, next, db) => {
         error: 'User not found',
         success: false
       });
+    }
+
+    if (user.accountStatus === 'suspended') {
+      return res.status(403).json({ error: 'This account is suspended', code: 'ACCOUNT_SUSPENDED', success: false });
     }
 
     if (user.type !== 'seller' || !user.subscribed) {

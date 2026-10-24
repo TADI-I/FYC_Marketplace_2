@@ -25,11 +25,13 @@ import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
 import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
 import EmailActionHandler from './EmailActionHandler';
 import { AppView, pathForView, resolveAppRoute } from './navigation';
+import LocationDiscovery, { BuyerLocation } from './LocationDiscovery';
 
 import './App.css';
 import {
   logoutUser,
   getProducts,
+  getNearbyProducts,
   getCurrentUser,
   upgradeUserToSeller,
   getEligibleSellerOffers,
@@ -184,6 +186,13 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCampus, setSelectedCampus] = useState('all');
+  const [buyerLocation, setBuyerLocation] = useState<BuyerLocation | null>(null);
+  const [detectedCampus, setDetectedCampus] = useState<{ id: string; name: string; distanceMeters: number } | null>(null);
+  const [suppressDetectedCampus, setSuppressDetectedCampus] = useState(false);
+  const [radiusKm, setRadiusKm] = useState<number | null>(1);
+  const [productPage, setProductPage] = useState(1);
+  const [productTotal, setProductTotal] = useState(0);
+  const [hasMoreProducts, setHasMoreProducts] = useState(false);
   const currentView = route.view;
   const showLogin = route.modal === 'login';
   const showRegister = route.modal === 'register';
@@ -236,7 +245,7 @@ const App = () => {
           : titles[route.view];
   }, [route]);
 
-  // All products fetched once — no pagination
+  // The standard feed remains a single response; nearby discovery is server-paginated.
   const [products, setProducts] = useState<Product[]>([]);
 
   const categories = useMemo(() => [
@@ -251,12 +260,12 @@ const App = () => {
 
   const campuses = useMemo(() => [
     { id: 'all', name: 'All Locations' },
-    { id: 'pretoria-main', name: '🔥 Pretoria Central' },
+    { id: 'pretoria-main', name: '🔥 Pretoria Campus' },
     { id: 'soshanguve-S', name: '🔥 Soshanguve South' },
     { id: 'soshanguve-N', name: 'Soshanguve North' },
     { id: 'ga-rankuwa', name: 'Ga-Rankuwa' },
-    { id: 'pretoria-west', name: 'Pretoria Arcadia' },
-    { id: 'arts', name: 'Arts' },
+    { id: 'pretoria-west', name: 'Arcadia Campus' },
+    { id: 'arts', name: 'Arts Campus' },
     { id: 'emalahleni', name: 'eMalahleni' },
     { id: 'mbombela', name: 'Mbombela' },
     { id: 'polokwane', name: 'Polokwane' }
@@ -274,6 +283,7 @@ const App = () => {
     setSearchTerm('');
     setSelectedCategory('all');
     setSelectedCampus('all');
+    setProductPage(1);
   }, []);
 
   // Fetch and highlight a specific shared product
@@ -325,28 +335,41 @@ const App = () => {
     }
   }, [highlightedProduct?.id, products.length]);
 
-  // Fetch ALL products in one shot — re-runs only when filters change
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      setProducts([]);
+      if (productPage === 1) setProducts([]);
 
-      const response = await getProducts({
+      const filters = {
         category: selectedCategory !== 'all' ? selectedCategory : '',
         campus: selectedCampus !== 'all' ? selectedCampus : '',
         search: searchTerm || ''
-      });
+      };
+      const response = buyerLocation
+        ? await getNearbyProducts({
+          ...buyerLocation,
+          radiusKm,
+          page: productPage,
+          limit: 24,
+          filters
+        })
+        : await getProducts(filters);
 
       const fetched = Array.isArray(response.products) ? response.products : [];
-      setProducts(fetched);
+      setProducts(current => productPage === 1 ? fetched : [...current, ...fetched]);
+      setProductTotal(Number(response.total ?? fetched.length));
+      setHasMoreProducts(Boolean(response.hasMore));
+      if (buyerLocation && !suppressDetectedCampus) setDetectedCampus(response.detectedCampus || null);
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch products');
+      const message = err.message || 'Failed to fetch products';
+      setError(message);
+      showNotification({ type: 'error', title: 'Marketplace could not refresh', message });
       console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedCampus, searchTerm]);
+  }, [buyerLocation, productPage, radiusKm, selectedCategory, selectedCampus, searchTerm, suppressDetectedCampus]);
 
   useEffect(() => {
     fetchProducts();
@@ -382,6 +405,7 @@ const App = () => {
         errorMessage = (error as { message: string }).message;
       }
       setError(errorMessage);
+      showNotification({ type: 'error', title: 'Seller activation failed', message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -563,6 +587,11 @@ const App = () => {
     const whatsappRedirects = (product as any).whatsappRedirects || 0;
     const productIdRaw = (product as any)._id || product.id;
     const cleanProductId = productIdRaw ? String(productIdRaw) : '';
+    const distanceLabel = product.distanceMeters == null
+      ? null
+      : product.distanceMeters < 1000
+        ? `${Math.max(10, Math.round(product.distanceMeters / 10) * 10)} m away`
+        : `${(product.distanceMeters / 1000).toFixed(1)} km away`;
 
     const handleShare = async () => {
       try {
@@ -654,6 +683,13 @@ const App = () => {
             <span className="product-price text-xl font-bold text-blue-600 ml-3 whitespace-nowrap">R{product.price}</span>
           </div>
           <p className={`product-description text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.description}</p>
+          {distanceLabel && (
+            <div className="product-distance" title={product.locationSource === 'registered-campus' ? 'Estimated from the seller’s registered campus' : 'Estimated from the listing pickup area'}>
+              <MapPin className="h-4 w-4" />
+              <strong>{distanceLabel}</strong>
+              {product.locationSource === 'registered-campus' && <span>campus estimate</span>}
+            </div>
+          )}
           <div className="mobile-product-perks" aria-hidden="true">
             <div className="mobile-perk-box">
               <span>Campus pickup</span>
@@ -864,6 +900,33 @@ const App = () => {
                 </div>
               )}
 
+              <LocationDiscovery
+                location={buyerLocation}
+                detectedCampus={detectedCampus}
+                radiusKm={radiusKm}
+                searching={_loading}
+                onLocation={location => {
+                  setBuyerLocation(location);
+                  setSuppressDetectedCampus(false);
+                  setProductPage(1);
+                }}
+                onDisable={() => {
+                  setBuyerLocation(null);
+                  setDetectedCampus(null);
+                  setSuppressDetectedCampus(false);
+                  setProductPage(1);
+                }}
+                onRadiusChange={radius => {
+                  setRadiusKm(radius);
+                  setProductPage(1);
+                }}
+                onCorrectCampus={() => {
+                  setDetectedCampus(null);
+                  setSuppressDetectedCampus(true);
+                  document.getElementById('campus-filter')?.focus();
+                }}
+              />
+
               <section className="storefront-shell">
                 <aside className={`filter-rail ${darkMode ? 'bg-gray-800' : 'bg-white'}`} aria-label="Marketplace filters">
                   <div className="filter-rail-header">
@@ -876,21 +939,21 @@ const App = () => {
 
                   <div className="filter-group">
                     <label htmlFor="category-filter">Category</label>
-                    <select id="category-filter" className={`filter-select px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                    <select id="category-filter" className={`filter-select px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setProductPage(1); }}>
                       {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                     </select>
                   </div>
 
                   <div className="filter-group">
                     <label htmlFor="campus-filter">Campus</label>
-                    <select id="campus-filter" className={`filter-select px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCampus} onChange={(e) => setSelectedCampus(e.target.value)}>
+                    <select id="campus-filter" className={`filter-select px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} value={selectedCampus} onChange={(e) => { setSelectedCampus(e.target.value); setDetectedCampus(null); setProductPage(1); }}>
                       {campuses.map(campus => <option key={campus.id} value={campus.id}>{campus.name}</option>)}
                     </select>
                   </div>
 
                   <div className="filter-summary">
-                    <span>{products.length}</span>
-                    <small>{products.length === 1 ? 'listing available' : 'listings available'}</small>
+                    <span>{productTotal}</span>
+                    <small>{productTotal === 1 ? 'listing available' : 'listings available'}</small>
                   </div>
 
                   <button type="button" className="clear-filters-button" onClick={clearFilters}>
@@ -909,11 +972,11 @@ const App = () => {
                             placeholder="Search products, services, sellers..."
                             className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => { setSearchTerm(e.target.value); setProductPage(1); }}
                           />
                         </div>
                         <div className={`product-count text-sm font-semibold px-4 py-2 rounded-lg border w-full sm:w-auto text-center ${darkMode ? 'bg-blue-900 text-blue-200 border-blue-700' : 'bg-blue-50 text-gray-700 border-blue-200'}`}>
-                          {products.length} {products.length === 1 ? 'product' : 'products'}
+                          {productTotal} {productTotal === 1 ? 'product' : 'products'}
                         </div>
                       </div>
                       <div className="active-filters" aria-label="Active filters">
@@ -929,18 +992,28 @@ const App = () => {
                       {Array.from({ length: 12 }).map((_, i) => <ProductSkeleton key={i} />)}
                     </div>
                   ) : products.length > 0 ? (
-                    <div className="product-grid grid grid-cols-2 gap-6">
-                      {products.map(product => (
-                        <LazyCard key={(product as any)._id || product.id} skeleton={<ProductSkeleton />}>
-                          <ProductCard product={product} />
-                        </LazyCard>
-                      ))}
-                    </div>
+                    <>
+                      <div className="product-grid grid grid-cols-2 gap-6">
+                        {products.map(product => (
+                          <LazyCard key={(product as any)._id || product.id} skeleton={<ProductSkeleton />}>
+                            <ProductCard product={product} />
+                          </LazyCard>
+                        ))}
+                      </div>
+                      {hasMoreProducts && (
+                        <button type="button" className="load-more-products" onClick={() => setProductPage(page => page + 1)}>
+                          Load more nearby products
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <div className="empty-state text-center py-20">
                       <ShoppingBag className={`h-20 w-20 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-                      <p className={`text-xl font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>No products found matching your search.</p>
-                      <p className={`mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your filters or search terms</p>
+                      <p className={`text-xl font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                        {buyerLocation && radiusKm !== null ? `No matching products within ${radiusKm < 1 ? radiusKm * 1000 + ' metres' : radiusKm + (radiusKm === 1 ? ' kilometre' : ' kilometres')}.` : 'No products found matching your search.'}
+                      </p>
+                      <p className={`mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your filters or expanding the distance.</p>
+                      {buyerLocation && radiusKm !== null && <button type="button" className="location-primary empty-expand" onClick={() => { setRadiusKm(null); setProductPage(1); }}>Show all distances</button>}
                     </div>
                   )}
                 </div>

@@ -221,6 +221,15 @@ export const getProducts = async (filters = {}) => {
   }
 };
 
+export const getNearbyProducts = async (request) => {
+  const response = await apiCall('/api/products/nearby', {
+    method: 'POST',
+    body: JSON.stringify(request)
+  });
+  if (Array.isArray(response.products)) response.products = response.products.map(addImageUrl);
+  return response;
+};
+
 export const getProduct = async (productId) => {
   try {   
     const response = await apiCall(`/api/products/${productId}`);
@@ -450,7 +459,7 @@ export const requestReactivation = async (userId, note = '') => {
 
 export const getReactivationRequests = async () => {
   const response = await apiCall('/api/admin/reactivation-requests');
-  return response.requests || [];
+  return response;
 };
 
 export const processReactivationRequest = async (requestId, action, adminNote = '', subscriptionType = 'monthly') => {
@@ -474,10 +483,15 @@ export const getAllUsers = async (type = 'all') => {
   }
 };
 
+export const getAdminOverview = async () => {
+  const response = await apiCall('/api/admin/overview');
+  return response.overview;
+};
+
 export const updateUser = async (userId, updateData) => {
   try {
-    const response = await apiCall(`/api/users/${userId}`, {
-      method: 'PUT',
+    const response = await apiCall(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
       body: JSON.stringify(updateData),
     });
     return response;

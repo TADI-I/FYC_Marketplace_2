@@ -27,6 +27,7 @@ exports.serveProductPage = async (req, res, db) => {
       {
         $match: {
           'seller.subscribed': true,
+          'seller.accountStatus': { $ne: 'suspended' },
           $or: [
             { 'seller.subscriptionEndDate': { $exists: false } },
             { 'seller.subscriptionEndDate': { $gte: new Date() } }

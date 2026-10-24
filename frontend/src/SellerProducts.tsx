@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, ArrowLeft, Plus, Loader, X, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Plus, X, TrendingUp } from 'lucide-react';
 import { User, Product, getProductId, getImageUrl as getProductImageUrl } from './types';
 import ProductAnalytics from './ProductAnalytics';
 import { deleteProduct, getProductsBySeller } from './api';
 import { showConfirmation, showNotification } from './AppNotificationModal';
+import { CardGridSkeleton } from './LoadingSkeletons';
+import { supportWhatsAppUrl } from './siteConfig';
 
 
 interface SellerProductsProps {
@@ -297,11 +299,8 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
 
   if (fetching) {
     return (
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <div className="flex items-center justify-center py-10 sm:py-20">
-          <Loader className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-blue-600" />
-          <span className="ml-3 text-base sm:text-lg">Loading your products...</span>
-        </div>
+      <div className="apple-page max-w-6xl mx-auto p-4 sm:p-6">
+        <CardGridSkeleton cards={6} />
       </div>
     );
   }
@@ -391,7 +390,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
         )}
 
         <a
-          href="https://wa.me/27711126204?text=Hi%2C%20I%20need%20support%20with%20FYC%20Marketplace"
+          href={supportWhatsAppUrl()}
           target="_blank"
           rel="noopener noreferrer"
           style={{

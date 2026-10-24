@@ -69,6 +69,9 @@ module.exports = (db) => {
 
   // Admin endpoints
   router.get('/admin/reactivation-requests', authenticateToken, requireAdmin, withDb(userController.getReactivationRequests));
+  router.get('/admin/overview', authenticateToken, requireAdmin, withDb(userController.getAdminOverview));
+  router.get('/admin/users', authenticateToken, requireAdmin, withDb(userController.getAllUsers));
+  router.patch('/admin/users/:id', authenticateToken, requireAdmin, validateObjectId('id'), withDb(userController.adminUpdateUser));
   router.post('/admin/reactivation-requests/:requestId/process', authenticateToken, requireAdmin, validateObjectId('requestId'), withDb(userController.processReactivationRequest));
 // Verification routes
  router.post(
@@ -111,6 +114,7 @@ module.exports = (db) => {
   );
   // Product routes
   router.get('/products', withDb(productController.getProducts));
+  router.post('/products/nearby', withDb(productController.getNearbyProducts));
   router.get('/products/:id', validateObjectId('id'), withDb(productController.getProductById));
   router.get('/products/seller/:sellerId', validateObjectId('sellerId'), withDb(productController.getProductsBySeller));
   router.post('/products', authenticateToken, withSubscriptionCheck, withDb(productController.createProduct));
@@ -122,7 +126,7 @@ module.exports = (db) => {
   router.post('/messages', authenticateToken, withDb(messageController.sendMessage));
 
   // Reference data routes
-  router.get('/campuses', referenceController.getCampuses);
+  router.get('/campuses', withDb(referenceController.getCampuses));
   router.get('/categories', referenceController.getCategories);
 
   return router;

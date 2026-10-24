@@ -200,6 +200,14 @@ exports.login = async (req, res, db) => {
       });
     }
 
+    if (user.accountStatus === 'suspended') {
+      return res.status(403).json({
+        error: 'This account has been suspended. Contact support for assistance.',
+        code: 'ACCOUNT_SUSPENDED',
+        success: false
+      });
+    }
+
     if (user.emailVerified === false) {
       return res.status(403).json({
         error: 'Verify your email address before signing in. You can request a new link below.',

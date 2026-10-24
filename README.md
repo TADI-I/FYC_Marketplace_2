@@ -1,10 +1,20 @@
-# FYC TUT Marketplace
+# FYC Marketplace
 
 Student marketplace with a React frontend and an Express/MongoDB backend.
 Students browse listings and arrange listing purchases directly with sellers.
 Standard seller access costs R25 per month through the standalone LBG Payment
 Service. Free periods and discounts are configurable offers: eligible users
 must explicitly claim an offer before its access period begins.
+
+## Product capabilities
+
+- Location-assisted discovery sorts eligible listings by distance without storing a buyer's live coordinates.
+- Campus recognition accounts for browser-reported accuracy instead of guessing from an imprecise reading.
+- Buyers can restrict nearby results to 100 m, 500 m, 1 km, 5 km, 10 km, or all available distances.
+- Administrators can review marketplace totals, process seller verification, edit user details and roles, manage verification badges, and suspend or restore accounts.
+- Shared skeleton layouts preserve the page shape while dashboards, profiles, listings, analytics, verification, and chats load.
+- Non-blocking application feedback uses accessible queued toasts; actions requiring a decision use an accessible confirmation dialog.
+- Public support and company details are supplied from one frontend configuration module and can be overridden at build time.
 
 ## Architecture
 
@@ -72,6 +82,11 @@ Confirm `frontend/.env` contains:
 ```text
 REACT_APP_API_BASE=http://localhost:5001
 REACT_APP_PAYMENT_SERVICE_URL=http://localhost:4100
+REACT_APP_SUPPORT_EMAIL=support@lbgsoftware.co.za
+REACT_APP_SUPPORT_PHONE_DISPLAY=+27 71 112 6204
+REACT_APP_SUPPORT_PHONE_DIGITS=27711126204
+REACT_APP_COMPANY_WEBSITE=https://www.lbgsoftware.co.za
+REACT_APP_MARKETPLACE_WEBSITE=https://marketplace.lbgsoftware.co.za
 ```
 
 Then start the frontend:
@@ -123,6 +138,137 @@ New accounts cannot sign in until the email address is verified. Existing accoun
 
 The frontend uses history-aware SPA routes for every page-level component, including `/about`, `/faq`, `/profile`, `/seller/products`, `/seller/products/new`, `/products/:id`, `/login`, and `/register`. Authentication actions use `/verify-email`, `/reset-password`, and `/confirm-email-change`. The production static host must rewrite all unmatched frontend paths to `index.html` so direct links and browser refreshes load the React application. API and backend `/p/:id` routes must remain excluded from that frontend rewrite. Returning from an authentication action performs a full navigation to `/` to clear action state.
 
+## Location-assisted discovery
+
+The browser asks for location only after the buyer chooses **Use My Location**. The
+reading contains latitude, longitude, and the browser's accuracy estimate. It is
+kept in React state, sent only in the body of a nearby-products request, and is
+not persisted by the Marketplace application. Buyers can disable discovery or
+continue browsing without granting permission.
+
+Nearby results are calculated with Haversine distance and sorted nearest first.
+Location resolution uses the first valid coordinate source in this order:
+
+1. listing pickup coordinates;
+2. seller pickup coordinates; and
+3. registered campus coordinates.
+
+Listings without usable coordinates sort last when the buyer selects all
+distances, and are excluded from bounded-radius searches. Normal seller-access,
+listing-status, search, category, and campus restrictions still apply before
+distance pagination.
+
+Campus coordinates and independently configurable recognition radii are stored
+in the `campuses` collection. A campus is recognized only when the full browser
+accuracy circle fits inside its recognition radius. Server startup idempotently
+creates or updates the campus points without overwriting a radius that an
+administrator has adjusted.
+
+To run the location migration independently:
+
+```bash
+cd backend
+npm run locations:backfill
+```
+
+Configure `MONGODB_URI` and, when necessary, `DB_NAME` before running the command.
+
+Nearby requests use `POST /api/products/nearby`, keeping buyer coordinates out
+of URLs and access logs. The accepted `radiusKm` values are `0.1`, `0.5`, `1`,
+`5`, `10`, and `"all"`. The response includes `distanceMeters`,
+`locationSource`, pagination metadata, and a recognized campus when the reading
+is sufficiently accurate. Raw pickup coordinates are not returned in product
+results, and nearby responses use `Cache-Control: no-store`.
+
+Example request:
+
+```json
+{
+  "latitude": -25.7315,
+  "longitude": 28.1612,
+  "accuracy": 20,
+  "radiusKm": 1,
+  "page": 1,
+  "limit": 20,
+  "filters": {
+    "search": "textbook",
+    "category": "Books"
+  }
+}
+```
+
+## Admin dashboard and account control
+
+All admin routes require a current JWT and the administrator role from the
+database. The role is re-read on each authenticated request, so a stale token
+cannot retain removed administrator privileges.
+
+The dashboard exposes these operational totals:
+
+- all users and sellers;
+- active sellers;
+- live listings;
+- pending seller-verification requests; and
+- suspended users.
+
+Administrators can edit a user's name, email address, campus, WhatsApp number,
+buyer/seller role, and verified-seller badge. They can also suspend or restore
+non-admin accounts. An administrator cannot suspend their own account.
+
+Suspension is enforced by the backend rather than only hidden in the interface:
+
+- new logins are rejected;
+- existing JWT sessions are rejected on their next authenticated request;
+- seller subscription checks reject the account; and
+- the seller's listings are excluded from public and nearby discovery.
+
+Relevant endpoints:
+
+```text
+GET   /api/admin/overview          Operational dashboard totals
+GET   /api/admin/users             User list, optionally filtered by type
+PATCH /api/admin/users/:id         Admin-controlled account update
+GET   /api/admin/reactivation-requests
+POST  /api/admin/reactivation-requests/:requestId/process
+GET   /api/verification/requests
+POST  /api/verification/:requestId/process
+```
+
+Password hashes and account-token hashes are excluded from admin user responses.
+
+## Loading and notification conventions
+
+Use the shared components in `frontend/src/LoadingSkeletons.tsx` for initial
+loading states. Available layouts are `ListSkeleton`, `DashboardSkeleton`,
+`ProfileSkeleton`, and `CardGridSkeleton`. Keep already-loaded content visible
+during background refreshes instead of replacing it with a full-page spinner.
+
+Use `showNotification` for success, error, warning, and informational feedback.
+These notifications appear as queued, auto-dismissing, accessible toasts. Use
+`showConfirmation` only when the user must explicitly approve or cancel an
+action, such as suspending an account or deleting a listing. Contextual field
+validation remains next to the affected field.
+
+## Public contact configuration
+
+The public contact source of truth is `frontend/src/siteConfig.ts`. Components
+must read from `SITE_CONTACT` or `supportWhatsAppUrl` rather than hard-coding
+contact details.
+
+| Frontend variable | Default |
+| --- | --- |
+| `REACT_APP_SUPPORT_EMAIL` | `support@lbgsoftware.co.za` |
+| `REACT_APP_SUPPORT_PHONE_DISPLAY` | `+27 71 112 6204` |
+| `REACT_APP_SUPPORT_PHONE_DIGITS` | `27711126204` |
+| `REACT_APP_COMPANY_WEBSITE` | `https://www.lbgsoftware.co.za` |
+| `REACT_APP_MARKETPLACE_WEBSITE` | `https://marketplace.lbgsoftware.co.za` |
+
+Because Create React App injects these values at build time, rebuild and
+redeploy the frontend after changing them. Backend support mail continues to
+use `SUPPORT_EMAIL`, while replies use `EMAIL_REPLY_TO`.
+
+## Scheduled email reminders
+
 Run the reminder job once per day:
 
 ```bash
@@ -131,7 +277,7 @@ npm run email:reminders
 
 In Render, configure this command as a daily Cron Job using the same Marketplace environment variables. Reminder delivery is recorded in `emailNotificationEvents` to avoid sending the same scheduled reminder again.
 
-### Payment credential mapping
+## Payment credential mapping
 
 These values must match across the two backends:
 
@@ -149,7 +295,7 @@ Marketplace PAYMENT_SERVICE_CALLBACK_SECRET
 Use different secrets for service authentication and callbacks, and different
 credentials for development, staging, and production.
 
-### Cold-start warm-up
+## Cold-start warm-up
 
 On first visit, and when a marketplace tab becomes active after five minutes,
 the frontend sends a non-blocking request to `/api/warmup`. This wakes the
@@ -174,15 +320,14 @@ MARKETPLACE_CALLBACK_URL=https://<marketplace-backend>/api/webhooks/payments
 MARKETPLACE_RETURN_URL=https://<marketplace-frontend>/?payment=return
 ```
 
-Current production values:
+Production URL mapping:
 
 ```text
 Marketplace frontend:       https://marketplace.lbgsoftware.co.za
-Marketplace backend:        https://marketplace.firstyearcouncil.co.za
-Marketplace Render origin:  https://fyc-marketplace-tut.onrender.com
+Marketplace backend:        https://<marketplace-backend>
 Payment Service:             https://lbg-payment-service.onrender.com
 
-MARKETPLACE_CALLBACK_URL=https://marketplace.firstyearcouncil.co.za/api/webhooks/payments
+MARKETPLACE_CALLBACK_URL=https://<marketplace-backend>/api/webhooks/payments
 MARKETPLACE_RETURN_URL=https://marketplace.lbgsoftware.co.za/?payment=return
 ```
 
@@ -267,7 +412,10 @@ npm run build
 ```
 
 Payment tests cover callback signatures, timestamp expiry, payload validation,
-and subscription-period behavior.
+and subscription-period behavior. Location tests cover coordinate validation,
+distance calculation, accuracy-aware campus recognition, deterministic nearby
+ranking, pagination, and privacy-safe response shaping. Admin tests cover
+dashboard totals, suspension audit fields, and self-suspension protection.
 
 ## Security rules
 
@@ -277,6 +425,8 @@ and subscription-period behavior.
 - Never accept a client-provided subscription amount.
 - Keep callback processing idempotent and retain the unique callback-event index.
 - Rotate credentials separately per environment when exposure is suspected.
+- Treat browser coordinates as ephemeral request data; do not log or persist them.
+- Enforce suspension and administrator privileges on the backend, never only in the React interface.
 
 ## License
 

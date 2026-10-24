@@ -8,6 +8,7 @@ const path = require('path');
 const verificationController = require('./controllers/verificationController');
 const productPageController = require('./controllers/productPageController');
 const { ensureDefaultSellerOffers } = require('./services/sellerOfferService');
+const { ensureCampusLocations } = require('./services/campusLocationService');
 const { assertSecurityConfiguration, configuredOrigins } = require('./config/security');
 const { assertEmailConfiguration } = require('./config/email');
 const { createRateLimit } = require('./middleware/rateLimit');
@@ -105,6 +106,7 @@ async function connectToMongoDB() {
     } catch (indexError) {
       console.log('Some indexes already exist');
     }
+    await ensureCampusLocations(db);
     await ensureDefaultSellerOffers(db);
     
     return db;
@@ -293,6 +295,8 @@ app.get('/api/admin/users',
   requireAdmin, 
   (req, res) => userController.getAllUsers(req, res, req.db)
 );
+app.get('/api/admin/overview', authenticateToken, requireAdmin, (req, res) => userController.getAdminOverview(req, res, req.db));
+app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, validateObjectId('id'), (req, res) => userController.adminUpdateUser(req, res, req.db));
 
 app.get('/api/admin/reactivation-requests', authenticateToken, requireAdmin, (req, res) => {
   return userController.getReactivationRequests(req, res, req.db);
@@ -319,6 +323,7 @@ app.get('/api/analytics/product/:productId',
 
 // Product routes
 app.get('/api/products', (req, res) => productController.getProducts(req, res, req.db));
+app.post('/api/products/nearby', (req, res) => productController.getNearbyProducts(req, res, req.db));
 app.get('/api/products/:id', validateObjectId('id'), (req, res) => productController.getProductById(req, res, req.db));
 app.get('/api/products/seller/:sellerId', validateObjectId('sellerId'), (req, res) => productController.getProductsBySeller(req, res, req.db));
 
@@ -662,7 +667,7 @@ app.get('/api/messages/:conversationId', authenticateToken, (req, res) => messag
 app.post('/api/messages', authenticateToken, messageRateLimit, (req, res) => messageController.sendMessage(req, res, req.db));
 
 // Reference data routes
-app.get('/api/campuses', referenceController.getCampuses);
+app.get('/api/campuses', (req, res) => referenceController.getCampuses(req, res, req.db));
 app.get('/api/categories', referenceController.getCategories);
 
 app.get('/p/:id', validateObjectId('id'), (req, res) => {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowLeft, ShoppingBag, Users, Shield, TrendingUp } from 'lucide-react';
+import { SITE_CONTACT, supportWhatsAppUrl } from './siteConfig';
 
 interface AboutPageProps {
   onBack: () => void;
@@ -168,10 +169,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
           <p style={{ color: '#3e403a' }}>
             Have questions or need support? We're here to help! Reach out to us on WhatsApp at{' '}
             <a 
-              href="https://wa.me/27711126204" 
+              href={supportWhatsAppUrl()}
               style={{ color: '#10110f', textDecoration: 'underline', fontWeight: '600' }}
             >
-              +27 71 112 6204
+              {SITE_CONTACT.supportPhoneDisplay}
             </a>{' '}
             or email us. Our team is dedicated to making your FYC Marketplace experience smooth 
             and successful.

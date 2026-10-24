@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { SITE_CONTACT, supportWhatsAppUrl } from './siteConfig';
 
 interface FAQPageProps {
   onBack: () => void;
@@ -39,7 +40,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'buying',
       question: 'What should I do if I have issues with a seller or item?',
-      answer: 'First, try to resolve the issue directly with the seller through WhatsApp. Most sellers are fellow students who want positive outcomes. If the seller is unresponsive or the issue cannot be resolved, contact our support team on WhatsApp at +27 71 112 6204. Provide details about the transaction, screenshots of your conversations, and any evidence. While we cannot process refunds directly, we can help mediate disputes and take action against problematic sellers, including account suspension.'
+      answer: 'First, try to resolve the issue directly with the seller through WhatsApp. If the seller is unresponsive or the issue cannot be resolved, contact our support team from the Contact page. Provide details about the transaction, screenshots of your conversations, and any evidence. While we cannot process refunds directly, we can help mediate disputes and take action against problematic sellers, including account suspension.'
     },
     {
       category: 'buying',
@@ -79,7 +80,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'safety',
       question: 'How do I report a suspicious listing or user?',
-      answer: 'If you encounter suspicious listings, scams, or inappropriate behavior, contact our support team immediately on WhatsApp at +27 71 112 6204. Provide the listing URL, seller name, and details about the issue. Include screenshots of any suspicious conversations. We take reports seriously and will investigate within 24 hours. Users who violate our policies face account suspension or permanent bans. Help us keep FYC Marketplace safe by reporting problems promptly.'
+      answer: 'If you encounter suspicious listings, scams, or inappropriate behavior, contact our support team immediately from the Contact page. Provide the listing URL, seller name, details, and relevant screenshots. Users who violate our policies may face account suspension or permanent removal.'
     },
     {
       category: 'technical',
@@ -89,7 +90,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'technical',
       question: 'Why can\'t I add new listings?',
-      answer: 'If you\'re unable to add listings, check the following: (1) Activate seller status from your profile. (2) Verify that your claimed offer or R25 monthly subscription is still active. (3) Clear your browser cache and refresh the page. (4) If you just paid, allow a few moments for verified payment confirmation. If the problem persists, contact support on WhatsApp at +27 71 112 6204 with your account email.'
+      answer: 'If you\'re unable to add listings, check the following: (1) Activate seller status from your profile. (2) Verify that your claimed offer or R25 monthly subscription is still active. (3) Clear your browser cache and refresh the page. (4) If you just paid, allow a few moments for verified payment confirmation. If the problem persists, contact support with your account email.'
     },
     {
       category: 'technical',
@@ -150,7 +151,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
         </h1>
         <p style={{ fontSize: '1.125rem', color: '#3e403a', marginBottom: '2rem' }}>
           Find answers to common questions about FYC Marketplace. Can't find what you're looking for? 
-          Contact us on WhatsApp at <a href="https://wa.me/27711126204" style={{ color: '#10110f', textDecoration: 'underline', fontWeight: '600' }}>+27 71 112 6204</a>.
+          Contact us on WhatsApp at <a href={supportWhatsAppUrl()} style={{ color: '#10110f', textDecoration: 'underline', fontWeight: '600' }}>{SITE_CONTACT.supportPhoneDisplay}</a>.
         </p>
 
         {/* Category Filter - FIXED FOR MOBILE */}
@@ -287,7 +288,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             with any issues or questions about FYC Marketplace.
           </p>
           <a
-            href="https://wa.me/27711126204?text=Hi%2C%20I%20have%20a%20question%20about%20FYC%20Marketplace"
+            href={supportWhatsAppUrl('Hi, I have a question about FYC Marketplace')}
             target="_blank"
             rel="noopener noreferrer"
             style={{

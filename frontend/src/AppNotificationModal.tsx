@@ -100,6 +100,32 @@ const ActiveNotificationModal: React.FC<{
   );
 };
 
+const ActiveNotificationToast: React.FC<{
+  notification: QueuedNotification;
+  onClose: () => void;
+}> = ({ notification, onClose }) => {
+  const type = notification.type || 'info';
+  const { Icon } = notificationPresentation[type];
+
+  useEffect(() => {
+    const timeout = window.setTimeout(onClose, type === 'error' ? 6500 : 4500);
+    return () => window.clearTimeout(timeout);
+  }, [onClose, type]);
+
+  return (
+    <div className={`app-toast app-toast-${type}`} role={type === 'error' ? 'alert' : 'status'} aria-live={type === 'error' ? 'assertive' : 'polite'}>
+      <div className="app-toast-icon" aria-hidden="true"><Icon /></div>
+      <div className="app-toast-copy">
+        <strong>{notification.title}</strong>
+        <span>{notification.message}</span>
+      </div>
+      {notification.actionLabel && <button type="button" className="app-toast-action" onClick={onClose}>{notification.actionLabel}</button>}
+      <button type="button" className="app-toast-close" onClick={onClose} aria-label="Dismiss notification"><X aria-hidden="true" /></button>
+      <div className="app-toast-progress" aria-hidden="true" />
+    </div>
+  );
+};
+
 export const AppNotificationHost: React.FC = () => {
   const [queue, setQueue] = useState<QueuedNotification[]>([]);
   const activeNotification = queue[0] || null;
@@ -115,7 +141,7 @@ export const AppNotificationHost: React.FC = () => {
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent<boolean>(NOTIFICATION_VISIBILITY_EVENT, {
-      detail: Boolean(activeNotification)
+      detail: Boolean(activeNotification?.resolve)
     }));
   }, [activeNotification]);
 
@@ -127,7 +153,8 @@ export const AppNotificationHost: React.FC = () => {
     });
   }, []);
 
-  return activeNotification
+  if (!activeNotification) return null;
+  return activeNotification.resolve
     ? <ActiveNotificationModal notification={activeNotification} onResolve={resolveActive} />
-    : null;
+    : <div className="app-toast-region" aria-label="Notifications"><ActiveNotificationToast notification={activeNotification} onClose={() => resolveActive(false)} /></div>;
 };

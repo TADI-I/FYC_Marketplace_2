@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { SITE_CONTACT } from './siteConfig';
 
 interface TermsPageProps {
   onBack: () => void;
@@ -247,9 +248,9 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               If you have questions about these Terms of Service, please contact us:
             </p>
             <ul style={{ listStyle: 'none', paddingLeft: 0, marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <li><strong>WhatsApp:</strong> +27 71 112 6204</li>
-              <li><strong>Email:</strong> support@firstyearcouncil.co.za</li>
-              <li><strong>Website:</strong> www.firstyearcouncil.co.za</li>
+              <li><strong>WhatsApp:</strong> {SITE_CONTACT.supportPhoneDisplay}</li>
+              <li><strong>Email:</strong> {SITE_CONTACT.supportEmail}</li>
+              <li><strong>Website:</strong> <a href={SITE_CONTACT.companyWebsite}>{SITE_CONTACT.companyWebsite}</a></li>
             </ul>
           </div>
 

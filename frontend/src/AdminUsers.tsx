@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { getAllUsers, updateUser } from './api';
-import { showNotification } from './AppNotificationModal';
+import { showConfirmation, showNotification } from './AppNotificationModal';
+import { ListSkeleton } from './LoadingSkeletons';
 
 const ADMIN_PAGE_SIZE = 10;
 
@@ -12,26 +13,30 @@ type User = {
   whatsapp?: string;
   type?: string;
   updatedAt?: string;
+  verified?: boolean;
+  accountStatus?: 'active' | 'suspended';
 };
 
 export interface AdminUsersProps {
   darkMode?: boolean;
+  onUsersChanged?: () => void;
 }
 
-const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
+const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false, onUsersChanged }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterType, setFilterType] = useState<'all'|'buyer'|'seller'>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<User>>({});
   const [visibleCount, setVisibleCount] = useState(ADMIN_PAGE_SIZE);
+  const [saving, setSaving] = useState(false);
 
   // Calculate counts
   const buyerCount = users.filter(u => u.type === 'buyer').length;
   const sellerCount = users.filter(u => u.type === 'seller').length;
   const totalCount = users.length;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getAllUsers(filterType);
@@ -43,33 +48,54 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterType]);
 
-  useEffect(() => { load(); }, [filterType]);
+  useEffect(() => { load(); }, [load]);
 
   const visibleUsers = users.slice(0, visibleCount);
   const hasMoreUsers = visibleCount < users.length;
 
   const startEdit = (u: User) => {
     setEditingId(u._id);
-    setForm({ name: u.name, email: u.email, campus: u.campus, whatsapp: u.whatsapp });
+    setForm({ name: u.name, email: u.email, campus: u.campus, whatsapp: u.whatsapp, type: u.type, verified: u.verified, accountStatus: u.accountStatus || 'active' });
   };
 
   const save = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       const resp = await updateUser(editingId, form);
       if (!resp.success) throw new Error(resp.error || 'Update failed');
       setEditingId(null);
       setForm({});
       await load();
+      onUsersChanged?.();
       showNotification({ type: 'success', title: 'User updated', message: 'The account changes were saved successfully.' });
     } catch (err: any) {
       showNotification({ type: 'error', title: 'Update failed', message: err.message || 'The user could not be updated.' });
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) return <div>Loading users...</div>;
+  const toggleSuspension = async (user: User) => {
+    const suspending = user.accountStatus !== 'suspended';
+    const confirmed = await showConfirmation({
+      type: suspending ? 'warning' : 'info',
+      title: suspending ? `Suspend ${user.name}?` : `Restore ${user.name}?`,
+      message: suspending ? 'The user will be signed out and their listings will no longer be discoverable.' : 'The user will regain access to their account.',
+      confirmLabel: suspending ? 'Suspend account' : 'Restore account'
+    });
+    if (!confirmed) return;
+    try {
+      await updateUser(user._id, { accountStatus: suspending ? 'suspended' : 'active' });
+      await load();
+      onUsersChanged?.();
+      showNotification({ type: 'success', title: suspending ? 'Account suspended' : 'Account restored', message: `${user.name}'s account status was updated.` });
+    } catch (error) {
+      showNotification({ type: 'error', title: 'Status update failed', message: error instanceof Error ? error.message : 'Please try again.' });
+    }
+  };
 
   return (
     <div style={{
@@ -82,6 +108,8 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
       <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>
         Manage Users
       </h3>
+
+      {loading && users.length === 0 ? <ListSkeleton rows={6} /> : <>
 
       {/* Stats Display */}
       <div style={{
@@ -200,6 +228,10 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                       ({u.type})
                     </span>
                   </div>
+                  <div className="admin-user-badges">
+                    <span className={`admin-status-badge ${u.accountStatus === 'suspended' ? 'is-suspended' : 'is-active'}`}>{u.accountStatus || 'active'}</span>
+                    {u.verified && <span className="admin-status-badge is-verified">verified</span>}
+                  </div>
                   <div style={{ fontSize: '0.875rem', color: '#3e403a', marginBottom: '0.25rem' }}>
                     {u.email}
                   </div>
@@ -234,6 +266,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
               >
                 Edit
               </button>
+              {u.type !== 'admin' && <button type="button" onClick={() => toggleSuspension(u)} className={u.accountStatus === 'suspended' ? 'admin-restore-button' : 'admin-suspend-button'}>{u.accountStatus === 'suspended' ? 'Restore' : 'Suspend'}</button>}
             </div>
           </div>
         ))}
@@ -256,6 +289,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
           </button>
         )}
       </div>
+      </>}
 
       {editingId && (
         <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="admin-user-edit-title">
@@ -280,10 +314,22 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ darkMode = false }) => {
                 WhatsApp
                 <input value={form.whatsapp || ''} onChange={e => setForm({...form, whatsapp: e.target.value})} />
               </label>
+              <label style={{ display: 'grid', gap: '0.35rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                Account role
+                <select value={form.type || 'buyer'} onChange={e => setForm({...form, type: e.target.value})}>
+                  <option value="buyer">Buyer</option>
+                  <option value="seller">Seller</option>
+                  {users.find(user => user._id === editingId)?.type === 'admin' && <option value="admin">Administrator</option>}
+                </select>
+              </label>
+              <label className="admin-checkbox-row">
+                <input type="checkbox" checked={Boolean(form.verified)} onChange={e => setForm({...form, verified: e.target.checked})} />
+                Verified seller badge
+              </label>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-              <button onClick={save} style={{ backgroundColor: '#007aff', color: 'white', padding: '0.75rem 1rem', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', flex: 1 }}>
-                Save
+              <button onClick={save} disabled={saving} style={{ backgroundColor: '#007aff', color: 'white', padding: '0.75rem 1rem', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', flex: 1 }}>
+                {saving ? 'Saving…' : 'Save'}
               </button>
               <button onClick={() => { setEditingId(null); setForm({}); }} style={{ padding: '0.75rem 1rem', border: '1px solid rgba(16, 17, 15, .24)', borderRadius: '0.5rem', backgroundColor: 'white', cursor: 'pointer', flex: 1 }}>
                 Cancel

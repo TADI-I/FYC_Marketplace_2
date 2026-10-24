@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Clock, Check, CheckCheck } from 'lucide-react';
 import { sendMessage, getMessages, markMessagesAsRead } from './api';
 import { conversationIdentifier, userIdentifier } from './types';
+import { ListSkeleton } from './LoadingSkeletons';
 
 // Define Message type to match the API
 type Message = {
@@ -192,9 +193,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Messages */}
         <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
           {loading ? (
-            <div className="text-center text-gray-500 py-10">
-              <p>Loading messages...</p>
-            </div>
+            <ListSkeleton rows={4} />
           ) : messages.length === 0 ? (
             <div className="text-center text-gray-500 py-10">
               <p className="text-lg">No messages yet.</p>

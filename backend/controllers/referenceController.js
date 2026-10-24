@@ -1,17 +1,20 @@
 // controllers/referenceController.js
 
 // Get campuses
-exports.getCampuses = (req, res) => {
-  const campuses = [
-    { id: 'pretoria-main', name: 'Pretoria Main Campus' },
-    { id: 'soshanguve', name: 'Soshanguve Campus' },
-    { id: 'ga-rankuwa', name: 'Ga-Rankuwa Campus' },
-    { id: 'pretoria-west', name: 'Pretoria West Campus' },
-    { id: 'arts', name: 'Arts Campus' },
-    { id: 'emalahleni', name: 'eMalahleni Campus' },
-    { id: 'mbombela', name: 'Mbombela Campus' },
-    { id: 'polokwane', name: 'Polokwane Campus' }
-  ];
+const { CAMPUSES } = require('../services/campusLocationService');
+
+exports.getCampuses = async (req, res, db) => {
+  let campuses = CAMPUSES;
+  if (db) {
+    try {
+      const stored = await db.collection('campuses').find({}, {
+        projection: { _id: 0, source: 0, createdAt: 0, updatedAt: 0 }
+      }).sort({ name: 1 }).toArray();
+      if (stored.length) campuses = stored;
+    } catch (error) {
+      console.warn('Using bundled campus data:', error.message);
+    }
+  }
   res.json({ success: true, campuses });
 };
 

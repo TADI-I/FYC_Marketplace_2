@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowLeft, Shield, Lock, Eye, Database, UserX } from 'lucide-react';
+import { SITE_CONTACT, supportWhatsAppUrl } from './siteConfig';
 
 interface PrivacyPageProps {
   onBack: () => void;
@@ -35,7 +36,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
           <Shield style={{ height: '2.5rem', width: '2.5rem', color: '#10110f' }} />
           Privacy Policy
         </h1>
-        <p style={{ fontSize: '0.875rem', color: '#74756f', marginBottom: '2rem' }}>Last Updated: February 4, 2026</p>
+        <p style={{ fontSize: '0.875rem', color: '#74756f', marginBottom: '2rem' }}>Last Updated: October 24, 2026</p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#3e403a' }}>
           <p style={{ fontSize: '1.125rem' }}>
@@ -54,6 +55,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li>✓ You control your profile visibility and can delete your account anytime</li>
               <li>✓ We use industry-standard security to protect your information</li>
               <li>✓ Transactions happen directly between users – we don't store payment details</li>
+              <li>✓ Precise buyer location is optional, used only for nearby searches, and not saved by default</li>
             </ul>
           </div>
 
@@ -95,6 +97,11 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li><strong>Location:</strong> Campus location for the listing</li>
               <li><strong>Analytics:</strong> Number of views, WhatsApp clicks (anonymous)</li>
             </ul>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
+              Nearby Discovery Location
+            </h3>
+            <p>If you choose <strong>Use My Location</strong>, your browser provides a one-time latitude, longitude, and accuracy reading. We use it to sort and filter nearby listings and to estimate whether you are within a configured campus area. We do not continuously track you, place precise coordinates in the URL, or save a buyer location to your account by default. You can deny, refresh, or disable location discovery at any time.</p>
 
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
               Usage Data
@@ -265,12 +272,12 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
 
             <p style={{ marginTop: '1rem' }}>
               To exercise any of these rights, contact us at{' '}
-              <a href="mailto:support@firstyearcouncil.co.za" style={{ color: '#10110f', textDecoration: 'underline' }}>
-                support@firstyearcouncil.co.za
+              <a href={`mailto:${SITE_CONTACT.supportEmail}`} style={{ color: '#10110f', textDecoration: 'underline' }}>
+                {SITE_CONTACT.supportEmail}
               </a>{' '}
               or WhatsApp{' '}
-              <a href="https://wa.me/27711126204" style={{ color: '#10110f', textDecoration: 'underline' }}>
-                +27 71 112 6204
+              <a href={supportWhatsAppUrl()} style={{ color: '#10110f', textDecoration: 'underline' }}>
+                {SITE_CONTACT.supportPhoneDisplay}
               </a>.
             </p>
           </div>
@@ -328,9 +335,9 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               If you have questions or concerns about this Privacy Policy or how we handle your data, please contact us:
             </p>
             <ul style={{ listStyle: 'none', paddingLeft: 0, marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <li><strong>WhatsApp:</strong> +27 71 112 6204</li>
-              <li><strong>Email:</strong> support@firstyearcouncil.co.za</li>
-              <li><strong>Website:</strong> www.firstyearcouncil.co.za</li>
+              <li><strong>WhatsApp:</strong> {SITE_CONTACT.supportPhoneDisplay}</li>
+              <li><strong>Email:</strong> {SITE_CONTACT.supportEmail}</li>
+              <li><strong>Website:</strong> <a href={SITE_CONTACT.companyWebsite}>{SITE_CONTACT.companyWebsite}</a></li>
             </ul>
           </div>
 

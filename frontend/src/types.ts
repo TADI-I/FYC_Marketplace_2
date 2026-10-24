@@ -23,6 +23,7 @@ export type User = {
   whatsapp?: string | null;
   verified?: boolean;
   verifiedAt?: Date | string;
+  accountStatus?: 'active' | 'suspended';
 };
 
 export type SellerOffer = {
@@ -61,6 +62,8 @@ export type Product = {
   imageUrl?: string;
   rating: number;
   type: string;
+  distanceMeters?: number | null;
+  locationSource?: 'pickup' | 'seller-pickup' | 'registered-campus' | null;
 };
 
 export type Message = {
