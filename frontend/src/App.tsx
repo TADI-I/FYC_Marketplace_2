@@ -6,6 +6,7 @@ import {
   LogOut,
   MapPin,
   Moon,
+  RefreshCw,
   Search,
   Share2,
   ShoppingBag,
@@ -111,6 +112,7 @@ const App = () => {
   const [contactWhatsAppUrl, setContactWhatsAppUrl] = useState<string | null>(null);
   const [contactWhatsAppState, setContactWhatsAppState] = useState<'idle' | 'loading' | 'ready' | 'missing' | 'error'>('idle');
   const hasScrolledToHighlighted = useRef(false);
+  const loadMoreProductsRef = useRef<HTMLDivElement>(null);
 
   // Restore session on mount
   useEffect(() => {
@@ -379,6 +381,18 @@ const App = () => {
     fetchProducts();
   }, [fetchProducts]);
 
+  useEffect(() => {
+    const sentinel = loadMoreProductsRef.current;
+    if (!sentinel || !hasMoreProducts || _loading) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setProductPage(page => page + 1);
+    }, { rootMargin: '600px 0px', threshold: 0 });
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [_loading, hasMoreProducts]);
+
   // Back to top button
   useEffect(() => {
     const handleScroll = () => setShowBackToTop(window.pageYOffset > 1200);
@@ -644,17 +658,19 @@ const App = () => {
 
     return (
       <div
-        className={`product-card rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} ${isHighlighted ? 'ring-4 ring-orange-500 shadow-2xl' : ''}`}
-        style={isHighlighted ? { borderColor: '#007aff', boxShadow: '0 0 0 4px rgba(216,255,79,.55), 0 24px 60px -38px rgba(16,17,15,.68)' } : undefined}
+        className={`product-card rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} ${isHighlighted ? 'shared-product-card' : ''}`}
         id={isHighlighted ? 'highlighted-product' : undefined}
       >
         {isHighlighted && (
           <div className="shared-product-banner">
-            <span style={{ fontSize: '0.875rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Star style={{ width: '0.85rem', height: '0.85rem' }} fill="currentColor" />
-              Shared Product
-            </span>
-            <button onClick={() => setHighlightedProduct(null)} className="shared-product-close" aria-label="Close highlight">
+            <div className="shared-product-banner-copy">
+              <span className="shared-product-label">
+                <Star aria-hidden="true" fill="currentColor" />
+                Shared listing
+              </span>
+              <p>You opened this product from a shared link.</p>
+            </div>
+            <button type="button" onClick={() => setHighlightedProduct(null)} className="shared-product-close" aria-label="Dismiss shared listing" title="Dismiss shared listing">
               <X style={{ height: '1rem', width: '1rem' }} />
             </button>
           </div>
@@ -909,24 +925,6 @@ const App = () => {
             </section>
           ) : (
             <>
-              <div className="mobile-commerce-topbar" aria-label="Mobile marketplace controls">
-                <button type="button" className="mobile-round-control" onClick={scrollToTop} aria-label="Back to top">
-                  <ShoppingBag className="h-5 w-5" />
-                </button>
-                <div className="mobile-commerce-title">
-                  {searchTerm ? searchTerm : 'Marketplace'}
-                </div>
-                <div className="mobile-commerce-pill">
-                  <Search className="h-5 w-5" />
-                  <button type="button" aria-label="Share marketplace" onClick={scrollToTop}>
-                    <Share2 className="h-5 w-5" />
-                  </button>
-                  <button type="button" aria-label="Focus filters" onClick={() => document.getElementById('category-filter')?.focus()}>
-                    <SlidersHorizontal className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-
               {/* Highlighted shared product */}
               {highlightedProduct && (
                 <div className="mb-8 scroll-mt-20">
@@ -1030,9 +1028,14 @@ const App = () => {
                         ))}
                       </div>
                       {hasMoreProducts && (
-                        <button type="button" className="load-more-products" onClick={() => setProductPage(page => page + 1)}>
-                          Load more nearby products
-                        </button>
+                        <div ref={loadMoreProductsRef} className="infinite-scroll-sentinel" role="status" aria-live="polite">
+                          {_loading && (
+                            <span className="infinite-scroll-loading">
+                              <RefreshCw aria-hidden="true" className="location-spin" />
+                              Loading more products…
+                            </span>
+                          )}
+                        </div>
                       )}
                     </>
                   ) : (
