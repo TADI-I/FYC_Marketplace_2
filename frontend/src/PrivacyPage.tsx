@@ -9,7 +9,7 @@ interface PrivacyPageProps {
 const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
   return (
     <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem' }}>
-      <button 
+      <button
         onClick={onBack}
         style={{
           backgroundColor: '#10110f',
@@ -37,10 +37,10 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
           Privacy Policy
         </h1>
         <p style={{ fontSize: '0.875rem', color: '#74756f', marginBottom: '2rem' }}>Last Updated: October 24, 2026</p>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#3e403a' }}>
           <p style={{ fontSize: '1.125rem' }}>
-            At FYC Marketplace, we value your privacy and are committed to protecting your personal information. 
+            At Campus Cart, we value your privacy and are committed to protecting your personal information.
             This Privacy Policy explains how we collect, use, store, and safeguard your data when you use our platform.
           </p>
 
@@ -64,11 +64,11 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <Database style={{ height: '1.5rem', width: '1.5rem', color: '#007aff' }} />
               1. Information We Collect
             </h2>
-            
+
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
               Account Information
             </h3>
-            <p>When you register on FYC Marketplace, we collect:</p>
+            <p>When you register on Campus Cart, we collect:</p>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <li><strong>Personal Details:</strong> Name, email address, campus location</li>
               <li><strong>Contact Information:</strong> WhatsApp number (for buyer-seller communication)</li>
@@ -82,7 +82,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <p>If you subscribe as a seller, we additionally collect:</p>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <li><strong>Subscription Status:</strong> Active, expired, or inactive</li>
-              <li><strong>Payment References:</strong> Your payment reference (email + FYC) for verification</li>
+              <li><strong>Payment References:</strong> Your payment reference (email + CampusCart) for verification</li>
               <li><strong>Verification Documents:</strong> Student ID photo (if you request verification)</li>
               <li><strong>Subscription History:</strong> Start dates, end dates, renewal status</li>
             </ul>
@@ -120,7 +120,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               2. How We Use Your Information
             </h2>
             <p>We use your personal data for the following purposes:</p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.75rem' }}>
               <div style={{ backgroundColor: '#fbfaf6', borderLeft: '4px solid #007aff', padding: '1rem', borderRadius: '0.25rem' }}>
                 <p style={{ fontWeight: '600', color: '#10110f' }}>Platform Operations</p>
@@ -167,7 +167,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <Lock style={{ height: '1.5rem', width: '1.5rem', color: '#10110f' }} />
               3. Information Sharing and Disclosure
             </h2>
-            
+
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
               What We Share Publicly
             </h3>
@@ -201,7 +201,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li><strong>Legal Requirements:</strong> If required by law, court order, or government request</li>
               <li><strong>Safety & Security:</strong> To prevent fraud, abuse, or protect users' safety</li>
               <li><strong>Service Providers:</strong> With trusted partners who help operate the platform (e.g., hosting providers) under strict confidentiality agreements</li>
-              <li><strong>Business Transfers:</strong> If FYC Marketplace is acquired or merged, with proper user notification</li>
+              <li><strong>Business Transfers:</strong> If Campus Cart is acquired or merged, with proper user notification</li>
             </ul>
           </div>
 
@@ -218,7 +218,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li><strong>Authentication:</strong> JWT tokens with expiration for secure sessions</li>
             </ul>
             <p style={{ marginTop: '0.75rem', fontSize: '0.875rem', backgroundColor: '#fbfaf6', border: '1px solid #007aff', borderRadius: '0.25rem', padding: '0.75rem' }}>
-              <strong>Note:</strong> While we take security seriously, no online platform can guarantee 100% security. 
+              <strong>Note:</strong> While we take security seriously, no online platform can guarantee 100% security.
               You are responsible for keeping your password confidential and logging out of shared devices.
             </p>
           </div>
@@ -242,7 +242,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               6. Your Privacy Rights
             </h2>
             <p>You have the following rights regarding your personal data:</p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.75rem' }}>
               <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .24)', padding: '1rem', borderRadius: '0.25rem' }}>
                 <p style={{ fontWeight: '600', color: '#10110f' }}>Access</p>
@@ -287,8 +287,8 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               7. Cookies and Tracking
             </h2>
             <p>
-              We use cookies and similar technologies to keep you logged in, remember your preferences, 
-              and analyze platform usage. You can control cookies through your browser settings, but 
+              We use cookies and similar technologies to keep you logged in, remember your preferences,
+              and analyze platform usage. You can control cookies through your browser settings, but
               disabling them may affect platform functionality (e.g., staying logged in).
             </p>
           </div>
@@ -298,8 +298,8 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               8. Third-Party Links
             </h2>
             <p>
-              FYC Marketplace may contain links to third-party websites (e.g., WhatsApp, payment providers). 
-              We are not responsible for the privacy practices of these external sites. Please review their 
+              Campus Cart may contain links to third-party websites (e.g., WhatsApp, payment providers).
+              We are not responsible for the privacy practices of these external sites. Please review their
               privacy policies before providing any personal information.
             </p>
           </div>
@@ -309,9 +309,9 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               9. Children's Privacy
             </h2>
             <p>
-              FYC Marketplace is intended for users aged 18 and older. We do not knowingly collect personal 
-              information from children under 18. If we discover that a child has provided personal data, 
-              we will delete it promptly. If you believe a child has registered on our platform, please 
+              Campus Cart is intended for users aged 18 and older. We do not knowingly collect personal
+              information from children under 18. If we discover that a child has provided personal data,
+              we will delete it promptly. If you believe a child has registered on our platform, please
               contact us immediately.
             </p>
           </div>
@@ -321,9 +321,9 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               10. Changes to This Privacy Policy
             </h2>
             <p>
-              We may update this Privacy Policy from time to time to reflect changes in our practices or 
-              legal requirements. We will notify users of significant changes via email or platform notification. 
-              Continued use of FYC Marketplace after changes are posted constitutes acceptance of the updated policy.
+              We may update this Privacy Policy from time to time to reflect changes in our practices or
+              legal requirements. We will notify users of significant changes via email or platform notification.
+              Continued use of Campus Cart after changes are posted constitutes acceptance of the updated policy.
             </p>
           </div>
 
@@ -352,8 +352,8 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               Your Privacy Matters
             </h3>
             <p style={{ color: '#3e403a' }}>
-              We are committed to protecting your privacy and handling your data responsibly. If you have 
-              any concerns or questions about how we use your information, please don't hesitate to reach out. 
+              We are committed to protecting your privacy and handling your data responsibly. If you have
+              any concerns or questions about how we use your information, please don't hesitate to reach out.
               Your trust is important to us.
             </p>
           </div>

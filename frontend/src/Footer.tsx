@@ -53,7 +53,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               textTransform: 'uppercase',
               letterSpacing: '.06em'
             }}>
-              About FYC
+              About Campus Cart
             </h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <li style={{ marginBottom: '0.5rem' }}>
@@ -269,7 +269,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             fontSize: '0.875rem',
             marginBottom: '0.5rem'
           }}>
-            © {new Date().getFullYear()} FYC Marketplace. All rights reserved.
+            © {new Date().getFullYear()} Campus Cart. All rights reserved.
           </p>
  
           <div className="poweredBy">

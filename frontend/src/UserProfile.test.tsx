@@ -14,7 +14,7 @@ const api = require('./api');
 
 const originalUser: User = {
   _id: '507f1f77bcf86cd799439011',
-  name: 'FYC Student',
+  name: 'Campus Cart Student',
   email: 'old@example.com',
   type: 'buyer',
   subscribed: false,

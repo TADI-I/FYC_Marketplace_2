@@ -1,4 +1,8 @@
-# FYC Marketplace
+# Campus Cart
+
+Brand assets are available as the primary transparent wordmark at
+`frontend/public/campus-cart-logo.png` and the compact app/favicon mark at
+`frontend/public/campus-cart.svg`.
 
 Student marketplace with a React frontend and an Express/MongoDB backend.
 Students browse listings and arrange listing purchases directly with sellers.
@@ -109,7 +113,7 @@ Use `backend/.env.example` as the source of truth.
 | `FRONTEND_URL` | Public frontend origin used for payment return URLs |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated exact frontend origins allowed to call the API; use `https://marketplace.lbgsoftware.co.za` in production |
 | `RESEND_API_KEY` | Marketplace-only Resend key with Sending access, restricted to the verified sending domain |
-| `EMAIL_FROM` | Verified sender, for example `FYC Marketplace <marketplace@lbgsoftware.co.za>` |
+| `EMAIL_FROM` | Verified sender, for example `Campus Cart <marketplace@lbgsoftware.co.za>` |
 | `EMAIL_REPLY_TO` | Monitored reply-to mailbox |
 | `SUPPORT_EMAIL` | Monitored destination for the Marketplace contact form |
 | `EMAIL_DELIVERY_DISABLED` | `false` in production; tests use `true` to avoid external delivery |

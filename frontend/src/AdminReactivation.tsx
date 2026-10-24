@@ -172,7 +172,7 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
       
       if (normalized) {
         const message = action === 'approve'
-          ? `Hi ${userName}! ✅\n\nYour seller verification request has been APPROVED!\n\nAdmin Note: ${verificationNote}\n\nYou can now start selling on FYC Marketplace. Welcome aboard! 🎉`
+          ? `Hi ${userName}! ✅\n\nYour seller verification request has been APPROVED!\n\nAdmin Note: ${verificationNote}\n\nYou can now start selling on Campus Cart. Welcome aboard! 🎉`
           : `Hi ${userName},\n\nYour seller verification request has been REJECTED.\n\nReason: ${verificationNote}\n\nYou can submit a new request with the correct documentation. If you have questions, please contact support.`;
         
         const encodedMessage = encodeURIComponent(message);

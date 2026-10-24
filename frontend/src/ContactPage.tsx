@@ -33,7 +33,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
 
   return (
     <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem' }}>
-      <button 
+      <button
         onClick={onBack}
         style={{
           backgroundColor: '#10110f',
@@ -57,25 +57,25 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
 
       <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '2rem' }}>
         <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1.5rem' }}>Contact Us</h1>
-        
+
         <p style={{ fontSize: '1.125rem', color: '#3e403a', marginBottom: '2rem' }}>
-          Have questions, feedback, or need support? We're here to help! Reach out to the FYC Marketplace 
+          Have questions, feedback, or need support? We're here to help! Reach out to the Campus Cart
           team using any of the methods below.
         </p>
 
         {/* Contact Methods Grid - FIXED WITH INLINE STYLES */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-          gap: '1.5rem', 
-          marginBottom: '3rem' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '1.5rem',
+          marginBottom: '3rem'
         }}>
           {/* WhatsApp Support */}
-          <div style={{ 
-            backgroundColor: '#fbfaf6', 
-            border: '1px solid rgba(16, 17, 15, .17)', 
-            borderRadius: '0.75rem', 
-            padding: '1.5rem' 
+          <div style={{
+            backgroundColor: '#fbfaf6',
+            border: '1px solid rgba(16, 17, 15, .17)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ backgroundColor: '#007aff', borderRadius: '50%', padding: '0.75rem' }}>
@@ -114,11 +114,11 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
           </div>
 
           {/* Email Support */}
-          <div style={{ 
-            backgroundColor: '#fbfaf6', 
-            border: '1px solid rgba(16, 17, 15, .17)', 
-            borderRadius: '0.75rem', 
-            padding: '1.5rem' 
+          <div style={{
+            backgroundColor: '#fbfaf6',
+            border: '1px solid rgba(16, 17, 15, .17)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ backgroundColor: '#10110f', borderRadius: '50%', padding: '0.75rem' }}>
@@ -155,11 +155,11 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
           </div>
 
           {/* Office Hours */}
-          <div style={{ 
-            backgroundColor: '#fbfaf6', 
-            border: '1px solid rgba(16, 17, 15, .17)', 
-            borderRadius: '0.75rem', 
-            padding: '1.5rem' 
+          <div style={{
+            backgroundColor: '#fbfaf6',
+            border: '1px solid rgba(16, 17, 15, .17)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ backgroundColor: '#007aff', borderRadius: '50%', padding: '0.75rem' }}>
@@ -178,11 +178,11 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
           </div>
 
           {/* Company */}
-          <div style={{ 
-            backgroundColor: '#fbfaf6', 
-            border: '1px solid rgba(16, 17, 15, .17)', 
-            borderRadius: '0.75rem', 
-            padding: '1.5rem' 
+          <div style={{
+            backgroundColor: '#fbfaf6',
+            border: '1px solid rgba(16, 17, 15, .17)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ backgroundColor: '#10110f', borderRadius: '50%', padding: '0.75rem' }}>
@@ -191,7 +191,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>{SITE_CONTACT.companyName}</h3>
             </div>
             <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-              FYC Marketplace is supported by {SITE_CONTACT.companyName}. Visit our website for company information and other products.
+              Campus Cart is supported by {SITE_CONTACT.companyName}. Visit our website for company information and other products.
             </p>
             <p style={{ fontSize: '0.875rem', color: '#3e403a', margin: 0 }}>
               <strong>Website:</strong>{' '}<a href={SITE_CONTACT.companyWebsite} target="_blank" rel="noopener noreferrer" style={{ color: '#10110f', textDecoration: 'underline' }}>{SITE_CONTACT.companyWebsite}</a>
@@ -205,7 +205,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
           <p style={{ color: '#3e403a', marginBottom: '1.5rem' }}>
             Fill out the form below and we'll email it securely to our support team. You will receive a confirmation email.
           </p>
-          
+
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div>
@@ -227,7 +227,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                   placeholder="John Doe"
                 />
               </div>
-              
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3e403a', marginBottom: '0.5rem' }}>
                   Your Email *
@@ -322,7 +322,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               <Mail style={{ height: '1.25rem', width: '1.25rem' }} />
               {submitting ? 'Sending…' : 'Send Email'}
             </button>
-            
+
             <p style={{ fontSize: '0.875rem', color: '#74756f', textAlign: 'center', margin: 0 }}>
               Your message is delivered through Resend. WhatsApp support remains available above.
             </p>
@@ -341,7 +341,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 <li>Profile updates</li>
               </ul>
             </div>
-            
+
             <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
               <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Payments</h3>
               <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
@@ -350,7 +350,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 <li>Refund requests</li>
               </ul>
             </div>
-            
+
             <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
               <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Listings</h3>
               <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
@@ -359,7 +359,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                 <li>Image upload problems</li>
               </ul>
             </div>
-            
+
             <div style={{ backgroundColor: 'white', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
               <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Safety & Reports</h3>
               <ul style={{ fontSize: '0.875rem', color: '#3e403a', paddingLeft: '1.25rem', margin: 0 }}>
@@ -382,7 +382,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
         }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Check Our FAQ First</h3>
           <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
-            Many common questions are answered in our comprehensive FAQ section. You might find 
+            Many common questions are answered in our comprehensive FAQ section. You might find
             your answer there instantly!
           </p>
           <button

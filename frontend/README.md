@@ -1,6 +1,6 @@
-# FYC Marketplace Frontend
+# Campus Cart Frontend
 
-React 19 and TypeScript frontend for FYC Marketplace.
+React 19 and TypeScript frontend for Campus Cart.
 
 ## Environment
 

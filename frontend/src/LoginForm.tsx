@@ -111,7 +111,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onShowRegister, o
   return (
     <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="apple-modal-card bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-2">{recoveryMode ? 'Reset your password' : 'Login to FYC Marketplace'}</h2>
+        <h2 className="text-xl font-bold mb-2">{recoveryMode ? 'Reset your password' : 'Login to Campus Cart'}</h2>
         {recoveryMode && <p className="text-sm text-gray-600 mb-4">Enter your account email and we’ll send a secure, single-use reset link.</p>}
         {error && <p className="text-red-600 mb-4">{error}</p>}
         <input

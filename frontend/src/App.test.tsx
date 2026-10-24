@@ -4,5 +4,5 @@ import App from './App';
 
 test('renders the marketplace shell', () => {
   render(<App />);
-  expect(screen.getByRole('heading', { name: /FYC Marketplace/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /Campus Cart/i })).toBeInTheDocument();
 });

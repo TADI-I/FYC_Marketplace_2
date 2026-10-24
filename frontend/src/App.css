@@ -1,4 +1,4 @@
-/* FYC Marketplace - editorial operating-system theme */
+/* Campus Cart - editorial operating-system theme */
 
 /* CSS Variables and Base Styles */
 :root {
@@ -1084,12 +1084,39 @@ html.dark body {
   min-width: 0;
 }
 
-.app-header img {
-  width: 2.7rem;
-  height: 2.7rem;
-  flex: 0 0 2.7rem;
-  border-radius: 6px;
-  box-shadow: 0 0 0 1px rgba(251, 250, 246, .16), 0 12px 24px -18px rgba(216, 255, 79, .9);
+.app-header h1.brand-heading {
+  display: flex;
+  align-items: center;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0 .35rem;
+  overflow: visible;
+  border-radius: .65rem;
+  background: #fff;
+}
+
+.app-header .brand-logo {
+  width: clamp(9.5rem, 16vw, 12rem);
+  height: auto;
+  max-height: 4rem;
+  flex: 0 0 auto;
+  border-radius: 0;
+  filter: none;
+  box-shadow: none;
+  object-fit: contain;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .app-header h1 {
@@ -3175,15 +3202,11 @@ html.dark .profile-trigger {
     min-width: 0;
   }
 
-  .brand-lockup img,
-  .app-header img {
-    width: 2rem !important;
-    height: 2rem !important;
-    border-radius: 8px !important;
-  }
+  .app-header h1.brand-heading { max-width: none !important; padding: 0 .15rem; }
+  .app-header .brand-logo { width: 8.6rem !important; height: auto !important; max-height: 3.25rem; }
 
   .app-header h1 {
-    max-width: 5.25rem !important;
+    max-width: 7.5rem !important;
     font-size: .95rem !important;
     line-height: 1.05 !important;
     white-space: nowrap;

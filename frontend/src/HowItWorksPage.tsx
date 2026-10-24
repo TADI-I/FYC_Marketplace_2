@@ -8,7 +8,7 @@ interface HowItWorksPageProps {
 const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
   return (
     <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem' }}>
-      <button 
+      <button
         onClick={onBack}
         style={{
           backgroundColor: '#10110f',
@@ -32,12 +32,12 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
 
       <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '2rem' }}>
         <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1.5rem' }}>
-          How FYC Marketplace Works
+          How Campus Cart Works
         </h1>
-        
+
         <p style={{ fontSize: '1.125rem', color: '#3e403a', marginBottom: '2rem' }}>
-          FYC Marketplace makes buying and selling student essentials simple, safe, and affordable. 
-          Whether you're a buyer looking for textbooks or a seller wanting to make extra money, 
+          Campus Cart makes buying and selling student essentials simple, safe, and affordable.
+          Whether you're a buyer looking for textbooks or a seller wanting to make extra money,
           follow these easy steps to get started.
         </p>
 
@@ -72,8 +72,8 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Create a Free Account
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Sign up with your email address and select your campus location. Registration is 
-                    completely free for buyers, and you'll have immediate access to thousands of student 
+                    Sign up with your email address and select your campus location. Registration is
+                    completely free for buyers, and you'll have immediate access to thousands of student
                     listings across South Africa.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
@@ -106,9 +106,9 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Search for Items
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Use our search bar to find specific textbooks, electronics, or services. Filter results 
-                    by category (books, electronics, services, etc.) and campus location to find items 
-                    available near you. This makes it easy to arrange quick pick-ups without expensive 
+                    Use our search bar to find specific textbooks, electronics, or services. Filter results
+                    by category (books, electronics, services, etc.) and campus location to find items
+                    available near you. This makes it easy to arrange quick pick-ups without expensive
                     shipping costs.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
@@ -141,12 +141,12 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Contact the Seller
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Found something you like? Click the "WhatsApp Me" button on any listing to contact 
-                    the seller directly. You can ask questions about the item's condition, negotiate the 
+                    Found something you like? Click the "WhatsApp Me" button on any listing to contact
+                    the seller directly. You can ask questions about the item's condition, negotiate the
                     price, and arrange a safe meeting location – all through WhatsApp.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                    <strong>Safety Tip:</strong> Always meet in public campus locations like libraries 
+                    <strong>Safety Tip:</strong> Always meet in public campus locations like libraries
                     or cafeterias. Look for verified seller badges for added trust.
                   </p>
                 </div>
@@ -176,12 +176,12 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Complete Your Purchase
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Arrange payment and item collection with the seller. Most transactions happen in 
-                    person on campus, making it safe and convenient. Always inspect items before paying, 
+                    Arrange payment and item collection with the seller. Most transactions happen in
+                    person on campus, making it safe and convenient. Always inspect items before paying,
                     and confirm everything matches the listing description.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                    <strong>Tip:</strong> Bring exact change or use digital payment methods like PayShap 
+                    <strong>Tip:</strong> Bring exact change or use digital payment methods like PayShap
                     or EFT for convenience.
                   </p>
                 </div>
@@ -226,7 +226,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     monthly fee gives you access to thousands of potential buyers across multiple campuses.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                    <strong>Note:</strong> Provide your WhatsApp number during registration so buyers 
+                    <strong>Note:</strong> Provide your WhatsApp number during registration so buyers
                     can contact you easily.
                   </p>
                 </div>
@@ -256,13 +256,13 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Create Your Listing
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Click "Add Listing" to create a new product or service listing. Add a clear title, 
-                    detailed description, fair price, and high-quality photos. Be specific about the 
-                    item's condition, location, and any delivery options you offer. The more details you 
+                    Click "Add Listing" to create a new product or service listing. Add a clear title,
+                    detailed description, fair price, and high-quality photos. Be specific about the
+                    item's condition, location, and any delivery options you offer. The more details you
                     provide, the more trust you build with potential buyers.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                    <strong>Tip:</strong> Take well-lit photos from multiple angles and mention any defects 
+                    <strong>Tip:</strong> Take well-lit photos from multiple angles and mention any defects
                     honestly to avoid disputes later.
                   </p>
                 </div>
@@ -292,12 +292,12 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Respond to Buyers
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    When buyers contact you via WhatsApp, respond promptly and professionally. Answer 
-                    their questions honestly, negotiate prices fairly, and arrange safe meeting locations 
+                    When buyers contact you via WhatsApp, respond promptly and professionally. Answer
+                    their questions honestly, negotiate prices fairly, and arrange safe meeting locations
                     on campus. Quick responses and good communication help you sell faster.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                    <strong>Safety Tip:</strong> Always meet in public campus areas and bring a friend 
+                    <strong>Safety Tip:</strong> Always meet in public campus areas and bring a friend
                     if possible, especially for high-value items.
                   </p>
                 </div>
@@ -327,13 +327,13 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                     Get Verified (Optional)
                   </h3>
                   <p style={{ color: '#3e403a', marginBottom: '0.75rem' }}>
-                    Boost buyer confidence by becoming a verified seller! Upload a photo of yourself 
-                    holding your student ID, and our admin team will review it within 24-48 hours. 
-                    Verified sellers get a special badge on their listings, appear first in search 
+                    Boost buyer confidence by becoming a verified seller! Upload a photo of yourself
+                    holding your student ID, and our admin team will review it within 24-48 hours.
+                    Verified sellers get a special badge on their listings, appear first in search
                     results, and earn more trust from buyers.
                   </p>
                   <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                    <strong>Benefit:</strong> Verified sellers typically sell items 50% faster than 
+                    <strong>Benefit:</strong> Verified sellers typically sell items 50% faster than
                     unverified sellers.
                   </p>
                 </div>
@@ -367,7 +367,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
                 R25<span style={{ fontSize: '1.125rem' }}>/month</span>
               </p>
               <p style={{ color: '#74756f' }}>
-                List unlimited products and services, manage your inventory, and connect with thousands 
+                List unlimited products and services, manage your inventory, and connect with thousands
                 of buyers across all campuses.
               </p>
             </div>
@@ -406,9 +406,9 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack }) => {
         }}>
           <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1rem' }}>Ready to Get Started?</h2>
           <p style={{ fontSize: '1.125rem', marginBottom: '1.5rem' }}>
-            Join thousands of first-year students already buying and selling on FYC Marketplace!
+            Join varsity students buying and selling on Campus Cart.
           </p>
-          <button 
+          <button
             onClick={onBack}
             style={{
               backgroundColor: 'white',

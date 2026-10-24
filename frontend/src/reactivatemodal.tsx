@@ -57,7 +57,7 @@ const ReactivateModal: React.FC<ReactivateModalProps> = ({ isOpen, onClose, user
               <b>Branch Code:</b> 250655
             </p>
             <p className="font-mono text-sm mt-2">
-              <b>Reference:</b> Your registered email + FYC
+              <b>Reference:</b> Your registered email + CampusCart
             </p>
           </div>
         </div>

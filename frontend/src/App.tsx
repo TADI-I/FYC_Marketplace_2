@@ -21,7 +21,7 @@ import {
 import { Analytics, track } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { User, Product, SellerOffer, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber, userIdentifier } from './types';
-import logo from './assets/facicon.jpeg';
+import campusCartLogo from './assets/campus-cart-logo.png';
 import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
 import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
 import EmailActionHandler from './EmailActionHandler';
@@ -229,26 +229,26 @@ const App = () => {
 
   useEffect(() => {
     const titles: Record<AppView, string> = {
-      home: 'FYC Marketplace',
-      'add-product': 'Create Listing | FYC Marketplace',
-      'my-products': 'Manage Products | FYC Marketplace',
-      'my-profile': 'Profile | FYC Marketplace',
-      messages: 'Messages | FYC Marketplace',
-      'admin-reactivation': 'Admin Reactivation | FYC Marketplace',
-      about: 'About | FYC Marketplace',
-      'how-it-works': 'How It Works | FYC Marketplace',
-      faq: 'FAQ | FYC Marketplace',
-      contact: 'Contact | FYC Marketplace',
-      terms: 'Terms | FYC Marketplace',
-      privacy: 'Privacy | FYC Marketplace',
-      'not-found': 'Page Not Found | FYC Marketplace'
+      home: 'Campus Cart',
+      'add-product': 'Create Listing | Campus Cart',
+      'my-products': 'Manage Products | Campus Cart',
+      'my-profile': 'Profile | Campus Cart',
+      messages: 'Messages | Campus Cart',
+      'admin-reactivation': 'Admin Reactivation | Campus Cart',
+      about: 'About | Campus Cart',
+      'how-it-works': 'How It Works | Campus Cart',
+      faq: 'FAQ | Campus Cart',
+      contact: 'Contact | Campus Cart',
+      terms: 'Terms | Campus Cart',
+      privacy: 'Privacy | Campus Cart',
+      'not-found': 'Page Not Found | Campus Cart'
     };
     document.title = route.modal === 'login'
-      ? 'Login | FYC Marketplace'
+      ? 'Login | Campus Cart'
       : route.modal === 'register'
-        ? 'Register | FYC Marketplace'
+        ? 'Register | Campus Cart'
         : route.productId
-          ? 'Listing | FYC Marketplace'
+          ? 'Listing | Campus Cart'
           : titles[route.view];
   }, [route]);
 
@@ -642,7 +642,7 @@ const App = () => {
         const shareUrl = marketplaceProductUrl(cleanProductId);
         track('marketplace_listing_shared', { product_id: cleanProductId });
         if (navigator.share) {
-          await navigator.share({ url: shareUrl, title: `${product.title} - R${product.price}`, text: `Check out "${product.title}" on FYC Marketplace` });
+          await navigator.share({ url: shareUrl, title: `${product.title} - R${product.price}`, text: `Check out "${product.title}" on Campus Cart` });
         } else {
           await navigator.clipboard.writeText(shareUrl);
           showNotification({
@@ -796,8 +796,10 @@ const App = () => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="brand-lockup flex items-center space-x-4 cursor-pointer" onClick={() => setCurrentView('home')}>
-              <img className="h-8 w-8" src={logo} alt="FYC Marketplace Logo" loading="eager" />
-              <h1 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>FYC Marketplace</h1>
+              <h1 className="brand-heading">
+                <img className="brand-logo" src={campusCartLogo} alt="" loading="eager" />
+                <span className="visually-hidden">Campus Cart</span>
+              </h1>
             </div>
 
             {currentUser ? (

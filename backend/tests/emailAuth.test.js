@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 process.env.JWT_SECRET = 'test-only-jwt-secret-with-32-characters';
 process.env.RESEND_API_KEY = 're_test-only-not-a-live-key';
-process.env.EMAIL_FROM = 'FYC Marketplace <marketplace@example.test>';
+process.env.EMAIL_FROM = 'Campus Cart <marketplace@example.test>';
 process.env.FRONTEND_URL = 'https://marketplace.example.test';
 process.env.EMAIL_DELIVERY_DISABLED = 'true';
 

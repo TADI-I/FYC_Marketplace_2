@@ -9,7 +9,7 @@ interface TermsPageProps {
 const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
   return (
     <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem' }}>
-      <button 
+      <button
         onClick={onBack}
         style={{
           backgroundColor: '#10110f',
@@ -38,10 +38,10 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
         <p style={{ fontSize: '0.875rem', color: '#74756f', marginBottom: '2rem' }}>
           Last Updated: February 4, 2026
         </p>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#3e403a' }}>
           <p style={{ fontSize: '1.125rem' }}>
-            Welcome to FYC Marketplace. By accessing or using our platform, you agree to be bound by 
+            Welcome to Campus Cart. By accessing or using our platform, you agree to be bound by
             these Terms of Service. Please read them carefully before using our services.
           </p>
 
@@ -50,9 +50,9 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               1. Acceptance of Terms
             </h2>
             <p>
-              By creating an account on FYC Marketplace, you agree to comply with and be legally bound 
-              by these Terms of Service. If you do not agree with any part of these terms, you may not 
-              use our platform. We reserve the right to modify these terms at any time, and continued 
+              By creating an account on Campus Cart, you agree to comply with and be legally bound
+              by these Terms of Service. If you do not agree with any part of these terms, you may not
+              use our platform. We reserve the right to modify these terms at any time, and continued
               use of the platform constitutes acceptance of any changes.
             </p>
           </div>
@@ -62,9 +62,9 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               2. Eligibility
             </h2>
             <p>
-              FYC Marketplace is designed for first-year students at participating South African universities 
-              and colleges. You must be at least 18 years old or have parental consent to use this platform. 
-              By registering, you confirm that all information provided is accurate and truthful. We reserve 
+              Campus Cart is designed for students at participating South African universities
+              and colleges. You must be at least 18 years old or have parental consent to use this platform.
+              By registering, you confirm that all information provided is accurate and truthful. We reserve
               the right to verify your student status at any time.
             </p>
           </div>
@@ -79,10 +79,10 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               <li>All activities that occur under your account</li>
               <li>Notifying us immediately of any unauthorized use of your account</li>
               <li>Ensuring your contact information (email, WhatsApp) remains current</li>
-              <li>Complying with all applicable laws when using FYC Marketplace</li>
+              <li>Complying with all applicable laws when using Campus Cart</li>
             </ul>
             <p style={{ marginTop: '0.5rem' }}>
-              FYC Marketplace is not responsible for any losses resulting from unauthorized use of your account.
+              Campus Cart is not responsible for any losses resulting from unauthorized use of your account.
             </p>
           </div>
 
@@ -90,7 +90,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '0.75rem' }}>
               4. User Content and Listings
             </h2>
-            <p>When creating listings or posting content on FYC Marketplace:</p>
+            <p>When creating listings or posting content on Campus Cart:</p>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>You retain ownership of your content but grant us a license to display it on our platform</li>
               <li>You must ensure all product descriptions, images, and prices are accurate and truthful</li>
@@ -114,7 +114,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
               <li>Use automated tools (bots, scrapers) to access or interact with the platform</li>
               <li>Post spam, advertisements for competing platforms, or irrelevant content</li>
-              <li>Interfere with the proper functioning of FYC Marketplace</li>
+              <li>Interfere with the proper functioning of Campus Cart</li>
             </ul>
             <p style={{ marginTop: '0.5rem' }}>
               Violation of these prohibitions may result in immediate account suspension or termination.
@@ -126,13 +126,13 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               6. Seller Subscriptions and Payments
             </h2>
             <p>
-              Sellers must maintain an active R25 monthly subscription to list products or services. 
-              Subscription fees are non-refundable except as required by law. If your subscription lapses, 
-              your listings will be hidden until reactivation. We reserve the right to change subscription 
+              Sellers must maintain an active R25 monthly subscription to list products or services.
+              Subscription fees are non-refundable except as required by law. If your subscription lapses,
+              your listings will be hidden until reactivation. We reserve the right to change subscription
               pricing with 30 days' notice to active subscribers.
             </p>
             <p style={{ marginTop: '0.5rem' }}>
-              Payment must be made via approved methods (PayShap, bank transfer). You are responsible for 
+              Payment must be made via approved methods (PayShap, bank transfer). You are responsible for
               providing proof of payment and ensuring payments are processed correctly.
             </p>
           </div>
@@ -142,12 +142,12 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               7. Transactions Between Users
             </h2>
             <p>
-              FYC Marketplace is a platform that facilitates connections between buyers and sellers. 
-              We do not process payments, ship items, or guarantee the quality or legality of products listed. 
+              Campus Cart is a platform that facilitates connections between buyers and sellers.
+              We do not process payments, ship items, or guarantee the quality or legality of products listed.
               All transactions occur directly between users. By using our platform, you acknowledge that:
             </p>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>FYC Marketplace is not a party to any transaction between users</li>
+              <li>Campus Cart is not a party to any transaction between users</li>
               <li>We are not responsible for the quality, safety, or legality of items listed</li>
               <li>We do not guarantee that sellers will fulfill their commitments</li>
               <li>You engage in transactions at your own risk</li>
@@ -160,7 +160,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               8. Safety and Security
             </h2>
             <p>
-              While we strive to maintain a safe platform, we cannot guarantee the behavior of all users. 
+              While we strive to maintain a safe platform, we cannot guarantee the behavior of all users.
               You are responsible for your own safety when meeting other users. We strongly recommend:
             </p>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -177,8 +177,8 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               9. Intellectual Property
             </h2>
             <p>
-              All content on FYC Marketplace, including logos, designs, text, graphics, and software, 
-              is owned by FYC Marketplace or its licensors and is protected by copyright and trademark laws. 
+              All content on Campus Cart, including logos, designs, text, graphics, and software,
+              is owned by Campus Cart or its licensors and is protected by copyright and trademark laws.
               You may not use our intellectual property without prior written permission.
             </p>
           </div>
@@ -188,9 +188,9 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               10. Limitation of Liability
             </h2>
             <p>
-              To the fullest extent permitted by law, FYC Marketplace and its operators shall not be liable 
-              for any indirect, incidental, special, or consequential damages arising from your use of the 
-              platform, including but not limited to loss of profits, data, or goodwill. Our total liability 
+              To the fullest extent permitted by law, Campus Cart and its operators shall not be liable
+              for any indirect, incidental, special, or consequential damages arising from your use of the
+              platform, including but not limited to loss of profits, data, or goodwill. Our total liability
               shall not exceed the amount you paid for seller subscription fees in the past 12 months.
             </p>
           </div>
@@ -200,8 +200,8 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               11. Indemnification
             </h2>
             <p>
-              You agree to indemnify and hold harmless FYC Marketplace, its operators, employees, and affiliates 
-              from any claims, damages, losses, or expenses (including legal fees) arising from your use of the 
+              You agree to indemnify and hold harmless Campus Cart, its operators, employees, and affiliates
+              from any claims, damages, losses, or expenses (including legal fees) arising from your use of the
               platform, your violation of these terms, or your violation of any rights of another party.
             </p>
           </div>
@@ -211,9 +211,9 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               12. Account Termination
             </h2>
             <p>
-              We reserve the right to suspend or terminate your account at any time for any reason, including 
-              but not limited to violations of these terms, fraudulent activity, or abusive behavior. Upon 
-              termination, your right to use the platform ceases immediately, and we may delete your account 
+              We reserve the right to suspend or terminate your account at any time for any reason, including
+              but not limited to violations of these terms, fraudulent activity, or abusive behavior. Upon
+              termination, your right to use the platform ceases immediately, and we may delete your account
               data without notice.
             </p>
           </div>
@@ -223,8 +223,8 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               13. Governing Law
             </h2>
             <p>
-              These Terms of Service are governed by the laws of the Republic of South Africa. Any disputes 
-              arising from these terms or your use of FYC Marketplace shall be resolved in the courts of 
+              These Terms of Service are governed by the laws of the Republic of South Africa. Any disputes
+              arising from these terms or your use of Campus Cart shall be resolved in the courts of
               South Africa. By using our platform, you consent to the jurisdiction of these courts.
             </p>
           </div>
@@ -234,8 +234,8 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               14. Changes to Terms
             </h2>
             <p>
-              We may modify these Terms of Service at any time by posting updated terms on the platform. 
-              Your continued use after changes are posted constitutes acceptance of the modified terms. 
+              We may modify these Terms of Service at any time by posting updated terms on the platform.
+              Your continued use after changes are posted constitutes acceptance of the modified terms.
               We will notify users of significant changes via email or platform notifications.
             </p>
           </div>
@@ -262,7 +262,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
             marginTop: '2rem'
           }}>
             <p style={{ fontWeight: '600', color: '#10110f', margin: 0 }}>
-              By using FYC Marketplace, you acknowledge that you have read, understood, and agree to be 
+              By using Campus Cart, you acknowledge that you have read, understood, and agree to be
               bound by these Terms of Service.
             </p>
           </div>

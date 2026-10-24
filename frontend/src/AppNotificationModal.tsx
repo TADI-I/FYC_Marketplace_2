@@ -39,7 +39,7 @@ export const showConfirmation = (
 });
 
 const notificationPresentation = {
-  success: { Icon: CheckCircle2, eyebrow: 'FYC Marketplace' },
+  success: { Icon: CheckCircle2, eyebrow: 'Campus Cart' },
   error: { Icon: XCircle, eyebrow: 'Something went wrong' },
   warning: { Icon: AlertTriangle, eyebrow: 'Attention needed' },
   info: { Icon: Info, eyebrow: 'Marketplace update' }

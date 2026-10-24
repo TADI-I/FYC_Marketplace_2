@@ -91,7 +91,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
       showNotification({
         type: 'success',
-        title: `Welcome to FYC Marketplace, ${response.user.name}`,
+        title: `Welcome to Campus Cart, ${response.user.name}`,
         message: accountType === 'seller'
           ? 'Your seller profile is ready. Subscribe for R25/month, or claim an eligible offer when one appears.'
           : 'Your buyer account is ready. You can start exploring the marketplace.',
@@ -115,7 +115,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
     <div className="apple-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="apple-modal-card bg-white rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">
-          Register for FYC Marketplace
+          Register for Campus Cart
         </h2>
 
         <input

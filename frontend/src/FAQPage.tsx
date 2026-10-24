@@ -19,13 +19,13 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
   const faqs: FAQItem[] = [
     {
       category: 'getting-started',
-      question: 'How do I create an account on FYC Marketplace?',
+      question: 'How do I create an account on Campus Cart?',
       answer: 'Creating an account is simple and free! Click the "Register" button in the top right corner, fill in your name, email, campus location, and password. Choose "Buyer" if you only want to browse and purchase items, or "Seller" if you plan to list products or services. Seller promotions are shown as separate offers and begin only when you claim them.'
     },
     {
       category: 'getting-started',
-      question: 'Is FYC Marketplace free to use?',
-      answer: 'Yes! For buyers, FYC Marketplace is completely free – no registration fees, browsing fees, or transaction fees. You can search, browse, and contact sellers without paying anything. Standard seller access costs R25 per month. Eligible sellers may also receive claimable free-period or discount offers.'
+      question: 'Is Campus Cart free to use?',
+      answer: 'Yes! For buyers, Campus Cart is completely free – no registration fees, browsing fees, or transaction fees. You can search, browse, and contact sellers without paying anything. Standard seller access costs R25 per month. Eligible sellers may also receive claimable free-period or discount offers.'
     },
     {
       category: 'buying',
@@ -34,8 +34,8 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     },
     {
       category: 'buying',
-      question: 'How do I pay for items on FYC Marketplace?',
-      answer: 'FYC Marketplace does not process payments directly. All payments are arranged between you and the seller privately. Most students use cash for in-person transactions, but you can also use digital payment methods like PayShap, EFT, bank transfers, or mobile wallets. We recommend using traceable payment methods for your safety. Always inspect items before paying, and never send money before seeing the item in person.'
+      question: 'How do I pay for items on Campus Cart?',
+      answer: 'Campus Cart does not process payments directly. All payments are arranged between you and the seller privately. Most students use cash for in-person transactions, but you can also use digital payment methods like PayShap, EFT, bank transfers, or mobile wallets. We recommend using traceable payment methods for your safety. Always inspect items before paying, and never send money before seeing the item in person.'
     },
     {
       category: 'buying',
@@ -49,7 +49,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     },
     {
       category: 'selling',
-      question: 'How do I become a seller on FYC Marketplace?',
+      question: 'How do I become a seller on Campus Cart?',
       answer: 'You can register as a Seller or register as a Buyer and later choose Profile → Become a Seller. No admin approval is required. Standard access is R25 per month. If you are eligible for a promotion, the marketplace shows a separate offer that you must claim before its free period or discount begins.'
     },
     {
@@ -74,7 +74,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     },
     {
       category: 'safety',
-      question: 'Is it safe to meet strangers from FYC Marketplace?',
+      question: 'Is it safe to meet strangers from Campus Cart?',
       answer: 'Safety is our top priority! Always meet in public campus locations like libraries, cafeterias, or student centers during daylight hours. Bring a friend along for high-value transactions. Never share personal information like your home address or meet in isolated areas. Inspect items carefully before paying, and trust your instincts – if something feels wrong, walk away. Look for verified seller badges for added confidence. Most users are fellow students, but it\'s important to stay cautious.'
     },
     {
@@ -84,8 +84,8 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     },
     {
       category: 'technical',
-      question: 'Which campuses are supported by FYC Marketplace?',
-      answer: 'FYC Marketplace currently supports the following campus locations: Pretoria Central, Soshanguve South, Soshanguve North, Ga-Rankuwa, Pretoria Arcadia, Arts Campus, eMalahleni, Mbombela, and Polokwane. When creating your account or listing items, select your campus from the dropdown menu. This helps buyers find items available near them for easy collection. We\'re constantly expanding to new campuses based on student demand.'
+      question: 'Which campuses are supported by Campus Cart?',
+      answer: 'Campus Cart currently supports the following campus locations: Pretoria Central, Soshanguve South, Soshanguve North, Ga-Rankuwa, Pretoria Arcadia, Arts Campus, eMalahleni, Mbombela, and Polokwane. When creating your account or listing items, select your campus from the dropdown menu. This helps buyers find items available near them for easy collection. We\'re constantly expanding to new campuses based on student demand.'
     },
     {
       category: 'technical',
@@ -108,8 +108,8 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     { id: 'technical', name: 'Technical Issues' }
   ];
 
-  const filteredFaqs = selectedCategory === 'all' 
-    ? faqs 
+  const filteredFaqs = selectedCategory === 'all'
+    ? faqs
     : faqs.filter(faq => faq.category === selectedCategory);
 
   const toggleFaq = (index: number) => {
@@ -118,7 +118,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
 
   return (
     <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem' }}>
-      <button 
+      <button
         onClick={onBack}
         style={{
           backgroundColor: '#10110f',
@@ -150,7 +150,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
           Frequently Asked Questions
         </h1>
         <p style={{ fontSize: '1.125rem', color: '#3e403a', marginBottom: '2rem' }}>
-          Find answers to common questions about FYC Marketplace. Can't find what you're looking for? 
+          Find answers to common questions about Campus Cart. Can't find what you're looking for?
           Contact us on WhatsApp at <a href={supportWhatsAppUrl()} style={{ color: '#10110f', textDecoration: 'underline', fontWeight: '600' }}>{SITE_CONTACT.supportPhoneDisplay}</a>.
         </p>
 
@@ -159,7 +159,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
           <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#3e403a', marginBottom: '0.75rem' }}>
             Filter by Category:
           </h3>
-          <div style={{ 
+          <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
             gap: '0.5rem'
@@ -284,11 +284,11 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             Still Have Questions?
           </h2>
           <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
-            Our support team is here to help! Reach out to us on WhatsApp for quick assistance 
-            with any issues or questions about FYC Marketplace.
+            Our support team is here to help! Reach out to us on WhatsApp for quick assistance
+            with any issues or questions about Campus Cart.
           </p>
           <a
-            href={supportWhatsAppUrl('Hi, I have a question about FYC Marketplace')}
+            href={supportWhatsAppUrl('Hi, I have a question about Campus Cart')}
             target="_blank"
             rel="noopener noreferrer"
             style={{

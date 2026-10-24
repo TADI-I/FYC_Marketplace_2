@@ -95,7 +95,7 @@ exports.serveProductPage = async (req, res, db) => {
   <meta property="og:image:alt" content="${escapeHtml(product.title)}" />
   <meta property="og:url" content="${shareUrl}" />
   <meta property="og:type" content="product" />
-  <meta property="og:site_name" content="FYC Marketplace" />
+  <meta property="og:site_name" content="Campus Cart" />
   <meta property="og:locale" content="en_ZA" />
   
   <!-- Product Open Graph tags -->
@@ -108,7 +108,7 @@ exports.serveProductPage = async (req, res, db) => {
   <meta name="twitter:description" content="${escapeHtml(product.description)}" />
   <meta name="twitter:image" content="${imageUrl}" />
   
-  <title>${escapeHtml(product.title)} | FYC Marketplace</title>
+  <title>${escapeHtml(product.title)} | Campus Cart</title>
   
   <script>
     console.log('🔄 Redirecting to frontend:', '${redirectUrl}');
@@ -170,7 +170,7 @@ exports.serveProductPage = async (req, res, db) => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Error - FYC Marketplace</title>
+        <title>Error - Campus Cart</title>
         <meta http-equiv="refresh" content="3; url=${frontendUrl}">
         <style>
           body {

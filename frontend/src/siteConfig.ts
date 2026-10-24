@@ -7,7 +7,7 @@ export const SITE_CONTACT = {
   marketplaceWebsite: process.env.REACT_APP_MARKETPLACE_WEBSITE || 'https://marketplace.lbgsoftware.co.za'
 };
 
-export const supportWhatsAppUrl = (message = 'Hi, I need support with FYC Marketplace') =>
+export const supportWhatsAppUrl = (message = 'Hi, I need support with Campus Cart') =>
   `https://wa.me/${SITE_CONTACT.supportPhoneDigits}?text=${encodeURIComponent(message)}`;
 
 export const marketplaceProductUrl = (productId: string | number) =>
