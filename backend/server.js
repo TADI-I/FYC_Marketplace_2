@@ -103,6 +103,8 @@ async function connectToMongoDB() {
       await db.collection('sellerSubscriptions').createIndex({ userId: 1, expiresAt: -1 });
       await db.collection('sellerSubscriptions').createIndex({ paymentOrderId: 1 }, { unique: true, sparse: true });
       await db.collection('emailNotificationEvents').createIndex({ eventKey: 1 }, { unique: true });
+      await db.collection('messages').createIndex({ conversationId: 1, productId: 1, createdAt: 1 });
+      await db.collection('messages').createIndex({ receiverId: 1, read: 1, createdAt: 1 });
     } catch (indexError) {
       console.log('Some indexes already exist');
     }
@@ -663,6 +665,8 @@ app.get('/api/products/:id/image', async (req, res) => {
 });
 
 // Message routes
+app.get('/api/messages', authenticateToken, (req, res) => messageController.getConversations(req, res, req.db));
+app.patch('/api/messages/:conversationId/read', authenticateToken, (req, res) => messageController.markMessagesAsRead(req, res, req.db));
 app.get('/api/messages/:conversationId', authenticateToken, (req, res) => messageController.getMessages(req, res, req.db));
 app.post('/api/messages', authenticateToken, messageRateLimit, (req, res) => messageController.sendMessage(req, res, req.db));
 

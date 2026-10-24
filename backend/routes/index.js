@@ -122,6 +122,8 @@ module.exports = (db) => {
   router.delete('/products/:id', authenticateToken, validateObjectId('id'), withOwnershipCheck('product'), withDb(productController.deleteProduct));
 
   // Message routes
+  router.get('/messages', authenticateToken, withDb(messageController.getConversations));
+  router.patch('/messages/:conversationId/read', authenticateToken, withDb(messageController.markMessagesAsRead));
   router.get('/messages/:conversationId', authenticateToken, withDb(messageController.getMessages));
   router.post('/messages', authenticateToken, withDb(messageController.sendMessage));
 

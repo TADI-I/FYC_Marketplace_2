@@ -337,10 +337,10 @@ export const deleteProduct = async (productId) => {
 // MESSAGE API FUNCTIONS
 // ==============================================
 
-export const getMessages = async (conversationId) => {
+export const getMessages = async (conversationId, productId, participantId) => {
   try {
-    const response = await apiCall(`/api/messages/${conversationId}`);
-    return response.messages || [];
+    const params = new URLSearchParams({ productId: String(productId), participantId: String(participantId) });
+    return await apiCall(`/api/messages/${conversationId}?${params.toString()}`);
   } catch (error) {
     console.error('❌ Failed to get messages:', error);
     throw error;
@@ -359,6 +359,23 @@ export const sendMessage = async (messageData) => {
   } catch (error) {
     console.error('❌ Failed to send message:', error);
     throw error;
+  }
+};
+
+export const getConversations = async () => apiCall('/api/messages');
+
+export const markMessagesAsRead = async (conversationId, productId) => apiCall(
+  `/api/messages/${conversationId}/read`,
+  { method: 'PATCH', body: JSON.stringify({ productId }) }
+);
+
+export const getUnreadMessageCount = async () => {
+  try {
+    const response = await getConversations();
+    return Number(response.unreadCount || 0);
+  } catch (error) {
+    console.error('Failed to get unread message count:', error);
+    return 0;
   }
 };
 
@@ -569,161 +586,6 @@ export const testConnection = async () => {
 export const generateConversationId = (userId1, userId2) => {
   const ids = [userId1, userId2].sort();
   return `${ids[0]}-${ids[1]}`;
-};
-
-// Mock message functions (fallback)
-let messagesDB = [
-  {
-    id: 1,
-    senderId: 1,
-    receiverId: 2,
-    text: "Hi there! Is this item still available?",
-    timestamp: "2024-01-15T10:30:00Z",
-    read: true
-  },
-  {
-    id: 2,
-    senderId: 2,
-    receiverId: 1,
-    text: "Yes, it's still available!",
-    timestamp: "2024-01-15T10:35:00Z",
-    read: true
-  },
-  {
-    id: 3,
-    senderId: 1,
-    receiverId: 2,
-    text: "Great! Can we meet on campus tomorrow?",
-    timestamp: "2024-01-15T10:40:00Z",
-    read: false
-  }
-];
-
-let nextMessageId = 4;
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-const sendMockMessage = async (messageData) => {
-  await delay(500);
-
-  try {
-    if (!messageData.senderId || !messageData.receiverId || !messageData.text.trim()) {
-      throw new Error('Missing required message fields');
-    }
-
-    const newMessage = {
-      id: nextMessageId++,
-      senderId: messageData.senderId,
-      receiverId: messageData.receiverId,
-      text: messageData.text.trim(),
-      timestamp: messageData.timestamp || new Date().toISOString(),
-      read: false
-    };
-
-    messagesDB.push(newMessage);
-    console.log('✅ Mock message sent:', newMessage);
-    return newMessage;
-
-  } catch (error) {
-    console.error('❌ Failed to send mock message:', error);
-    throw new Error(error.message || 'Failed to send message');
-  }
-};
-
-const getMockMessages = async (conversationId) => {
-  await delay(300);
-
-  try {
-    const [userId1, userId2] = conversationId.split('-').map(Number);
-    
-    const conversationMessages = messagesDB.filter(message =>
-      (message.senderId === userId1 && message.receiverId === userId2) ||
-      (message.senderId === userId2 && message.receiverId === userId1)
-    );
-
-    const sortedMessages = conversationMessages.sort((a, b) => 
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-
-    return sortedMessages;
-
-  } catch (error) {
-    console.error('❌ Failed to get mock messages:', error);
-    return [];
-  }
-};
-
-export const getConversations = async (userId) => {
-  await delay(400);
-
-  try {
-    const conversationPartners = new Set();
-    
-    messagesDB.forEach(message => {
-      if (message.senderId === userId) conversationPartners.add(message.receiverId);
-      if (message.receiverId === userId) conversationPartners.add(message.senderId);
-    });
-
-    const conversations = Array.from(conversationPartners).map(partnerId => {
-      const messagesWithPartner = messagesDB.filter(msg =>
-        (msg.senderId === userId && msg.receiverId === partnerId) ||
-        (msg.senderId === partnerId && msg.receiverId === userId)
-      );
-
-      const lastMessage = messagesWithPartner.reduce((latest, current) => 
-        new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest
-      );
-
-      const unreadCount = messagesWithPartner.filter(msg => 
-        msg.receiverId === userId && !msg.read
-      ).length;
-
-      return {
-        userId: partnerId,
-        lastMessage,
-        unreadCount
-      };
-    });
-
-    return conversations.sort((a, b) => 
-      new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime()
-    );
-
-  } catch (error) {
-    console.error('❌ Failed to get conversations:', error);
-    throw new Error('Failed to load conversations');
-  }
-};
-
-export const markMessagesAsRead = async (userId, partnerId) => {
-  await delay(200);
-
-  try {
-    messagesDB = messagesDB.map(message => {
-      if (message.senderId === partnerId && message.receiverId === userId && !message.read) {
-        return { ...message, read: true };
-      }
-      return message;
-    });
-  } catch (error) {
-    console.error('❌ Failed to mark messages as read:', error);
-    throw new Error('Failed to mark messages as read');
-  }
-};
-
-export const getUnreadMessageCount = async (userId) => {
-  await delay(100);
-
-  try {
-    const unreadMessages = messagesDB.filter(message => 
-      message.receiverId === userId && !message.read
-    );
-    
-    return unreadMessages.length;
-  } catch (error) {
-    console.error('❌ Failed to get unread message count:', error);
-    return 0;
-  }
 };
 
 export async function requestUpgrade(userId) {

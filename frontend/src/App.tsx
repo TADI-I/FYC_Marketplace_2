@@ -19,13 +19,14 @@ import {
 } from 'lucide-react';
 import { Analytics, track } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { User, Product, Message, MessageMap, SellerOffer, conversationIdentifier, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber, userIdentifier } from './types';
+import { User, Product, SellerOffer, getImageUrl as getProductImageUrl, normalizeSAPhoneNumber, userIdentifier } from './types';
 import logo from './assets/facicon.jpeg';
 import { SellerOfferModal, SellerOfferSuccessModal } from './SellerOfferModal';
 import { NOTIFICATION_VISIBILITY_EVENT, showNotification } from './AppNotificationModal';
 import EmailActionHandler from './EmailActionHandler';
 import { AppView, pathForView, resolveAppRoute } from './navigation';
 import LocationDiscovery, { BuyerLocation } from './LocationDiscovery';
+import ContactSellerModal from './ContactSellerModal';
 
 import './App.css';
 import {
@@ -44,6 +45,7 @@ const LoginForm = lazy(() => import('./LoginForm'));
 const RegisterForm = lazy(() => import('./RegisterForm'));
 const AddProductForm = lazy(() => import('./AddProduct'));
 const ChatWindow = lazy(() => import('./ChatWindow'));
+const MessagesPage = lazy(() => import('./MessagesPage'));
 const SellerProducts = lazy(() => import('./SellerProducts'));
 const UserProfile = lazy(() => import('./UserProfile'));
 const AdminReactivation = lazy(() => import('./AdminReactivation'));
@@ -103,6 +105,7 @@ const App = () => {
   const [claimedOfferExpiry, setClaimedOfferExpiry] = useState<string | Date | null>(null);
   const [appNotificationOpen, setAppNotificationOpen] = useState(false);
   const [highlightedProduct, setHighlightedProduct] = useState<Product | null>(null);
+  const [contactProduct, setContactProduct] = useState<Product | null>(null);
   const hasScrolledToHighlighted = useRef(false);
 
   // Restore session on mount
@@ -197,9 +200,7 @@ const App = () => {
   const showLogin = route.modal === 'login';
   const showRegister = route.modal === 'register';
   const chatWith = route.chatWith || null;
-  const [_messages, setMessages] = useState<MessageMap>({});
-  const [_newMessage, _setNewMessage] = useState('');
-  const [users, _setUsers] = useState<User[]>([]);
+  const chatProductId = route.chatProductId || null;
   const [maximizedImage, setMaximizedImage] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -227,6 +228,7 @@ const App = () => {
       'add-product': 'Create Listing | FYC Marketplace',
       'my-products': 'Manage Products | FYC Marketplace',
       'my-profile': 'Profile | FYC Marketplace',
+      messages: 'Messages | FYC Marketplace',
       'admin-reactivation': 'Admin Reactivation | FYC Marketplace',
       about: 'About | FYC Marketplace',
       'how-it-works': 'How It Works | FYC Marketplace',
@@ -489,7 +491,13 @@ const App = () => {
       if (token) localStorage.setItem('auth_token', token);
       localStorage.setItem('user_data', JSON.stringify(user));
     } catch (e) { console.warn('Failed to persist session', e); }
-    navigate('/', { replace: true });
+    const pendingChat = sessionStorage.getItem('fyc_pending_chat');
+    if (pendingChat) {
+      sessionStorage.removeItem('fyc_pending_chat');
+      navigate(pendingChat, { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
   }, [navigate]);
 
   const handleEditProduct = useCallback((updatedProduct: Product) => {
@@ -526,18 +534,6 @@ const App = () => {
       </div>
     </div>
   ), [handleUpgrade]);
-
-  const handleNewMessage = useCallback((message: Message) => {
-    if (!currentUser || !chatWith) return;
-    const key = conversationIdentifier(userIdentifier(currentUser), chatWith);
-    setMessages(prev => ({ ...prev, [key]: [...(prev[key] || []), message] }));
-  }, [currentUser, chatWith]);
-
-  const handleLoadMessages = useCallback((loadedMessages: Message[]) => {
-    if (!currentUser || !chatWith) return;
-    const key = conversationIdentifier(userIdentifier(currentUser), chatWith);
-    setMessages(prev => ({ ...prev, [key]: loadedMessages }));
-  }, [currentUser, chatWith]);
 
   const getImageUrl = useCallback((product: Product) => {
     return getProductImageUrl(product, API_BASE || '');
@@ -580,10 +576,6 @@ const App = () => {
   // Full product card
   const ProductCard = useCallback(({ product, isHighlighted = false }: { product: Product; isHighlighted?: boolean }) => {
     const imageUrl = getImageUrl(product);
-    const raw = (product as any).sellerWhatsApp || (product as any).seller?.whatsapp || (product as any).whatsapp || '';
-    const normalized = normalizeSAPhoneNumber(raw);
-    const waMessage = encodeURIComponent(`Hi ${product.sellerName || ''}, I'm interested in your listing "${product.title}".`);
-    const waLink = normalized ? `https://wa.me/${normalized}?text=${waMessage}` : null;
     const whatsappRedirects = (product as any).whatsappRedirects || 0;
     const productIdRaw = (product as any)._id || product.id;
     const cleanProductId = productIdRaw ? String(productIdRaw) : '';
@@ -719,24 +711,14 @@ const App = () => {
             )}
           </div>
           <div className="product-actions flex gap-2">
-            {waLink && (
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noreferrer noopener"
-                onClick={async () => {
-                  if (cleanProductId) {
-                    track('marketplace_seller_contacted', { product_id: cleanProductId });
-                    trackWhatsAppClick(cleanProductId).catch(err => console.warn('Analytics tracking failed:', err));
-                  }
-                }}
+            <button
+                type="button"
+                onClick={() => setContactProduct(product)}
                 className="product-action product-action-primary flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
                 <MessageCircle className="h-5 w-5" />
-                <span className="hidden sm:inline">WhatsApp</span>
-                <span className="sm:hidden">Chat</span>
-              </a>
-            )}
+                <span>Chat</span>
+              </button>
             {cleanProductId && (
               <button type="button" onClick={handleShare} className="product-action product-action-secondary flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
                 <Share2 className="h-5 w-5" />
@@ -764,6 +746,10 @@ const App = () => {
               <div className="header-actions flex items-center space-x-2 md:space-x-4">
                 <button onClick={() => setCurrentView('my-profile')} className="profile-trigger p-2 md:p-2 rounded-lg hover:bg-gray-100 transition-colors group" title="My Profile" aria-label="Open profile">
                   <Useric className="h-5 w-5 md:h-6 md:w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                </button>
+                <button onClick={() => setCurrentView('messages')} className="seller-nav-action" aria-label="Open messages">
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Messages</span>
                 </button>
                 {currentUser.type === 'seller' && (
                   <button onClick={() => setCurrentView('my-products')} className="seller-nav-action" aria-label="Manage products">
@@ -828,8 +814,14 @@ const App = () => {
         <Analytics />
         <SpeedInsights />
         <Suspense fallback={<LoadingFallback />}>
-          {chatWith ? (
-            <ChatWindow currentUser={currentUser} chatWith={chatWith} users={users} onCloseChat={() => navigate('/')} onNewMessage={handleNewMessage} onLoadMessages={handleLoadMessages} />
+          {chatWith && chatProductId ? (
+            <ChatWindow currentUser={currentUser} chatWith={chatWith} productId={chatProductId} onCloseChat={() => setCurrentView('messages')} />
+          ) : currentView === 'messages' ? (
+            currentUser ? (
+              <MessagesPage onBack={() => setCurrentView('home')} onOpen={(participantId, productId) => navigate(`/messages/${encodeURIComponent(participantId)}?product=${encodeURIComponent(productId)}`)} />
+            ) : (
+              <section className="conversation-empty"><MessageCircle /><h2>Sign in to use in-app chat</h2><p>Create an account or sign in to keep your product conversations in one place.</p><button type="button" className="bg-blue-600 text-white px-6 py-3 rounded-lg" onClick={() => navigate('/login')}>Sign in</button></section>
+            )
           ) : currentView === 'add-product' ? (
             currentUser?.type === 'seller' && currentUser?.subscribed ? (
               <AddProductForm currentUser={currentUser} onProductAdded={(newProduct) => { setProducts(prev => [newProduct, ...prev]); setCurrentView('my-products'); }} onCancel={() => setCurrentView('my-products')} />
@@ -1033,13 +1025,52 @@ const App = () => {
         )}
         {showRegister && (
           <RegisterForm
-            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); navigate('/', { replace: true }); }}
+            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); const pendingChat = sessionStorage.getItem('fyc_pending_chat'); sessionStorage.removeItem('fyc_pending_chat'); navigate(pendingChat || '/', { replace: true }); }}
             onShowLogin={() => navigate('/login', { replace: true })}
             onClose={() => navigate('/', { replace: true })}
           />
         )}
         {showUpgrade && <UpgradeModal />}
       </Suspense>
+
+      {contactProduct && (() => {
+        const raw = (contactProduct as any).sellerWhatsApp || (contactProduct as any).seller?.whatsapp || (contactProduct as any).whatsapp || '';
+        const normalized = normalizeSAPhoneNumber(raw);
+        const productId = String((contactProduct as any)._id || contactProduct.id || '');
+        const sellerId = String(contactProduct.sellerId || '');
+        const whatsappUrl = normalized ? `https://wa.me/${normalized}?text=${encodeURIComponent(`Hi ${contactProduct.sellerName || ''}, I'm interested in your listing "${contactProduct.title}".`)}` : null;
+        const isOwnListing = Boolean(currentUser && sellerId && sellerId === userIdentifier(currentUser));
+        return <ContactSellerModal
+          product={contactProduct}
+          whatsappUrl={whatsappUrl}
+          signedIn={Boolean(currentUser)}
+          isOwnListing={isOwnListing}
+          onClose={() => setContactProduct(null)}
+          onWhatsApp={() => {
+            if (!whatsappUrl) return;
+            track('marketplace_seller_contacted', { product_id: productId, channel: 'whatsapp' });
+            trackWhatsAppClick(productId).catch(err => console.warn('Analytics tracking failed:', err));
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+            setContactProduct(null);
+          }}
+          onInAppChat={() => {
+            if (!sellerId || !productId) {
+              showNotification({ type: 'error', title: 'Chat unavailable', message: 'This listing is missing seller information.' });
+              return;
+            }
+            const chatPath = `/messages/${encodeURIComponent(sellerId)}?product=${encodeURIComponent(productId)}`;
+            setContactProduct(null);
+            if (!currentUser) {
+              sessionStorage.setItem('fyc_pending_chat', chatPath);
+              showNotification({ type: 'info', title: 'Sign in to continue', message: 'In-app chat is available to Marketplace account holders.' });
+              navigate('/login');
+              return;
+            }
+            track('marketplace_seller_contacted', { product_id: productId, channel: 'in_app' });
+            navigate(chatPath);
+          }}
+        />;
+      })()}
 
       {maximizedImage && (
         <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${darkMode ? 'bg-black bg-opacity-98' : 'bg-black bg-opacity-95'}`} onClick={() => setMaximizedImage(null)} style={{ cursor: 'pointer' }}>

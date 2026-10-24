@@ -13,6 +13,11 @@ test('resolves modal and dynamic routes', () => {
   expect(resolveAppRoute('/register').modal).toBe('register');
   expect(resolveAppRoute('/products/abc').productId).toBe('abc');
   expect(resolveAppRoute('/messages/user%201').chatWith).toBe('user 1');
+  expect(resolveAppRoute('/messages/seller-1', '?product=product-2')).toEqual({
+    view: 'messages',
+    chatWith: 'seller-1',
+    chatProductId: 'product-2'
+  });
 });
 
 test('recognizes action routes and unknown pages', () => {

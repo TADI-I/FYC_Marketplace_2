@@ -53,7 +53,7 @@ export type Product = {
   description: string;
   price: number;
   category: string;
-  sellerId: number;
+  sellerId: number | string;
   sellerName: string;
   sellerCampus: string;
   sellerVerified?: boolean;

@@ -130,13 +130,15 @@ The backend sends Marketplace email through a dedicated Resend sending-only key.
 - single-use, one-hour password reset links;
 - confirmation and decision notices for seller verification;
 - seller subscription activation notices;
-- private-message alerts that never include the private message body;
+- unread private-message alerts that never include the private message body and are sent only after the message has remained unread for 10 minutes;
 - support-form delivery plus a receipt to the sender; and
 - seller subscription reminders seven days and one day before expiry.
 
 New accounts cannot sign in until the email address is verified. Existing accounts without an `emailVerified` field are grandfathered so deployment does not lock out the current user base. Profile email changes remain pending for 10 minutes and do not replace the verified address until the new address is confirmed. Password reset and email-change flows store only SHA-256 token hashes; password changes invalidate JWT sessions issued before the change.
 
 The frontend uses history-aware SPA routes for every page-level component, including `/about`, `/faq`, `/profile`, `/seller/products`, `/seller/products/new`, `/products/:id`, `/login`, and `/register`. Authentication actions use `/verify-email`, `/reset-password`, and `/confirm-email-change`. The production static host must rewrite all unmatched frontend paths to `index.html` so direct links and browser refreshes load the React application. API and backend `/p/:id` routes must remain excluded from that frontend rewrite. Returning from an authentication action performs a full navigation to `/` to clear action state.
+
+Product cards offer WhatsApp or authenticated in-app chat. In-app threads are scoped to a product and its seller, are available from `/messages`, and store read receipts in MongoDB. Run `npm run email:unread-messages` from `backend/` every minute using the production scheduler. The job selects messages that have remained unread for at least 10 minutes, rechecks read state immediately before delivery, groups pending messages by product conversation, and records delivery idempotently in `emailNotificationEvents`. This scheduled job must be enabled in production; the web process does not use unreliable in-memory timers for delayed email.
 
 ## Location-assisted discovery
 

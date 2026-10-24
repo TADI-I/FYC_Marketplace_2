@@ -146,17 +146,20 @@ async function sendSubscriptionReminderEmail(user, daysRemaining) {
   });
 }
 
-async function sendNewMessageEmail(recipient, sender) {
+async function sendNewMessageEmail(recipient, sender, options = {}) {
   const { frontendUrl } = getEmailConfiguration();
+  const unreadCount = Math.max(1, Number(options.unreadCount) || 1);
+  const productTitle = options.productTitle ? ` about “${options.productTitle}”` : '';
+  const actionUrl = options.threadPath ? `${frontendUrl}${options.threadPath}` : `${frontendUrl}/messages`;
   return sendEmail({
     to: recipient.email,
-    subject: `New Marketplace message from ${sender.name}`,
-    text: `${sender.name} sent you a private message on FYC Marketplace. Sign in to read it.`,
+    subject: `Unread Marketplace message from ${sender.name}`,
+    text: `${sender.name} sent you ${unreadCount === 1 ? 'a private message' : `${unreadCount} private messages`}${productTitle} on FYC Marketplace. Sign in to read ${unreadCount === 1 ? 'it' : 'them'}.`,
     html: emailLayout({
-      heading: 'You have a new private message',
-      body: `<p>${escapeHtml(sender.name)} sent you a message. For privacy, message contents are available only after you sign in.</p>`,
+      heading: `You have ${unreadCount === 1 ? 'an unread message' : `${unreadCount} unread messages`}`,
+      body: `<p>${escapeHtml(sender.name)} sent you ${unreadCount === 1 ? 'a message' : `${unreadCount} messages`}${productTitle ? ` about <strong>${escapeHtml(options.productTitle)}</strong>` : ''}. For privacy, message contents are available only after you sign in.</p>`,
       actionLabel: 'Read message',
-      actionUrl: frontendUrl
+      actionUrl
     })
   });
 }

@@ -3,6 +3,7 @@ export type AppView =
   | 'add-product'
   | 'my-products'
   | 'my-profile'
+  | 'messages'
   | 'admin-reactivation'
   | 'about'
   | 'how-it-works'
@@ -16,6 +17,7 @@ export type AppRoute = {
   view: AppView;
   modal?: 'login' | 'register';
   chatWith?: string;
+  chatProductId?: string;
   productId?: string;
   isEmailAction?: boolean;
 };
@@ -25,6 +27,7 @@ const VIEW_PATHS: Record<Exclude<AppView, 'not-found'>, string> = {
   'add-product': '/seller/products/new',
   'my-products': '/seller/products',
   'my-profile': '/profile',
+  messages: '/messages',
   'admin-reactivation': '/admin/reactivation',
   about: '/about',
   'how-it-works': '/how-it-works',
@@ -53,7 +56,11 @@ export function resolveAppRoute(pathname: string, search = ''): AppRoute {
   if (EMAIL_ACTION_PATHS.has(path)) return { view: 'home', isEmailAction: true };
 
   const messageMatch = path.match(/^\/messages\/([^/]+)$/);
-  if (messageMatch) return { view: 'home', chatWith: decodeURIComponent(messageMatch[1]) };
+  if (messageMatch) return {
+    view: 'messages',
+    chatWith: decodeURIComponent(messageMatch[1]),
+    chatProductId: new URLSearchParams(search).get('product') || undefined
+  };
 
   const productMatch = path.match(/^\/products\/([^/]+)$/);
   if (productMatch) return { view: 'home', productId: decodeURIComponent(productMatch[1]) };

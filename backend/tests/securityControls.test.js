@@ -90,6 +90,23 @@ test('message creation rejects a forged conversation identifier', async () => {
   assert.equal(res.payload.error, 'Invalid conversation');
 });
 
+test('marking messages read only updates unread messages received by the authenticated user for that product', async () => {
+  const userId = new ObjectId();
+  const productId = new ObjectId();
+  let capturedFilter;
+  const db = { collection(name) {
+    assert.equal(name, 'messages');
+    return { async updateMany(filter) { capturedFilter = filter; return { modifiedCount: 2 }; } };
+  } };
+  const req = { user: { id: String(userId) }, params: { conversationId: 'thread' }, body: { productId: String(productId) } };
+  const res = responseRecorder();
+  await messageController.markMessagesAsRead(req, res, db);
+  assert.equal(res.payload.markedRead, 2);
+  assert.equal(String(capturedFilter.receiverId), String(userId));
+  assert.equal(String(capturedFilter.productId), String(productId));
+  assert.equal(capturedFilter.read, false);
+});
+
 test('verification uploads require matching image signatures', () => {
   const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
   assert.equal(isSupportedImage(png, 'image/png'), true);
