@@ -36,7 +36,6 @@ exports.serveProductPage = async (req, res, db) => {
       },
       {
         $addFields: {
-          sellerWhatsApp: '$seller.whatsapp',
           sellerVerified: { $ifNull: ['$seller.verified', false] },
           sellerName: '$seller.name',
           sellerCampus: '$seller.campus',

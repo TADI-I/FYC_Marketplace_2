@@ -202,8 +202,8 @@ main > .grid {
   }
 }
 
-/* Header Styles */
-header {
+/* Header Styles — scoped so modal and workspace headers remain local */
+.app-header {
   background: var(--ink);
   box-shadow: var(--shadow-sm);
   border-bottom: 1px solid rgba(251, 250, 246, .18);
@@ -813,27 +813,27 @@ button:focus {
   background-color: var(--bg-primary);
 }
 
-header.bg-white,
-header.bg-gray-800 {
+.app-header.bg-white,
+.app-header.bg-gray-800 {
   background: rgba(16, 17, 15, .96);
   border-color: rgba(251, 250, 246, .18);
   backdrop-filter: blur(18px);
 }
 
-header h1,
-header .text-gray-900,
-header .text-white {
+.app-header h1,
+.app-header .text-gray-900,
+.app-header .text-white {
   color: var(--soft-white);
   text-transform: uppercase;
   letter-spacing: .03em;
 }
 
-header img {
+.app-header img {
   border-radius: 0;
   filter: contrast(1.08) saturate(.82);
 }
 
-header button {
+.app-header button {
   min-height: 2.55rem;
 }
 
@@ -1409,7 +1409,7 @@ html.dark .product-action-secondary {
   justify-content: center;
 }
 
-footer {
+.app-footer {
   min-height: 25.75rem;
 }
 
@@ -2521,19 +2521,19 @@ html.dark .marketplace-main > div[style*="max-width"] textarea {
   border-radius: 999px !important;
 }
 
-footer {
+.app-footer {
   background: rgba(20, 21, 23, .86) !important;
   backdrop-filter: blur(26px) saturate(160%);
   -webkit-backdrop-filter: blur(26px) saturate(160%);
   box-shadow: 0 -18px 60px -48px rgba(0, 0, 0, .6);
 }
 
-footer button,
-footer a {
+.app-footer button,
+.app-footer a {
   border-radius: 8px !important;
 }
 
-footer .poweredBy {
+.app-footer .poweredBy {
   opacity: .92;
 }
 
@@ -4980,6 +4980,16 @@ html.dark .ui-skeleton-bone::after { background: linear-gradient(90deg, transpar
 .admin-suspend-button { color: #991b1b; border: 1px solid #fecaca; background: #fff1f2; }
 .admin-restore-button { color: #17623a; border: 1px solid #bbf7d0; background: #f0fdf4; }
 .admin-checkbox-row { display: flex; align-items: center; gap: .6rem; font-size: .875rem; font-weight: 600; }
+
+html.dark .admin-page [style*="marginTop: '1.5rem'"],
+html.dark .admin-page [style*="margin-top: 1.5rem"],
+html.dark .admin-page [style*="box-shadow: 0 1px 3px"] { color: #f5f5f7 !important; }
+html.dark .admin-page [style*="box-shadow: 0 1px 3px"] div:not(.admin-user-badges):not(.admin-status-badge) { color: #c8c9cd !important; }
+html.dark .admin-page button[style*="background-color: white"],
+html.dark .admin-page button[style*="backgroundColor: white"] { border-color: rgba(255,255,255,.14) !important; background: rgba(255,255,255,.07) !important; color: #f5f5f7 !important; }
+html.dark .admin-status-badge.is-active { color: #75df95 !important; background: rgba(48,209,88,.12) !important; }
+html.dark .admin-status-badge.is-suspended { color: #ff9299 !important; background: rgba(255,69,79,.12) !important; }
+html.dark .admin-status-badge.is-verified { color: #72b7ff !important; background: rgba(10,132,255,.14) !important; }
 
 /* Non-blocking application toasts */
 .app-toast-region { position: fixed; top: 5.25rem; right: 1rem; z-index: 10050; width: min(28rem, calc(100vw - 2rem)); pointer-events: none; }

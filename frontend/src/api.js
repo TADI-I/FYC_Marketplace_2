@@ -333,6 +333,11 @@ export const deleteProduct = async (productId) => {
   }
 };
 
+export const getProductContact = async (productId) => {
+  const response = await apiCall(`/api/products/${productId}/contact`);
+  return response.contact;
+};
+
 // ==============================================
 // MESSAGE API FUNCTIONS
 // ==============================================
@@ -730,6 +735,7 @@ const api = {
   createProduct,
   updateProduct,
   deleteProduct,
+  getProductContact,
   getProductsBySeller,
   getMessages,
   sendMessage,

@@ -278,6 +278,10 @@ exports.getUserProfile = async (req, res, db) => {
       });
     }
 
+    if (String(req.user.id) !== String(userId) && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You cannot view another user’s private profile', success: false });
+    }
+
     const user = await db.collection('users').findOne(
       { _id: new ObjectId(userId) },
       { projection: { password: 0 } }
@@ -292,7 +296,7 @@ exports.getUserProfile = async (req, res, db) => {
 
     res.json({
       success: true,
-      user
+      user: publicUser(user)
     });
 
   } catch (error) {

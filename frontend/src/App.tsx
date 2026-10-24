@@ -27,6 +27,7 @@ import EmailActionHandler from './EmailActionHandler';
 import { AppView, pathForView, resolveAppRoute } from './navigation';
 import LocationDiscovery, { BuyerLocation } from './LocationDiscovery';
 import ContactSellerModal from './ContactSellerModal';
+import { marketplaceProductUrl } from './siteConfig';
 
 import './App.css';
 import {
@@ -37,7 +38,8 @@ import {
   upgradeUserToSeller,
   getEligibleSellerOffers,
   claimSellerOffer,
-  trackWhatsAppClick
+  trackWhatsAppClick,
+  getProductContact
 } from './api';
 
 // Lazy load heavy components
@@ -106,6 +108,8 @@ const App = () => {
   const [appNotificationOpen, setAppNotificationOpen] = useState(false);
   const [highlightedProduct, setHighlightedProduct] = useState<Product | null>(null);
   const [contactProduct, setContactProduct] = useState<Product | null>(null);
+  const [contactWhatsAppUrl, setContactWhatsAppUrl] = useState<string | null>(null);
+  const [contactWhatsAppState, setContactWhatsAppState] = useState<'idle' | 'loading' | 'ready' | 'missing' | 'error'>('idle');
   const hasScrolledToHighlighted = useRef(false);
 
   // Restore session on mount
@@ -492,13 +496,49 @@ const App = () => {
       localStorage.setItem('user_data', JSON.stringify(user));
     } catch (e) { console.warn('Failed to persist session', e); }
     const pendingChat = sessionStorage.getItem('fyc_pending_chat');
+    const pendingContact = sessionStorage.getItem('fyc_pending_contact_product');
     if (pendingChat) {
       sessionStorage.removeItem('fyc_pending_chat');
       navigate(pendingChat, { replace: true });
+    } else if (pendingContact) {
+      sessionStorage.removeItem('fyc_pending_contact_product');
+      try {
+        const product = JSON.parse(pendingContact) as Product;
+        setContactProduct(product);
+        navigate(`/products/${encodeURIComponent(String((product as any)._id || product.id))}`, { replace: true });
+      } catch {
+        navigate('/', { replace: true });
+      }
     } else {
       navigate('/', { replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setContactWhatsAppUrl(null);
+    if (!contactProduct || !currentUser || String(contactProduct.sellerId) === userIdentifier(currentUser)) {
+      setContactWhatsAppState('idle');
+      return () => { cancelled = true; };
+    }
+
+    const productId = String((contactProduct as any)._id || contactProduct.id || '');
+    setContactWhatsAppState('loading');
+    getProductContact(productId)
+      .then(contact => {
+        if (cancelled) return;
+        const normalized = normalizeSAPhoneNumber(contact?.whatsapp || '');
+        if (!normalized) {
+          setContactWhatsAppState('missing');
+          return;
+        }
+        const message = encodeURIComponent(`Hi ${contactProduct.sellerName || contact?.sellerName || ''}, I'm interested in your listing "${contactProduct.title}".`);
+        setContactWhatsAppUrl(`https://wa.me/${normalized}?text=${message}`);
+        setContactWhatsAppState('ready');
+      })
+      .catch(() => { if (!cancelled) setContactWhatsAppState('error'); });
+    return () => { cancelled = true; };
+  }, [contactProduct, currentUser]);
 
   const handleEditProduct = useCallback((updatedProduct: Product) => {
     setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
@@ -587,7 +627,7 @@ const App = () => {
 
     const handleShare = async () => {
       try {
-        const shareUrl = `${API_BASE}/p/${cleanProductId}`;
+        const shareUrl = marketplaceProductUrl(cleanProductId);
         track('marketplace_listing_shared', { product_id: cleanProductId });
         if (navigator.share) {
           await navigator.share({ url: shareUrl, title: `${product.title} - R${product.price}`, text: `Check out "${product.title}" on FYC Marketplace` });
@@ -713,7 +753,11 @@ const App = () => {
           <div className="product-actions flex gap-2">
             <button
                 type="button"
-                onClick={() => setContactProduct(product)}
+                onClick={() => {
+                  setContactWhatsAppUrl(null);
+                  setContactWhatsAppState(currentUser ? 'loading' : 'idle');
+                  setContactProduct(product);
+                }}
                 className="product-action product-action-primary flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
                 <MessageCircle className="h-5 w-5" />
@@ -729,7 +773,7 @@ const App = () => {
         </div>
       </div>
     );
-  }, [getImageUrl, API_BASE, darkMode]);
+  }, [getImageUrl, currentUser, darkMode]);
 
   return (
     <div className={`app-shell min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -1025,7 +1069,7 @@ const App = () => {
         )}
         {showRegister && (
           <RegisterForm
-            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); const pendingChat = sessionStorage.getItem('fyc_pending_chat'); sessionStorage.removeItem('fyc_pending_chat'); navigate(pendingChat || '/', { replace: true }); }}
+            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); const pendingChat = sessionStorage.getItem('fyc_pending_chat'); const pendingContact = sessionStorage.getItem('fyc_pending_contact_product'); sessionStorage.removeItem('fyc_pending_chat'); sessionStorage.removeItem('fyc_pending_contact_product'); if (pendingChat) navigate(pendingChat, { replace: true }); else if (pendingContact) { try { const product = JSON.parse(pendingContact) as Product; setContactProduct(product); navigate(`/products/${encodeURIComponent(String((product as any)._id || product.id))}`, { replace: true }); } catch { navigate('/', { replace: true }); } } else navigate('/', { replace: true }); }}
             onShowLogin={() => navigate('/login', { replace: true })}
             onClose={() => navigate('/', { replace: true })}
           />
@@ -1034,23 +1078,27 @@ const App = () => {
       </Suspense>
 
       {contactProduct && (() => {
-        const raw = (contactProduct as any).sellerWhatsApp || (contactProduct as any).seller?.whatsapp || (contactProduct as any).whatsapp || '';
-        const normalized = normalizeSAPhoneNumber(raw);
         const productId = String((contactProduct as any)._id || contactProduct.id || '');
         const sellerId = String(contactProduct.sellerId || '');
-        const whatsappUrl = normalized ? `https://wa.me/${normalized}?text=${encodeURIComponent(`Hi ${contactProduct.sellerName || ''}, I'm interested in your listing "${contactProduct.title}".`)}` : null;
         const isOwnListing = Boolean(currentUser && sellerId && sellerId === userIdentifier(currentUser));
         return <ContactSellerModal
           product={contactProduct}
-          whatsappUrl={whatsappUrl}
           signedIn={Boolean(currentUser)}
           isOwnListing={isOwnListing}
+          whatsappState={contactWhatsAppState}
           onClose={() => setContactProduct(null)}
           onWhatsApp={() => {
-            if (!whatsappUrl) return;
+            if (!currentUser) {
+              sessionStorage.setItem('fyc_pending_contact_product', JSON.stringify(contactProduct));
+              setContactProduct(null);
+              showNotification({ type: 'info', title: 'Sign in to continue', message: 'Seller contact details are protected and available only to Marketplace account holders.' });
+              navigate('/login');
+              return;
+            }
+            if (!contactWhatsAppUrl) return;
             track('marketplace_seller_contacted', { product_id: productId, channel: 'whatsapp' });
             trackWhatsAppClick(productId).catch(err => console.warn('Analytics tracking failed:', err));
-            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+            window.open(contactWhatsAppUrl, '_blank', 'noopener,noreferrer');
             setContactProduct(null);
           }}
           onInAppChat={() => {

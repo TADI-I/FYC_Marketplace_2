@@ -4,15 +4,27 @@ import { Product } from './types';
 
 type Props = {
   product: Product;
-  whatsappUrl: string | null;
   signedIn: boolean;
   isOwnListing: boolean;
+  whatsappState?: 'idle' | 'loading' | 'ready' | 'missing' | 'error';
   onWhatsApp: () => void;
   onInAppChat: () => void;
   onClose: () => void;
 };
 
-export default function ContactSellerModal({ product, whatsappUrl, signedIn, isOwnListing, onWhatsApp, onInAppChat, onClose }: Props) {
+export default function ContactSellerModal({ product, signedIn, isOwnListing, whatsappState = 'idle', onWhatsApp, onInAppChat, onClose }: Props) {
+  const whatsappDisabled = isOwnListing || (signedIn && (whatsappState === 'loading' || whatsappState === 'missing' || whatsappState === 'error'));
+  const whatsappDescription = isOwnListing
+    ? 'This is your listing'
+    : !signedIn
+      ? 'Sign in or create an account first'
+      : whatsappState === 'loading'
+        ? 'Loading seller contact…'
+        : whatsappState === 'missing'
+          ? 'Seller has not added WhatsApp'
+          : whatsappState === 'error'
+            ? 'Contact details are temporarily unavailable'
+            : 'Continue in WhatsApp';
   return (
     <div className="contact-choice-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && onClose()}>
       <section className="contact-choice-modal" role="dialog" aria-modal="true" aria-labelledby="contact-choice-title">
@@ -25,9 +37,9 @@ export default function ContactSellerModal({ product, whatsappUrl, signedIn, isO
             <span className="contact-choice-icon"><MessageCircle /></span>
             <span><strong>In-app chat</strong><small>{isOwnListing ? 'This is your listing' : signedIn ? 'Message securely inside Marketplace' : 'Sign in or create an account first'}</small></span>
           </button>
-          <button type="button" className="contact-choice-option" onClick={onWhatsApp} disabled={!whatsappUrl || isOwnListing}>
+          <button type="button" className="contact-choice-option" onClick={onWhatsApp} disabled={whatsappDisabled}>
             <span className="contact-choice-icon"><Smartphone /></span>
-            <span><strong>WhatsApp</strong><small>{isOwnListing ? 'This is your listing' : whatsappUrl ? 'Continue in WhatsApp' : 'Seller has not added WhatsApp'}</small></span>
+            <span><strong>WhatsApp</strong><small>{whatsappDescription}</small></span>
           </button>
         </div>
       </section>

@@ -23,7 +23,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   };
 
   return (
-    <footer style={{
+    <footer className="app-footer" style={{
       backgroundColor: ink,
       color: paper,
       marginTop: 'auto',

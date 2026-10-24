@@ -140,6 +140,8 @@ The frontend uses history-aware SPA routes for every page-level component, inclu
 
 Product cards offer WhatsApp or authenticated in-app chat. In-app threads are scoped to a product and its seller, are available from `/messages`, and store read receipts in MongoDB. Run `npm run email:unread-messages` from `backend/` every minute using the production scheduler. The job selects messages that have remained unread for at least 10 minutes, rechecks read state immediately before delivery, groups pending messages by product conversation, and records delivery idempotently in `emailNotificationEvents`. This scheduled job must be enabled in production; the web process does not use unreliable in-memory timers for delayed email.
 
+Seller WhatsApp numbers are excluded from public listing, nearby-search, seller-listing, and social-preview responses. An authenticated account must request `GET /api/products/:id/contact` before the frontend can open WhatsApp. Shared listing links use the public `REACT_APP_MARKETPLACE_WEBSITE` origin and the `/products/:id` route rather than the backend API origin.
+
 ## Location-assisted discovery
 
 The browser asks for location only after the buyer chooses **Use My Location**. The

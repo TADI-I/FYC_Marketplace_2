@@ -56,7 +56,6 @@ const buildEligibleProductPipeline = filter => {
     { $unwind: { path: '$campus', preserveNullAndEmptyArrays: true } },
     {
       $addFields: {
-        sellerWhatsApp: '$seller.whatsapp',
         sellerVerified: { $ifNull: ['$seller.verified', false] },
         sellerName: '$seller.name',
         sellerCampus: '$seller.campus',
@@ -193,7 +192,6 @@ exports.getProductById = async (req, res, db) => {
       },
       {
         $addFields: {
-          sellerWhatsApp: '$seller.whatsapp',
           sellerVerified: { $ifNull: ['$seller.verified', false] },
           sellerName: '$seller.name',
           sellerCampus: '$seller.campus',
@@ -244,7 +242,7 @@ exports.getProductsBySeller = async (req, res, db) => {
 
     const seller = await db.collection('users').findOne(
       { _id: new ObjectId(sellerId) },
-      { projection: { subscribed: 1, subscriptionEndDate: 1, verified: 1, whatsapp: 1, name: 1, campus: 1, accountStatus: 1 } }
+      { projection: { subscribed: 1, subscriptionEndDate: 1, verified: 1, name: 1, campus: 1, accountStatus: 1 } }
     );
     
     if (!seller) {
@@ -271,7 +269,6 @@ exports.getProductsBySeller = async (req, res, db) => {
       const { pickupLocation, ...publicProduct } = product;
       return {
         ...publicProduct,
-        sellerWhatsApp: seller.whatsapp || null,
         sellerVerified: seller.verified || false,
         sellerName: seller.name,
         sellerCampus: seller.campus,
@@ -361,7 +358,6 @@ exports.createProduct = async (req, res, db) => {
       { $unwind: '$seller' },
       {
         $addFields: {
-          sellerWhatsApp: '$seller.whatsapp',
           sellerVerified: { $ifNull: ['$seller.verified', false] },
           whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
         }
@@ -382,6 +378,39 @@ exports.createProduct = async (req, res, db) => {
       error: 'Failed to create product: ' + error.message,
       success: false
     });
+  }
+};
+
+// Seller contact details are intentionally kept out of public product payloads.
+exports.getProductContact = async (req, res, db) => {
+  try {
+    const productId = new ObjectId(req.params.id);
+    const product = await db.collection('products').findOne(
+      { _id: productId, status: 'active' },
+      { projection: { sellerId: 1, title: 1 } }
+    );
+    if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+
+    const seller = await db.collection('users').findOne(
+      { _id: product.sellerId, accountStatus: { $ne: 'suspended' } },
+      { projection: { name: 1, whatsapp: 1, subscribed: 1, subscriptionEndDate: 1 } }
+    );
+    const hasActiveSubscription = seller?.subscribed && (!seller.subscriptionEndDate || new Date() <= new Date(seller.subscriptionEndDate));
+    if (!seller || !hasActiveSubscription) {
+      return res.status(404).json({ success: false, error: 'Seller contact is not available' });
+    }
+
+    res.set('Cache-Control', 'no-store').json({
+      success: true,
+      contact: {
+        sellerId: product.sellerId,
+        sellerName: seller.name,
+        whatsapp: seller.whatsapp || null
+      }
+    });
+  } catch (error) {
+    console.error('Get product contact error:', error);
+    res.status(500).json({ success: false, error: 'Failed to retrieve seller contact' });
   }
 };
 

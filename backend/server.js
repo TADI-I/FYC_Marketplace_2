@@ -34,6 +34,12 @@ const messageRateLimit = createRateLimit({
   message: 'Too many messages sent. Please try again later.',
   keyGenerator: (req) => req.user?.id || req.ip || 'unknown'
 });
+const contactRevealRateLimit = createRateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: 'Too many seller contact requests. Please try again later.',
+  keyGenerator: (req) => req.user?.id || req.ip || 'unknown'
+});
 
 // Middleware
 app.set('trust proxy', 1);
@@ -326,6 +332,7 @@ app.get('/api/analytics/product/:productId',
 // Product routes
 app.get('/api/products', (req, res) => productController.getProducts(req, res, req.db));
 app.post('/api/products/nearby', (req, res) => productController.getNearbyProducts(req, res, req.db));
+app.get('/api/products/:id/contact', authenticateToken, contactRevealRateLimit, validateObjectId('id'), (req, res) => productController.getProductContact(req, res, req.db));
 app.get('/api/products/:id', validateObjectId('id'), (req, res) => productController.getProductById(req, res, req.db));
 app.get('/api/products/seller/:sellerId', validateObjectId('sellerId'), (req, res) => productController.getProductsBySeller(req, res, req.db));
 

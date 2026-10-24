@@ -5,6 +5,8 @@ const { configuredOrigins, getJwtSecret } = require('../config/security');
 const { createRateLimit } = require('../middleware/rateLimit');
 const { requireOwnership } = require('../middleware/authMiddleware');
 const messageController = require('../controllers/messageController');
+const productController = require('../controllers/productController');
+const userController = require('../controllers/userController');
 const { isSupportedImage } = require('../controllers/verificationController');
 
 function responseRecorder() {
@@ -105,6 +107,43 @@ test('marking messages read only updates unread messages received by the authent
   assert.equal(String(capturedFilter.receiverId), String(userId));
   assert.equal(String(capturedFilter.productId), String(productId));
   assert.equal(capturedFilter.read, false);
+});
+
+test('public product feeds do not expose seller WhatsApp numbers', async () => {
+  let capturedPipeline;
+  const db = { collection(name) {
+    assert.equal(name, 'products');
+    return { aggregate(pipeline) { capturedPipeline = pipeline; return { async toArray() { return []; } }; } };
+  } };
+  const req = { query: {} };
+  const res = responseRecorder();
+  await productController.getProducts(req, res, db);
+  assert.equal(res.statusCode, 200);
+  assert.equal(JSON.stringify(capturedPipeline).includes('sellerWhatsApp'), false);
+  assert.equal(JSON.stringify(capturedPipeline).includes('seller.whatsapp'), false);
+});
+
+test('authenticated product contact returns only the selected seller contact with no-store caching', async () => {
+  const productId = new ObjectId();
+  const sellerId = new ObjectId();
+  const db = { collection(name) {
+    if (name === 'products') return { async findOne() { return { _id: productId, sellerId, title: 'Calculator' }; } };
+    if (name === 'users') return { async findOne() { return { _id: sellerId, name: 'Seller', whatsapp: '27821234567', subscribed: true }; } };
+    throw new Error(`Unexpected collection ${name}`);
+  } };
+  const req = { params: { id: String(productId) }, user: { id: String(new ObjectId()) } };
+  const res = responseRecorder();
+  await productController.getProductContact(req, res, db);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers['Cache-Control'], 'no-store');
+  assert.deepEqual(res.payload.contact, { sellerId, sellerName: 'Seller', whatsapp: '27821234567' });
+});
+
+test('users cannot retrieve another account private profile', async () => {
+  const req = { user: { id: String(new ObjectId()), type: 'buyer' }, params: { id: String(new ObjectId()) } };
+  const res = responseRecorder();
+  await userController.getUserProfile(req, res, { collection() { throw new Error('database should not be queried'); } });
+  assert.equal(res.statusCode, 403);
 });
 
 test('verification uploads require matching image signatures', () => {

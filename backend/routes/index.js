@@ -12,6 +12,7 @@ const healthController = require('../controllers/healthController');
 const verificationController = require('../controllers/verificationController');
 const subscriptionPaymentController = require('../controllers/subscriptionPaymentController');
 const sellerOfferController = require('../controllers/sellerOfferController');
+const { createRateLimit } = require('../middleware/rateLimit');
 
 // Import middleware
 const { 
@@ -32,6 +33,12 @@ const injectDb = (db) => (req, res, next) => {
 const withDb = (controllerFn) => (req, res) => {
   controllerFn(req, res, req.db);
 };
+const contactRevealRateLimit = createRateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: 'Too many seller contact requests. Please try again later.',
+  keyGenerator: req => req.user?.id || req.ip || 'unknown'
+});
 
 const withSubscriptionCheck = (req, res, next) => {
   requireActiveSubscription(req, res, next, req.db);
@@ -115,6 +122,7 @@ module.exports = (db) => {
   // Product routes
   router.get('/products', withDb(productController.getProducts));
   router.post('/products/nearby', withDb(productController.getNearbyProducts));
+  router.get('/products/:id/contact', authenticateToken, contactRevealRateLimit, validateObjectId('id'), withDb(productController.getProductContact));
   router.get('/products/:id', validateObjectId('id'), withDb(productController.getProductById));
   router.get('/products/seller/:sellerId', validateObjectId('sellerId'), withDb(productController.getProductsBySeller));
   router.post('/products', authenticateToken, withSubscriptionCheck, withDb(productController.createProduct));

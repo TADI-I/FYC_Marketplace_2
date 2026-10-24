@@ -18,15 +18,15 @@ const product = {
 test('offers both WhatsApp and in-app chat for another seller listing', () => {
   const onWhatsApp = jest.fn();
   const onInAppChat = jest.fn();
-  render(<ContactSellerModal product={product} whatsappUrl="https://wa.me/27123456789" signedIn={true} isOwnListing={false} onWhatsApp={onWhatsApp} onInAppChat={onInAppChat} onClose={jest.fn()} />);
+  render(<ContactSellerModal product={product} signedIn={true} isOwnListing={false} whatsappState="ready" onWhatsApp={onWhatsApp} onInAppChat={onInAppChat} onClose={jest.fn()} />);
   fireEvent.click(screen.getByRole('button', { name: /In-app chat/ }));
   fireEvent.click(screen.getByRole('button', { name: /WhatsApp/ }));
   expect(onInAppChat).toHaveBeenCalledTimes(1);
   expect(onWhatsApp).toHaveBeenCalledTimes(1);
 });
 
-test('explains the account requirement before in-app chat', () => {
-  render(<ContactSellerModal product={product} whatsappUrl={null} signedIn={false} isOwnListing={false} onWhatsApp={jest.fn()} onInAppChat={jest.fn()} onClose={jest.fn()} />);
-  expect(screen.getByText('Sign in or create an account first')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /WhatsApp/ })).toBeDisabled();
+test('requires an account for both contact channels without exposing WhatsApp availability', () => {
+  render(<ContactSellerModal product={product} signedIn={false} isOwnListing={false} onWhatsApp={jest.fn()} onInAppChat={jest.fn()} onClose={jest.fn()} />);
+  expect(screen.getAllByText('Sign in or create an account first')).toHaveLength(2);
+  expect(screen.getByRole('button', { name: /WhatsApp/ })).toBeEnabled();
 });
