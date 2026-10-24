@@ -12,7 +12,7 @@ process.env.EMAIL_DELIVERY_DISABLED = 'true';
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
 const { createAccountToken, hashAccountToken } = require('../services/accountTokenService');
-const { escapeHtml } = require('../services/emailService');
+const { emailLayout, escapeHtml } = require('../services/emailService');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 function responseRecorder() {
@@ -184,6 +184,23 @@ test('profile email changes stay pending for exactly ten minutes', async () => {
 
 test('email templates escape user-controlled HTML', () => {
   assert.equal(escapeHtml('<script>"x"</script>'), '&lt;script&gt;&quot;x&quot;&lt;/script&gt;');
+});
+
+test('transactional email layout uses the Campus Cart identity and hosted logo', () => {
+  const html = emailLayout({
+    frontendUrl: 'https://marketplace.example.test',
+    heading: 'Welcome <Student>',
+    body: '<p>Your account is ready.</p>',
+    actionLabel: 'Open Campus Cart',
+    actionUrl: 'https://marketplace.example.test/profile'
+  });
+
+  assert.match(html, /Campus Cart/);
+  assert.match(html, /https:\/\/marketplace\.example\.test\/campus-cart-logo\.png/);
+  assert.match(html, /Buy, sell and connect on campus\./);
+  assert.match(html, /background:#007aff/);
+  assert.match(html, /Welcome &lt;Student&gt;/);
+  assert.doesNotMatch(html, /Welcome <Student>/);
 });
 
 test('password changes revoke JWTs issued before the change', async () => {
