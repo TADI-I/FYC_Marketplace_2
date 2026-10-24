@@ -12,11 +12,9 @@ type DetectedCampus = { id: string; name: string; distanceMeters: number } | nul
 type Props = {
   location: BuyerLocation | null;
   detectedCampus: DetectedCampus;
-  radiusKm: number | null;
   searching: boolean;
   onLocation: (location: BuyerLocation) => void;
   onDisable: () => void;
-  onRadiusChange: (radius: number | null) => void;
   onCorrectCampus: () => void;
 };
 
@@ -32,11 +30,9 @@ const locationErrorMessage = (error: GeolocationPositionError) => {
 const LocationDiscovery = ({
   location,
   detectedCampus,
-  radiusKm,
   searching,
   onLocation,
   onDisable,
-  onRadiusChange,
   onCorrectCampus
 }: Props) => {
   const [showIntro, setShowIntro] = useState(false);
@@ -121,20 +117,6 @@ const LocationDiscovery = ({
           )}
         </div>
       </div>
-
-      {location && (
-        <label className="location-radius">
-          <span>Search within</span>
-          <select value={radiusKm === null ? 'all' : radiusKm} onChange={event => onRadiusChange(event.target.value === 'all' ? null : Number(event.target.value))}>
-            <option value="0.1">100 metres</option>
-            <option value="0.5">500 metres</option>
-            <option value="1">1 kilometre</option>
-            <option value="5">5 kilometres</option>
-            <option value="10">10 kilometres</option>
-            <option value="all">All available distances</option>
-          </select>
-        </label>
-      )}
 
       <div className="location-actions">
         {location ? (

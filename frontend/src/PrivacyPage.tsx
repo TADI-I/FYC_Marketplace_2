@@ -101,7 +101,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
               Nearby Discovery Location
             </h3>
-            <p>If you choose <strong>Use My Location</strong>, your browser provides a one-time latitude, longitude, and accuracy reading. We use it to sort and filter nearby listings and to estimate whether you are within a configured campus area. We do not continuously track you, place precise coordinates in the URL, or save a buyer location to your account by default. You can deny, refresh, or disable location discovery at any time.</p>
+            <p>If you choose <strong>Use My Location</strong>, your browser provides a one-time latitude, longitude, and accuracy reading. We use it to order eligible listings from closest to furthest and to estimate whether you are within a configured campus area. We do not continuously track you, place precise coordinates in the URL, save a buyer location to your account by default, or hide eligible listings based on distance. You can deny, refresh, or disable location discovery at any time.</p>
 
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
               Usage Data

@@ -10,7 +10,7 @@ must explicitly claim an offer before its access period begins.
 
 - Location-assisted discovery sorts eligible listings by distance without storing a buyer's live coordinates.
 - Campus recognition accounts for browser-reported accuracy instead of guessing from an imprecise reading.
-- Buyers can restrict nearby results to 100 m, 500 m, 1 km, 5 km, 10 km, or all available distances.
+- When buyers enable location, every eligible listing remains available and is ordered from closest to furthest.
 - Administrators can review marketplace totals, process seller verification, edit user details and roles, manage verification badges, and suspend or restore accounts.
 - Shared skeleton layouts preserve the page shape while dashboards, profiles, listings, analytics, verification, and chats load.
 - Non-blocking application feedback uses accessible queued toasts; actions requiring a decision use an accessible confirmation dialog.
@@ -157,8 +157,8 @@ Location resolution uses the first valid coordinate source in this order:
 2. seller pickup coordinates; and
 3. registered campus coordinates.
 
-Listings without usable coordinates sort last when the buyer selects all
-distances, and are excluded from bounded-radius searches. Normal seller-access,
+Listings without usable coordinates sort last. Location never hides an eligible
+listing; it only changes the order from closest to furthest. Normal seller-access,
 listing-status, search, category, and campus restrictions still apply before
 distance pagination.
 
@@ -178,8 +178,7 @@ npm run locations:backfill
 Configure `MONGODB_URI` and, when necessary, `DB_NAME` before running the command.
 
 Nearby requests use `POST /api/products/nearby`, keeping buyer coordinates out
-of URLs and access logs. The accepted `radiusKm` values are `0.1`, `0.5`, `1`,
-`5`, `10`, and `"all"`. The response includes `distanceMeters`,
+of URLs and access logs. The response includes `distanceMeters`,
 `locationSource`, pagination metadata, and a recognized campus when the reading
 is sufficiently accurate. Raw pickup coordinates are not returned in product
 results, and nearby responses use `Cache-Control: no-store`.
@@ -191,7 +190,6 @@ Example request:
   "latitude": -25.7315,
   "longitude": 28.1612,
   "accuracy": 20,
-  "radiusKm": 1,
   "page": 1,
   "limit": 20,
   "filters": {

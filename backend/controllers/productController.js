@@ -111,23 +111,15 @@ exports.getNearbyProducts = async (req, res, db) => {
     const accuracy = typeof req.body?.accuracy === 'number' ? req.body.accuracy : NaN;
     const page = Math.max(1, Math.min(100000, Number.parseInt(req.body?.page, 10) || 1));
     const limit = Math.max(1, Math.min(100, Number.parseInt(req.body?.limit, 10) || 24));
-    const allowedRadii = new Set([0.1, 0.5, 1, 5, 10]);
-    const radiusKm = req.body?.radiusKm === null || req.body?.radiusKm === 'all'
-      ? null
-      : Number(req.body?.radiusKm ?? 1);
-
     if (!isValidCoordinates(latitude, longitude)) {
       return res.status(400).json({ success: false, error: 'Valid latitude and longitude are required.' });
-    }
-    if (radiusKm !== null && !allowedRadii.has(radiusKm)) {
-      return res.status(400).json({ success: false, error: 'Unsupported search radius.' });
     }
 
     const filter = buildFilter(req.body?.filters || {});
     const products = await db.collection('products')
       .aggregate(buildEligibleProductPipeline(filter))
       .toArray();
-    const ranked = rankNearbyProducts(products, { latitude, longitude }, radiusKm);
+    const ranked = rankNearbyProducts(products, { latitude, longitude });
     const offset = (page - 1) * limit;
     const campuses = await db.collection('campuses').find({}).toArray();
     const detected = recognizeCampus(campuses, {
@@ -143,7 +135,6 @@ exports.getNearbyProducts = async (req, res, db) => {
       page,
       limit,
       hasMore: offset + limit < ranked.length,
-      radiusKm,
       detectedCampus: detected ? {
         id: detected.campus.id,
         name: detected.campus.name,

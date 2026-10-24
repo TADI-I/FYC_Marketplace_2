@@ -196,7 +196,6 @@ const App = () => {
   const [buyerLocation, setBuyerLocation] = useState<BuyerLocation | null>(null);
   const [detectedCampus, setDetectedCampus] = useState<{ id: string; name: string; distanceMeters: number } | null>(null);
   const [suppressDetectedCampus, setSuppressDetectedCampus] = useState(false);
-  const [radiusKm, setRadiusKm] = useState<number | null>(1);
   const [productPage, setProductPage] = useState(1);
   const [productTotal, setProductTotal] = useState(0);
   const [hasMoreProducts, setHasMoreProducts] = useState(false);
@@ -354,7 +353,6 @@ const App = () => {
       const response = buyerLocation
         ? await getNearbyProducts({
           ...buyerLocation,
-          radiusKm,
           page: productPage,
           limit: 24,
           filters
@@ -375,7 +373,7 @@ const App = () => {
     } finally {
       setLoading(false);
     }
-  }, [buyerLocation, productPage, radiusKm, selectedCategory, selectedCampus, searchTerm, suppressDetectedCampus]);
+  }, [buyerLocation, productPage, selectedCategory, selectedCampus, searchTerm, suppressDetectedCampus]);
 
   useEffect(() => {
     fetchProducts();
@@ -939,7 +937,6 @@ const App = () => {
               <LocationDiscovery
                 location={buyerLocation}
                 detectedCampus={detectedCampus}
-                radiusKm={radiusKm}
                 searching={_loading}
                 onLocation={location => {
                   setBuyerLocation(location);
@@ -950,10 +947,6 @@ const App = () => {
                   setBuyerLocation(null);
                   setDetectedCampus(null);
                   setSuppressDetectedCampus(false);
-                  setProductPage(1);
-                }}
-                onRadiusChange={radius => {
-                  setRadiusKm(radius);
                   setProductPage(1);
                 }}
                 onCorrectCampus={() => {
@@ -1046,10 +1039,9 @@ const App = () => {
                     <div className="empty-state text-center py-20">
                       <ShoppingBag className={`h-20 w-20 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
                       <p className={`text-xl font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                        {buyerLocation && radiusKm !== null ? `No matching products within ${radiusKm < 1 ? radiusKm * 1000 + ' metres' : radiusKm + (radiusKm === 1 ? ' kilometre' : ' kilometres')}.` : 'No products found matching your search.'}
+                        No products found matching your search.
                       </p>
-                      <p className={`mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your filters or expanding the distance.</p>
-                      {buyerLocation && radiusKm !== null && <button type="button" className="location-primary empty-expand" onClick={() => { setRadiusKm(null); setProductPage(1); }}>Show all distances</button>}
+                      <p className={`mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your filters.</p>
                     </div>
                   )}
                 </div>

@@ -5,11 +5,9 @@ import LocationDiscovery from './LocationDiscovery';
 const defaultProps = {
   location: null,
   detectedCampus: null,
-  radiusKm: 1,
   searching: false,
   onLocation: jest.fn(),
   onDisable: jest.fn(),
-  onRadiusChange: jest.fn(),
   onCorrectCampus: jest.fn()
 };
 
@@ -59,9 +57,8 @@ test('does not repeat a dismissed introduction and still offers later opt-in', (
   expect(screen.getByRole('button', { name: 'Use My Location' })).toBeInTheDocument();
 });
 
-test('shows inaccurate-reading guidance and configurable radii', () => {
+test('shows inaccurate-reading guidance without hiding products behind a distance filter', () => {
   render(<LocationDiscovery {...defaultProps} location={{ latitude: -25.7, longitude: 28.1, accuracy: 250 }} />);
   expect(screen.getByText(/Approximate reading/)).toBeInTheDocument();
-  fireEvent.change(screen.getByRole('combobox'), { target: { value: '5' } });
-  expect(defaultProps.onRadiusChange).toHaveBeenCalledWith(5);
+  expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
 });

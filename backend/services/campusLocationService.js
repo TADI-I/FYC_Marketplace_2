@@ -100,9 +100,7 @@ const coordinatesFromProduct = product => {
   return null;
 };
 
-const rankNearbyProducts = (products, origin, radiusKm = 1) => {
-  const maximumMeters = radiusKm === null ? null : radiusKm * 1000;
-  return products
+const rankNearbyProducts = (products, origin) => products
     .map(product => {
       const coordinates = coordinatesFromProduct(product);
       const distanceMeters = coordinates
@@ -110,7 +108,6 @@ const rankNearbyProducts = (products, origin, radiusKm = 1) => {
         : null;
       return { ...product, distanceMeters, locationSource: coordinates?.source || null };
     })
-    .filter(product => maximumMeters === null || (product.distanceMeters !== null && product.distanceMeters <= maximumMeters))
     .sort((left, right) => {
       if (left.distanceMeters === null && right.distanceMeters !== null) return 1;
       if (left.distanceMeters !== null && right.distanceMeters === null) return -1;
@@ -119,7 +116,6 @@ const rankNearbyProducts = (products, origin, radiusKm = 1) => {
       if (titleComparison) return titleComparison;
       return String(left._id || left.id || '').localeCompare(String(right._id || right.id || ''));
     });
-};
 
 const recognizeCampus = (campuses, origin) => {
   if (!isValidCoordinates(origin.latitude, origin.longitude)) return null;

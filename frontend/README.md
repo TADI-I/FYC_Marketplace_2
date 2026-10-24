@@ -53,10 +53,11 @@ use this subscription checkout.
 
 Nearby discovery is opt-in. The buyer's browser coordinates and accuracy are
 held only in React state and sent in the body of `POST /api/products/nearby`.
-The frontend does not persist the coordinates. Buyers can search within 100 m,
-500 m, 1 km, 5 km, 10 km, or across all listings with known distances. The
-interface explains approximate readings, allows location refresh, and always
-supports browsing without location access.
+The frontend does not persist the coordinates. When location is enabled, all
+eligible listings remain visible and are sorted from closest to furthest;
+listings without usable coordinates appear last. The interface explains
+approximate readings, allows location refresh, and always supports browsing
+without location access.
 
 ## Loading states and feedback
 

@@ -29,18 +29,17 @@ test('campus recognition requires the accuracy circle to fit inside the campus r
   assert.equal(recognizeCampus(CAMPUSES, { latitude: 0, longitude: 0, accuracy: 5 }), null);
 });
 
-test('nearby ranking prefers pickup coordinates, filters radius, and stably places missing coordinates last', () => {
+test('nearby ranking keeps every product, prefers pickup coordinates, and stably places missing coordinates last', () => {
   const products = [
     { _id: 'c', title: 'No location', seller: {} },
     { _id: 'b', title: 'Far', seller: { pickupLocation: { coordinates: [0, 0.02] } } },
     { _id: 'a', title: 'Near', pickupLocation: { coordinates: [0, 0.001] }, seller: {} }
   ];
-  const withinOneKm = rankNearbyProducts(products, { latitude: 0, longitude: 0 }, 1);
-  assert.deepEqual(withinOneKm.map(product => product._id), ['a']);
-  const all = rankNearbyProducts(products, { latitude: 0, longitude: 0 }, null);
-  assert.deepEqual(all.map(product => product._id), ['a', 'b', 'c']);
-  assert.equal(all[0].locationSource, 'pickup');
-  assert.equal(all[1].locationSource, 'seller-pickup');
+  const ranked = rankNearbyProducts(products, { latitude: 0, longitude: 0 });
+  assert.deepEqual(ranked.map(product => product._id), ['a', 'b', 'c']);
+  assert.equal(ranked[0].locationSource, 'pickup');
+  assert.equal(ranked[1].locationSource, 'seller-pickup');
+  assert.equal(ranked[2].distanceMeters, null);
 });
 
 const responseRecorder = () => {
@@ -71,7 +70,7 @@ test('nearby endpoint paginates after deterministic distance sorting and retains
   };
   const { record, res } = responseRecorder();
   await productController.getNearbyProducts({ body: {
-    latitude: 0, longitude: 0, accuracy: 5, radiusKm: 'all', page: 2, limit: 2,
+    latitude: 0, longitude: 0, accuracy: 5, page: 2, limit: 2,
     filters: { search: 'Product' }
   } }, res, db);
 
@@ -85,7 +84,7 @@ test('nearby endpoint paginates after deterministic distance sorting and retains
   assert.equal('pickupLocation' in record.payload.products[0], false);
 });
 
-test('nearby endpoint rejects invalid coordinates and radius values', async () => {
+test('nearby endpoint rejects invalid coordinates', async () => {
   const db = { collection() { throw new Error('database should not be called'); } };
   const invalidCoordinates = responseRecorder();
   await productController.getNearbyProducts({ body: { latitude: 200, longitude: 0 } }, invalidCoordinates.res, db);
@@ -94,8 +93,4 @@ test('nearby endpoint rejects invalid coordinates and radius values', async () =
   const coercedNullCoordinates = responseRecorder();
   await productController.getNearbyProducts({ body: { latitude: null, longitude: null } }, coercedNullCoordinates.res, db);
   assert.equal(coercedNullCoordinates.record.statusCode, 400);
-
-  const invalidRadius = responseRecorder();
-  await productController.getNearbyProducts({ body: { latitude: 0, longitude: 0, radiusKm: 2 } }, invalidRadius.res, db);
-  assert.equal(invalidRadius.record.statusCode, 400);
 });
