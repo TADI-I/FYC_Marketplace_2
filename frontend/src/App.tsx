@@ -29,6 +29,7 @@ import { AppView, pathForView, resolveAppRoute } from './navigation';
 import LocationDiscovery, { BuyerLocation } from './LocationDiscovery';
 import ContactSellerModal from './ContactSellerModal';
 import { marketplaceProductUrl } from './siteConfig';
+import { CAMPUS_LOCATIONS, MARKETPLACE_CATEGORIES, OTHER_LOCATION_OPTION } from './marketplaceData';
 
 import './App.css';
 import {
@@ -257,25 +258,13 @@ const App = () => {
 
   const categories = useMemo(() => [
     { id: 'all', name: 'All Items' },
-    { id: 'books', name: 'Books' },
-    { id: 'electronics', name: 'Electronics' },
-    { id: 'services', name: 'Services' },
-    { id: 'clothing', name: 'Clothing' },
-    { id: 'food', name: 'Food' },
-    { id: 'other', name: 'Other' }
+    ...MARKETPLACE_CATEGORIES
   ], []);
 
   const campuses = useMemo(() => [
     { id: 'all', name: 'All Locations' },
-    { id: 'pretoria-main', name: '🔥 Pretoria Campus' },
-    { id: 'soshanguve-S', name: '🔥 Soshanguve South' },
-    { id: 'soshanguve-N', name: 'Soshanguve North' },
-    { id: 'ga-rankuwa', name: 'Ga-Rankuwa' },
-    { id: 'pretoria-west', name: 'Arcadia Campus' },
-    { id: 'arts', name: 'Arts Campus' },
-    { id: 'emalahleni', name: 'eMalahleni' },
-    { id: 'mbombela', name: 'Mbombela' },
-    { id: 'polokwane', name: 'Polokwane' }
+    ...CAMPUS_LOCATIONS,
+    OTHER_LOCATION_OPTION
   ], []);
 
   const selectedCategoryName = useMemo(() => {
@@ -283,7 +272,7 @@ const App = () => {
   }, [categories, selectedCategory]);
 
   const selectedCampusName = useMemo(() => {
-    return campuses.find(campus => campus.id === selectedCampus)?.name.replace('🔥 ', '') || 'All Locations';
+    return campuses.find(campus => campus.id === selectedCampus)?.name || 'All Locations';
   }, [campuses, selectedCampus]);
 
   const clearFilters = useCallback(() => {
@@ -507,13 +496,13 @@ const App = () => {
       if (token) localStorage.setItem('auth_token', token);
       localStorage.setItem('user_data', JSON.stringify(user));
     } catch (e) { console.warn('Failed to persist session', e); }
-    const pendingChat = sessionStorage.getItem('fyc_pending_chat');
-    const pendingContact = sessionStorage.getItem('fyc_pending_contact_product');
+    const pendingChat = sessionStorage.getItem('campus_cart_pending_chat');
+    const pendingContact = sessionStorage.getItem('campus_cart_pending_contact_product');
     if (pendingChat) {
-      sessionStorage.removeItem('fyc_pending_chat');
+      sessionStorage.removeItem('campus_cart_pending_chat');
       navigate(pendingChat, { replace: true });
     } else if (pendingContact) {
-      sessionStorage.removeItem('fyc_pending_contact_product');
+      sessionStorage.removeItem('campus_cart_pending_contact_product');
       try {
         const product = JSON.parse(pendingContact) as Product;
         setContactProduct(product);
@@ -636,6 +625,10 @@ const App = () => {
       : product.distanceMeters < 1000
         ? `${Math.max(10, Math.round(product.distanceMeters / 10) * 10)} m away`
         : `${(product.distanceMeters / 1000).toFixed(1)} km away`;
+    const sellerLocation = product.sellerLocationLabel
+      || CAMPUS_LOCATIONS.find(campus => campus.id === product.sellerCampus)?.name
+      || (product.sellerCampus === 'other' ? OTHER_LOCATION_OPTION.name : product.sellerCampus)
+      || 'Pickup area';
 
     const handleShare = async () => {
       try {
@@ -739,7 +732,7 @@ const App = () => {
           <div className="mobile-product-perks" aria-hidden="true">
             <div className="mobile-perk-box">
               <span>Campus pickup</span>
-              <strong>{product.sellerCampus || 'Nearby'}</strong>
+              <strong>{sellerLocation}</strong>
             </div>
             <div className="mobile-arrival-row">
               <MapPin className="h-4 w-4" />
@@ -754,7 +747,7 @@ const App = () => {
               </div>
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
-                <span className="truncate max-w-[100px]">{product.sellerCampus}</span>
+                <span className="truncate max-w-[100px]">{sellerLocation}</span>
               </div>
             </div>
             {product.rating > 0 && (
@@ -909,7 +902,7 @@ const App = () => {
           ) : currentView === 'about' ? (
             <AboutPage onBack={() => setCurrentView('home')} />
           ) : currentView === 'how-it-works' ? (
-            <HowItWorksPage onBack={() => setCurrentView('home')} />
+            <HowItWorksPage onBack={() => setCurrentView('home')} onRegister={() => navigate('/register')} />
           ) : currentView === 'faq' ? (
             <FAQPage onBack={() => setCurrentView('home')} />
           ) : currentView === 'contact' ? (
@@ -1066,7 +1059,7 @@ const App = () => {
         )}
         {showRegister && (
           <RegisterForm
-            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); const pendingChat = sessionStorage.getItem('fyc_pending_chat'); const pendingContact = sessionStorage.getItem('fyc_pending_contact_product'); sessionStorage.removeItem('fyc_pending_chat'); sessionStorage.removeItem('fyc_pending_contact_product'); if (pendingChat) navigate(pendingChat, { replace: true }); else if (pendingContact) { try { const product = JSON.parse(pendingContact) as Product; setContactProduct(product); navigate(`/products/${encodeURIComponent(String((product as any)._id || product.id))}`, { replace: true }); } catch { navigate('/', { replace: true }); } } else navigate('/', { replace: true }); }}
+            onRegisterSuccess={(user, token) => { setCurrentUser(user); if (token) localStorage.setItem('auth_token', token); localStorage.setItem('user_data', JSON.stringify(user)); const pendingChat = sessionStorage.getItem('campus_cart_pending_chat'); const pendingContact = sessionStorage.getItem('campus_cart_pending_contact_product'); sessionStorage.removeItem('campus_cart_pending_chat'); sessionStorage.removeItem('campus_cart_pending_contact_product'); if (pendingChat) navigate(pendingChat, { replace: true }); else if (pendingContact) { try { const product = JSON.parse(pendingContact) as Product; setContactProduct(product); navigate(`/products/${encodeURIComponent(String((product as any)._id || product.id))}`, { replace: true }); } catch { navigate('/', { replace: true }); } } else navigate('/', { replace: true }); }}
             onShowLogin={() => navigate('/login', { replace: true })}
             onClose={() => navigate('/', { replace: true })}
           />
@@ -1086,9 +1079,9 @@ const App = () => {
           onClose={() => setContactProduct(null)}
           onWhatsApp={() => {
             if (!currentUser) {
-              sessionStorage.setItem('fyc_pending_contact_product', JSON.stringify(contactProduct));
+              sessionStorage.setItem('campus_cart_pending_contact_product', JSON.stringify(contactProduct));
               setContactProduct(null);
-              showNotification({ type: 'info', title: 'Sign in to continue', message: 'Seller contact details are protected and available only to Marketplace account holders.' });
+              showNotification({ type: 'info', title: 'Sign in to continue', message: 'Seller contact details are protected and available only to Campus Cart account holders.' });
               navigate('/login');
               return;
             }
@@ -1106,8 +1099,8 @@ const App = () => {
             const chatPath = `/messages/${encodeURIComponent(sellerId)}?product=${encodeURIComponent(productId)}`;
             setContactProduct(null);
             if (!currentUser) {
-              sessionStorage.setItem('fyc_pending_chat', chatPath);
-              showNotification({ type: 'info', title: 'Sign in to continue', message: 'In-app chat is available to Marketplace account holders.' });
+              sessionStorage.setItem('campus_cart_pending_chat', chatPath);
+              showNotification({ type: 'info', title: 'Sign in to continue', message: 'In-app chat is available to Campus Cart account holders.' });
               navigate('/login');
               return;
             }

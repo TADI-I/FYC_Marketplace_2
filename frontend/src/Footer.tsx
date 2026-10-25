@@ -3,6 +3,7 @@ import { MessageCircle } from 'lucide-react';
 import lbgMonogram from './lbg-monogram-cream-transparent.png';
 import type { AppView } from './navigation';
 import { supportWhatsAppUrl } from './siteConfig';
+import { CAMPUS_LOCATIONS } from './marketplaceData';
 
 interface FooterProps {
   onNavigate: (view: AppView) => void;
@@ -245,14 +246,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               fontSize: '0.875rem',
               color: muted
             }}>
-              <li style={{ marginBottom: '0.25rem' }}>Pretoria Central</li>
-              <li style={{ marginBottom: '0.25rem' }}>Soshanguve South</li>
-              <li style={{ marginBottom: '0.25rem' }}>Soshanguve North</li>
-              <li style={{ marginBottom: '0.25rem' }}>Ga-Rankuwa</li>
-              <li style={{ marginBottom: '0.25rem' }}>Pretoria Arcadia</li>
-              <li style={{ marginBottom: '0.25rem' }}>eMalahleni</li>
-              <li style={{ marginBottom: '0.25rem' }}>Mbombela</li>
-              <li style={{ marginBottom: '0.25rem' }}>Polokwane</li>
+              {CAMPUS_LOCATIONS.map(campus => <li key={campus.id} style={{ marginBottom: '0.25rem' }}>{campus.name}</li>)}
             </ul>
           </div>
         </div>

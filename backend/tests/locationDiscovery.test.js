@@ -4,6 +4,7 @@ const {
   CAMPUSES,
   haversineDistanceMeters,
   isValidCoordinates,
+  pickupLocationFromInput,
   rankNearbyProducts,
   recognizeCampus
 } = require('../services/campusLocationService');
@@ -14,6 +15,17 @@ test('coordinate validation rejects malformed and out-of-range readings', () => 
   assert.equal(isValidCoordinates('not-a-number', 28.1), false);
   assert.equal(isValidCoordinates(91, 28.1), false);
   assert.equal(isValidCoordinates(-25.7, 181), false);
+});
+
+test('custom pickup input becomes a private GeoJSON point without coercing invalid readings', () => {
+  const point = pickupLocationFromInput({ latitude: -25.745, longitude: 28.19, accuracy: 18.7 });
+  assert.equal(point.type, 'Point');
+  assert.deepEqual(point.coordinates, [28.19, -25.745]);
+  assert.equal(point.accuracy, 19);
+  assert.ok(point.capturedAt instanceof Date);
+  assert.equal(pickupLocationFromInput({ latitude: 200, longitude: 28.19 }), null);
+  assert.equal(pickupLocationFromInput({ latitude: 'invalid', longitude: 28.19 }), null);
+  assert.equal(pickupLocationFromInput({ latitude: null, longitude: null }), null);
 });
 
 test('Haversine distance is calculated in metres', () => {

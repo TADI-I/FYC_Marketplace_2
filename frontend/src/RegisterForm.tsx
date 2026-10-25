@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { registerUser } from "./api";
 import { showNotification } from './AppNotificationModal';
+import { CAMPUS_LOCATIONS, OTHER_LOCATION_OPTION } from './marketplaceData';
+import CustomLocationCapture from './CustomLocationCapture';
+import type { CapturedLocation } from './types';
 
 type User = {
   id: number;
@@ -30,18 +33,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [accountType, setAccountType] = useState<"buyer" | "seller">("buyer");
-
-  const campuses = [
-    { id: "pretoria-main", name: "Pretoria Central" },
-    { id: "soshanguve-S", name: "Soshanguve South" },
-    { id: "soshanguve-N", name: "Soshanguve North" },
-    { id: "ga-rankuwa", name: "Ga-Rankuwa" },
-    { id: "pretoria-west", name: "Pretoria Arcadia" },
-    { id: "arts", name: "Arts" },
-    { id: "emalahleni", name: "eMalahleni" },
-    { id: "mbombela", name: "Mbombela" },
-    { id: "polokwane", name: "Polokwane" },
-  ];
+  const [locationLabel, setLocationLabel] = useState('');
+  const [customLocation, setCustomLocation] = useState<CapturedLocation | null>(null);
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword || !campus) {
@@ -59,6 +52,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       return;
     }
 
+    if (campus === 'other' && (!locationLabel.trim() || !customLocation)) {
+      showNotification({ type: 'warning', title: 'Add your location', message: 'Enter an area name and use the location button before continuing.' });
+      return;
+    }
+
     try {
       const response = await registerUser({
         name,
@@ -67,6 +65,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         campus,
         whatsapp,
         type: accountType,
+        ...(campus === 'other' ? { locationLabel: locationLabel.trim(), location: customLocation } : {})
       });
 
       setName("");
@@ -75,6 +74,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       setConfirmPassword("");
       setCampus("");
       setWhatsapp("");
+      setLocationLabel('');
+      setCustomLocation(null);
 
       if (response.requiresEmailVerification) {
         onClose();
@@ -189,15 +190,32 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         <select
           className="w-full p-3 border rounded mb-4"
           value={campus}
-          onChange={(e) => setCampus(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setCampus(value);
+            if (value !== 'other') {
+              setLocationLabel('');
+              setCustomLocation(null);
+            }
+          }}
         >
           <option value="">Select Your Location</option>
-          {campuses.map((c) => (
+          {CAMPUS_LOCATIONS.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
+          <option value={OTHER_LOCATION_OPTION.id}>{OTHER_LOCATION_OPTION.name}</option>
         </select>
+
+        {campus === 'other' && (
+          <CustomLocationCapture
+            label={locationLabel}
+            onLabelChange={setLocationLabel}
+            location={customLocation}
+            onLocation={setCustomLocation}
+          />
+        )}
 
         <input
           type="tel"

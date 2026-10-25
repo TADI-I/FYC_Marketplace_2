@@ -30,7 +30,7 @@ test('requests geolocation only after Use My Location and returns an accurate re
   expect(getCurrentPosition).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Use My Location' }));
   expect(defaultProps.onLocation).toHaveBeenCalledWith({ latitude: -25.7, longitude: 28.1, accuracy: 12 });
-  expect(localStorage.getItem('fyc_location_prompt_seen')).toBe('true');
+  expect(localStorage.getItem('campus_cart_location_prompt_seen')).toBe('true');
 });
 
 test.each([
@@ -50,7 +50,7 @@ test.each([
 });
 
 test('does not repeat a dismissed introduction and still offers later opt-in', () => {
-  localStorage.setItem('fyc_location_prompt_seen', 'true');
+  localStorage.setItem('campus_cart_location_prompt_seen', 'true');
   render(<LocationDiscovery {...defaultProps} />);
   expect(screen.queryByText('Find what’s closest to you')).not.toBeInTheDocument();
   expect(screen.getByText('Nearby discovery is off')).toBeInTheDocument();

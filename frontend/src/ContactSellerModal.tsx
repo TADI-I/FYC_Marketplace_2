@@ -35,7 +35,7 @@ export default function ContactSellerModal({ product, signedIn, isOwnListing, wh
         <div className="contact-choice-grid">
           <button type="button" className="contact-choice-option" onClick={onInAppChat} disabled={isOwnListing}>
             <span className="contact-choice-icon"><MessageCircle /></span>
-            <span><strong>In-app chat</strong><small>{isOwnListing ? 'This is your listing' : signedIn ? 'Message securely inside Marketplace' : 'Sign in or create an account first'}</small></span>
+            <span><strong>In-app chat</strong><small>{isOwnListing ? 'This is your listing' : signedIn ? 'Message securely inside Campus Cart' : 'Sign in or create an account first'}</small></span>
           </button>
           <button type="button" className="contact-choice-option" onClick={onWhatsApp} disabled={whatsappDisabled}>
             <span className="contact-choice-icon"><Smartphone /></span>

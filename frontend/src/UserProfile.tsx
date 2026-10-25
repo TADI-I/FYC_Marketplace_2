@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { getSubscriptionStatus, updateUserProfile, upgradeUserToSeller, getCurrentUser } from './api';
 import { User as UserIC, ArrowLeft, Mail, MapPin, CreditCard, Edit3, Save, X, Zap, AlertTriangle, Clock, CheckCircle, Phone, CalendarDays, Store, Loader2 } from 'lucide-react';
 import VerificationSection from './VerificationSection';
-import type { User } from './types';
+import type { CapturedLocation, User } from './types';
 import { showNotification } from './AppNotificationModal';
 import { ProfileSkeleton } from './LoadingSkeletons';
 import { supportWhatsAppUrl } from './siteConfig';
+import { CAMPUS_LOCATIONS, OTHER_LOCATION_OPTION } from './marketplaceData';
+import CustomLocationCapture from './CustomLocationCapture';
 
 interface UserProfileProps {
   currentUser: User | null;
@@ -23,8 +25,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
     name: user?.name || '',
     email: '',
     campus: '',
+    locationLabel: '',
     whatsapp: user?.whatsapp || ''
   });
+  const [customLocation, setCustomLocation] = useState<CapturedLocation | null>(null);
   const [upgrading, setUpgrading] = useState(false);
   const [showSupportTooltip, setShowSupportTooltip] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
@@ -76,6 +80,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       name: user.name || '',
       email: user.email || '',
       campus: user.campus || '',
+      locationLabel: user.locationLabel || '',
       whatsapp: user.whatsapp || ''
     });
   }, [user, editing]);
@@ -146,15 +151,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
   const campuses = [
     { id: 'all', name: 'All Locations' },
-    { id: 'pretoria-main', name: 'Pretoria Central' },
-    { id: 'soshanguve-S', name: 'Soshanguve South' },
-    { id: 'soshanguve-N', name: 'Soshanguve North' },
-    { id: 'ga-rankuwa', name: 'Ga-Rankuwa' },
-    { id: 'pretoria-west', name: 'Pretoria Arcadia' },
-    { id: 'arts', name: 'Arts' },
-    { id: 'emalahleni', name: 'eMalahleni' },
-    { id: 'mbombela', name: 'Mbombela' },
-    { id: 'polokwane', name: 'Polokwane' }
+    ...CAMPUS_LOCATIONS
   ];
 
   const fetchSubscriptionStatus = async () => {
@@ -249,8 +246,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
         name: user?.name || '',
         email: user?.email || '',
         campus: user?.campus || '',
+        locationLabel: user?.locationLabel || '',
         whatsapp: user?.whatsapp || ''
       });
+      setCustomLocation(null);
     }
     setEditing(!editing);
   };
@@ -284,6 +283,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       return;
     }
 
+    if (formData.campus === 'other' && (!formData.locationLabel.trim() || (!customLocation && !user?.hasCustomLocation))) {
+      showNotification({ type: 'warning', title: 'Add your location', message: 'Enter an area name and use the location button before saving.' });
+      return;
+    }
+
     // normalize whatsapp (optional) and validate basic length
     let normalizedWhatsapp: string | undefined = undefined;
     if (formData.whatsapp && formData.whatsapp.trim() !== '') {
@@ -300,6 +304,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       const result = await updateUserProfile(userId, {
         name: formData.name.trim(),
         campus: formData.campus,
+        locationLabel: formData.campus === 'other' ? formData.locationLabel.trim() : null,
+        location: formData.campus === 'other' ? customLocation : null,
         email: formData.email.toLowerCase().trim(),
         whatsapp: normalizedWhatsapp !== undefined ? normalizedWhatsapp : null
       });
@@ -314,6 +320,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
       localStorage.setItem('user_data', JSON.stringify(updatedProfile));
       
       setEditing(false);
+      setCustomLocation(null);
       showNotification({ type: 'success', title: 'Profile updated', message: result.message || 'Your changes were saved successfully.' });
     } catch (error) {
       console.error('Update error details:', error);
@@ -447,7 +454,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                     id="profile-campus"
                     name="campus"
                     value={formData.campus}
-                    onChange={handleInputChange}
+                    onChange={event => {
+                      handleInputChange(event);
+                      setCustomLocation(null);
+                      if (event.target.value !== 'other') {
+                        setFormData(current => ({ ...current, locationLabel: '' }));
+                      }
+                    }}
                     required
                   >
                     <option value="">{campuses[0].name}</option>
@@ -456,8 +469,21 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                         {campus.name}
                       </option>
                     ))}
+                    <option value={OTHER_LOCATION_OPTION.id}>{OTHER_LOCATION_OPTION.name}</option>
                   </select>
                 </div>
+                {formData.campus === 'other' && (
+                  <div className="listing-field seller-edit-wide">
+                    <CustomLocationCapture
+                      label={formData.locationLabel}
+                      onLabelChange={value => setFormData(current => ({ ...current, locationLabel: value }))}
+                      location={customLocation}
+                      onLocation={setCustomLocation}
+                      hasSavedLocation={Boolean(user?.hasCustomLocation)}
+                      disabled={loading}
+                    />
+                  </div>
+                )}
                 <div className="listing-field">
                   <label htmlFor="profile-whatsapp">WhatsApp number <span>Optional</span></label>
                   <input
@@ -669,7 +695,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                 <div className="profile-detail-grid">
                   <div className="profile-detail-item"><span><UserIC aria-hidden="true" /></span><div><small>Name</small><strong>{user.name}</strong></div></div>
                   <div className="profile-detail-item"><span><Mail aria-hidden="true" /></span><div><small>Email</small><strong>{user.email}</strong>{user.pendingEmail && <em>Pending: {user.pendingEmail}</em>}</div></div>
-                  <div className="profile-detail-item"><span><MapPin aria-hidden="true" /></span><div><small>Location</small><strong>{campuses.find(campus => campus.id === user.campus)?.name || user.campus || 'Not specified'}</strong></div></div>
+                  <div className="profile-detail-item"><span><MapPin aria-hidden="true" /></span><div><small>Location</small><strong>{user.locationLabel || campuses.find(campus => campus.id === user.campus)?.name || (user.campus === 'other' ? OTHER_LOCATION_OPTION.name : user.campus) || 'Not specified'}</strong></div></div>
                   <div className="profile-detail-item"><span><Phone aria-hidden="true" /></span><div><small>WhatsApp</small><strong>{user.whatsapp || 'Not provided'}</strong></div></div>
                   <div className="profile-detail-item"><span><CreditCard aria-hidden="true" /></span><div><small>Account type</small><strong>{user.type.charAt(0).toUpperCase() + user.type.slice(1)}</strong></div></div>
                 </div>

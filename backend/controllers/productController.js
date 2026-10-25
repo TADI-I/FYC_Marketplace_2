@@ -59,6 +59,7 @@ const buildEligibleProductPipeline = filter => {
         sellerVerified: { $ifNull: ['$seller.verified', false] },
         sellerName: '$seller.name',
         sellerCampus: '$seller.campus',
+        sellerLocationLabel: '$seller.locationLabel',
         whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
       }
     }
@@ -186,6 +187,7 @@ exports.getProductById = async (req, res, db) => {
           sellerVerified: { $ifNull: ['$seller.verified', false] },
           sellerName: '$seller.name',
           sellerCampus: '$seller.campus',
+          sellerLocationLabel: '$seller.locationLabel',
           whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
         }
       },
@@ -263,6 +265,7 @@ exports.getProductsBySeller = async (req, res, db) => {
         sellerVerified: seller.verified || false,
         sellerName: seller.name,
         sellerCampus: seller.campus,
+        sellerLocationLabel: seller.locationLabel || null,
         whatsappRedirects: product.whatsappRedirects || 0
       };
     });
@@ -350,6 +353,7 @@ exports.createProduct = async (req, res, db) => {
       {
         $addFields: {
           sellerVerified: { $ifNull: ['$seller.verified', false] },
+          sellerLocationLabel: '$seller.locationLabel',
           whatsappRedirects: { $ifNull: ['$whatsappRedirects', 0] }
         }
       },

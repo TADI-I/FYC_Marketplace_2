@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ImagePlus, Loader2, UploadCloud, X } from 'lucide-react';
 import { showNotification } from './AppNotificationModal';
 import type { User } from './types';
+import { MARKETPLACE_CATEGORIES } from './marketplaceData';
 
 type Product = {
   id: number;
@@ -24,15 +25,6 @@ interface AddProductFormProps {
   onProductAdded: (product: Product) => void;
   onCancel: () => void;
 }
-
-const categories = [
-  { id: 'books', name: 'Books' },
-  { id: 'electronics', name: 'Electronics' },
-  { id: 'services', name: 'Services' },
-  { id: 'clothing', name: 'Clothing' },
-  { id: 'food', name: 'Food' },
-  { id: 'other', name: 'Other' }
-];
 
 type FieldErrors = Partial<Record<'title' | 'description' | 'price' | 'category' | 'image', string>>;
 
@@ -153,7 +145,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ currentUser, onProductA
             <div className="listing-field">
               <label htmlFor="listing-category">Category <span>Required</span></label>
               <select id="listing-category" value={productData.category} onChange={event => setField('category', event.target.value)} disabled={loading || !canPost} aria-invalid={Boolean(fieldErrors.category)}>
-                <option value="">Choose a category</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                <option value="">Choose a category</option>{MARKETPLACE_CATEGORIES.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
               {fieldErrors.category && <p className="listing-field-error">{fieldErrors.category}</p>}
             </div>

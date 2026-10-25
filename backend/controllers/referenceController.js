@@ -8,14 +8,17 @@ exports.getCampuses = async (req, res, db) => {
   if (db) {
     try {
       const stored = await db.collection('campuses').find({}, {
-        projection: { _id: 0, source: 0, createdAt: 0, updatedAt: 0 }
+        projection: { _id: 0, id: 1, name: 1 }
       }).sort({ name: 1 }).toArray();
       if (stored.length) campuses = stored;
     } catch (error) {
       console.warn('Using bundled campus data:', error.message);
     }
   }
-  res.json({ success: true, campuses });
+  res.json({
+    success: true,
+    campuses: campuses.map(({ id, name }) => ({ id, name }))
+  });
 };
 
 // Get categories

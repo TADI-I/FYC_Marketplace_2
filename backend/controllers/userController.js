@@ -11,6 +11,7 @@ const {
 const { getEligibleOffers } = require('../services/sellerOfferService');
 const { createAccountToken, hashAccountToken } = require('../services/accountTokenService');
 const { sendEmailChangeVerificationEmail } = require('../services/emailService');
+const { isValidCampusId, pickupLocationFromInput } = require('../services/campusLocationService');
 
 const EMAIL_CHANGE_WINDOW_MS = 10 * 60 * 1000;
 
@@ -21,6 +22,8 @@ function publicUser(user) {
     email: user.email,
     type: user.type,
     campus: user.campus,
+    locationLabel: user.locationLabel || null,
+    hasCustomLocation: Boolean(user.pickupLocation),
     subscribed: user.subscribed,
     ...publicSubscriptionFields(user),
     whatsapp: user.whatsapp || null,
@@ -71,7 +74,7 @@ exports.getSubscriptionStatus = async (req, res, db) => {
 exports.updateUserProfile = async (req, res, db) => {
   try {
     const userId = req.params.id;
-    const { name, campus, email, whatsapp } = req.body;
+    const { name, campus, email, whatsapp, locationLabel, location } = req.body;
     const normalizedEmail = String(email || '').toLowerCase().trim();
 
     // Validation
@@ -127,6 +130,18 @@ exports.updateUserProfile = async (req, res, db) => {
     const verification = emailChanged ? createAccountToken() : null;
     const now = new Date();
 
+    if (!isValidCampusId(campus)) {
+      return res.status(400).json({ error: 'Please select a valid location', success: false, code: 'INVALID_LOCATION' });
+    }
+    const normalizedLocationLabel = String(locationLabel || '').trim().slice(0, 80);
+    const suppliedPickupLocation = location == null ? null : pickupLocationFromInput(location);
+    if (location != null && !suppliedPickupLocation) {
+      return res.status(400).json({ error: 'The shared location is invalid. Please try again.', success: false, code: 'INVALID_COORDINATES' });
+    }
+    if (campus === 'other' && (!normalizedLocationLabel || (!suppliedPickupLocation && !currentUser.pickupLocation))) {
+      return res.status(400).json({ error: 'Add a residence or area name and share its location when choosing Other', success: false, code: 'CUSTOM_LOCATION_REQUIRED' });
+    }
+
     // Build update object
     const updateData = {
       name: name.trim(),
@@ -140,12 +155,18 @@ exports.updateUserProfile = async (req, res, db) => {
 
     // Only include campus if provided
     if (campus) updateData.campus = campus;
+    if (campus === 'other') {
+      updateData.locationLabel = normalizedLocationLabel;
+      if (suppliedPickupLocation) updateData.pickupLocation = suppliedPickupLocation;
+    }
     // WhatsApp is optional; an empty value intentionally clears it.
     updateData.whatsapp = normalizedWhatsapp;
 
+    const profileUpdate = { $set: updateData };
+    if (campus !== 'other') profileUpdate.$unset = { locationLabel: '', pickupLocation: '' };
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(userId) },
-      { $set: updateData }
+      profileUpdate
     );
 
     if (result.matchedCount === 0) {

@@ -1,3 +1,5 @@
+import { CAMPUS_LOCATIONS } from './marketplaceData';
+
 const API_BASE = process.env.REACT_APP_API_BASE;
 
 // API Helper function with DEBUG LOGGING
@@ -534,17 +536,7 @@ export const getCampuses = async () => {
     return response.campuses || [];
   } catch (error) {
     console.error('❌ Failed to get campuses:', error);
-    return [
-      { id: 'pretoria-main', name: 'Pretoria Main' },
-      { id: 'soshanguve-S', name: 'Soshanguve South' },
-      { id: 'soshanguve-N', name: 'Soshanguve North' },
-      { id: 'ga-rankuwa', name: 'Ga-Rankuwa' },
-      { id: 'pretoria-west', name: 'Pretoria West' },
-      { id: 'arts', name: 'Arts' },
-      { id: 'emalahleni', name: 'eMalahleni' },
-      { id: 'mbombela', name: 'Mbombela' },
-      { id: 'polokwane', name: 'Polokwane' }
-    ];
+    return [...CAMPUS_LOCATIONS];
   }
 };
 

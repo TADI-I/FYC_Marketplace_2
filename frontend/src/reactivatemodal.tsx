@@ -10,7 +10,7 @@ interface ReactivateModalProps {
 const ReactivateModal: React.FC<ReactivateModalProps> = ({ isOpen, onClose, userEmail }) => {
   if (!isOpen) return null;
 
-  const waLink = supportWhatsAppUrl(`Hi Marketplace support, this is ${userEmail || ''}. Please see my seller subscription payment query.`);
+  const waLink = supportWhatsAppUrl(`Hi Campus Cart support, this is ${userEmail || ''}. Please see my seller subscription payment query.`);
 
   return (
     <div
@@ -38,28 +38,14 @@ const ReactivateModal: React.FC<ReactivateModalProps> = ({ isOpen, onClose, user
           </h3>
 
           <p className="text-sm text-gray-700 text-center mb-4">
-            Your request has been sent. Please send proof of payment to the admin on WhatsApp.
-            Account will be reactivated once payment is confirmed within 24 hours.
+            Reactivate seller access through the secure checkout in your profile. Access is restored
+            after the payment provider confirms the payment.
           </p>
 
           <p className="text-sm text-gray-700 text-center mb-4">
-            Use the following details to make your payment:
+            If checkout is unavailable or you have a payment question, contact Campus Cart support.
           </p>
 
-          <div className="bg-gray-50 p-3 rounded-lg text-center space-y-1">
-            <p className="font-mono text-sm">
-              <b>PAYSHAP:</b> +27629622755
-            </p>
-            <p className="font-mono text-sm">
-              <b>FNB – Account:</b> 62315723321
-            </p>
-            <p className="font-mono text-sm">
-              <b>Branch Code:</b> 250655
-            </p>
-            <p className="font-mono text-sm mt-2">
-              <b>Reference:</b> Your registered email + CampusCart
-            </p>
-          </div>
         </div>
 
         <div className="flex gap-3">

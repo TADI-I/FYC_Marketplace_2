@@ -25,12 +25,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'getting-started',
       question: 'Is Campus Cart free to use?',
-      answer: 'Yes! For buyers, Campus Cart is completely free – no registration fees, browsing fees, or transaction fees. You can search, browse, and contact sellers without paying anything. Standard seller access costs R25 per month. Eligible sellers may also receive claimable free-period or discount offers.'
+      answer: 'Yes. Buyers can browse and contact sellers without a platform fee, although an account is required before starting an in-app chat or opening a seller\'s WhatsApp contact. Standard seller access costs R25 per month. Eligible sellers may also receive claimable free-period or discount offers.'
     },
     {
       category: 'buying',
       question: 'How do I find textbooks for my courses?',
-      answer: 'Use our search bar to type in the textbook title, course code, or subject name. You can also filter by the "Books" category to see only book listings. For best results, filter by your campus location to find textbooks available near you for easy pick-up. Each listing shows the book\'s condition, price, and seller information. Contact the seller via WhatsApp to ask questions or arrange a purchase.'
+      answer: 'Use the search bar to enter the textbook title, course code, or subject name, then choose the Books category. You can filter by campus manually or enable optional location discovery to keep all eligible listings visible and order them from closest to furthest. Sign in to contact the seller through in-app chat or WhatsApp.'
     },
     {
       category: 'buying',
@@ -40,12 +40,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'buying',
       question: 'What should I do if I have issues with a seller or item?',
-      answer: 'First, try to resolve the issue directly with the seller through WhatsApp. If the seller is unresponsive or the issue cannot be resolved, contact our support team from the Contact page. Provide details about the transaction, screenshots of your conversations, and any evidence. While we cannot process refunds directly, we can help mediate disputes and take action against problematic sellers, including account suspension.'
+      answer: 'First, try to resolve the issue directly with the seller through your chosen chat channel. If the seller is unresponsive or the issue cannot be resolved, contact our support team from the Contact page. Provide the listing link, relevant conversation screenshots, and any supporting evidence. Campus Cart does not process item payments or issue transaction refunds, but the admin team can review reports and take action against accounts that violate platform rules.'
     },
     {
       category: 'buying',
       question: 'What does the "Verified Seller" badge mean?',
-      answer: 'The Verified Seller badge indicates that the seller has submitted a photo of themselves holding their student ID, which our admin team has reviewed and approved. Verified sellers are more trustworthy because their identity has been confirmed. They also tend to respond faster and provide better service. Listings from verified sellers appear first in search results. While not all unverified sellers are problematic, the badge gives buyers extra confidence when making purchases.'
+      answer: 'The Verified Seller badge means the seller submitted the requested verification photo and the admin team approved it. It is an additional trust signal, not a guarantee of an item, transaction, response time, or seller conduct. Always inspect the item and follow the same safety precautions with every seller.'
     },
     {
       category: 'selling',
@@ -60,12 +60,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'selling',
       question: 'How do I create a good product listing?',
-      answer: 'Great listings start with clear, well-lit photos taken from multiple angles. Write a descriptive title that includes the item name and key details (e.g., "Engineering Mathematics Textbook - 5th Edition - Like New"). In the description, mention the item\'s condition honestly, include your campus location, specify any delivery options, and add your WhatsApp number. Set a fair price by checking what similar items sell for. The more accurate and detailed your listing, the faster you\'ll sell your items and build trust with buyers.'
+      answer: 'Great listings use a clear, well-lit photo and a descriptive title with the item name and key details. Describe the condition honestly, choose the correct category and pickup area, and set a fair price. Keep personal contact details out of the public description; Campus Cart reveals the account-level WhatsApp option only to signed-in users.'
     },
     {
       category: 'selling',
       question: 'How do I get verified as a seller?',
-      answer: 'To get verified, go to your profile page and look for the "Seller Verification" section. Upload a clear photo of yourself holding your student ID card. Make sure your face and ID details are visible in the photo. Our admin team will review your submission within 24-48 hours. If approved, you\'ll receive a blue verification badge on all your listings. Verified sellers appear first in search results and earn more buyer trust, which typically leads to 50% faster sales.'
+      answer: 'To request verification, open the Seller Verification section on your profile and upload a clear photo that follows the on-screen requirements. The admin team will review the submission and the profile will show the current status. If approved, a verification badge appears on your listings. The badge is a trust signal and does not change nearest-first distance ordering.'
     },
     {
       category: 'selling',
@@ -85,7 +85,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'technical',
       question: 'Which campuses are supported by Campus Cart?',
-      answer: 'Campus Cart currently supports the following campus locations: Pretoria Central, Soshanguve South, Soshanguve North, Ga-Rankuwa, Pretoria Arcadia, Arts Campus, eMalahleni, Mbombela, and Polokwane. When creating your account or listing items, select your campus from the dropdown menu. This helps buyers find items available near them for easy collection. We\'re constantly expanding to new campuses based on student demand.'
+      answer: 'Campus Cart currently lists Pretoria Central, Soshanguve South, Soshanguve North, Ga-Rankuwa, Pretoria Arcadia, Arts Campus, eMalahleni, Mbombela, and Polokwane. If you stay at an accredited residence or another location that is not listed, choose “Other campus or residence,” enter its name, and share the pickup location once. Buyers see the name, while the exact coordinates remain private and are used only for nearest-first sorting.'
     },
     {
       category: 'technical',

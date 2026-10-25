@@ -84,7 +84,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>WhatsApp Support</h3>
             </div>
             <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
-              Get instant help via WhatsApp! Our support team responds within minutes during business hours.
+              Send our support team a WhatsApp message for account, listing, payment, or safety questions.
             </p>
             <a
               href={supportWhatsAppUrl()}
@@ -127,7 +127,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Email Support</h3>
             </div>
             <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
-              Prefer email? Send us a detailed message and we'll respond within 24 hours.
+              Prefer email? Send a detailed message and our support team will respond as soon as possible.
             </p>
             <a
               href={`mailto:${SITE_CONTACT.supportEmail}`}
@@ -168,11 +168,10 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10110f', margin: 0 }}>Support Hours</h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#3e403a' }}>
-              <p style={{ margin: 0 }}><strong>Monday - Friday:</strong> 8:00 AM - 6:00 PM</p>
-              <p style={{ margin: 0 }}><strong>Saturday:</strong> 9:00 AM - 2:00 PM</p>
-              <p style={{ margin: 0 }}><strong>Sunday & Public Holidays:</strong> Closed</p>
+              <p style={{ margin: 0 }}><strong>Support requests:</strong> Reviewed on business days</p>
+              <p style={{ margin: 0 }}><strong>Urgent safety reports:</strong> Include the listing link and screenshots</p>
               <p style={{ fontSize: '0.875rem', color: '#3e403a', marginTop: '0.75rem', marginBottom: 0 }}>
-                All times are in South African Standard Time (SAST)
+                Response times vary depending on the issue and current request volume.
               </p>
             </div>
           </div>
@@ -203,7 +202,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
         <div style={{ backgroundColor: '#fbfaf6', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10110f', marginBottom: '1rem' }}>Send Us a Message</h2>
           <p style={{ color: '#3e403a', marginBottom: '1.5rem' }}>
-            Fill out the form below and we'll email it securely to our support team. You will receive a confirmation email.
+              Fill out the form below and we'll deliver it securely to our support team. You will receive a confirmation email.
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -324,7 +323,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
             </button>
 
             <p style={{ fontSize: '0.875rem', color: '#74756f', textAlign: 'center', margin: 0 }}>
-              Your message is delivered through Resend. WhatsApp support remains available above.
+              WhatsApp and direct email support remain available above.
             </p>
           </form>
         </div>

@@ -93,3 +93,44 @@ test('buyer registration starts without seller access or an automatic offer clai
   assert.equal(state.insertedUser.subscribed, false);
   assert.equal(state.insertedUser.subscriptionStartDate, undefined);
 });
+
+test('an accredited residence stores a private point and returns only a location summary', async () => {
+  const { db, state } = registrationDb();
+  const req = { body: {
+    name: 'Residence Seller',
+    email: 'residence@example.test',
+    password: 'password123',
+    campus: 'other',
+    locationLabel: 'Example Accredited Residence',
+    location: { latitude: -25.745, longitude: 28.19, accuracy: 15 },
+    type: 'seller'
+  } };
+  const res = responseRecorder();
+
+  await authController.register(req, res, db);
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(state.insertedUser.locationLabel, 'Example Accredited Residence');
+  assert.deepEqual(state.insertedUser.pickupLocation.coordinates, [28.19, -25.745]);
+  assert.equal(res.payload.user.locationLabel, 'Example Accredited Residence');
+  assert.equal(res.payload.user.hasCustomLocation, true);
+  assert.equal('pickupLocation' in res.payload.user, false);
+});
+
+test('Other location registration requires both a label and a valid shared point', async () => {
+  const { db } = registrationDb();
+  const req = { body: {
+    name: 'Residence Seller',
+    email: 'missing-location@example.test',
+    password: 'password123',
+    campus: 'other',
+    locationLabel: 'Example Residence',
+    type: 'seller'
+  } };
+  const res = responseRecorder();
+
+  await authController.register(req, res, db);
+
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.payload.code, 'CUSTOM_LOCATION_REQUIRED');
+});

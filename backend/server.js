@@ -397,6 +397,7 @@ app.post('/api/products', authenticateToken, withSubscriptionCheck, (req, res, n
       const createdProduct = { 
         ...product, 
         _id: result.insertedId,
+        sellerLocationLabel: req.userProfile.locationLabel || null,
         imageUrl: imageInfo ? `/api/images/${imageInfo.id}` : null
       };
 

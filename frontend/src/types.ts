@@ -11,6 +11,8 @@ export type User = {
   type: string;
   subscribed: boolean;
   campus: string;
+  locationLabel?: string | null;
+  hasCustomLocation?: boolean;
   subscriptionEndDate?: Date | string;
   subscriptionStatus?: string;
   hasHadSellerAccess?: boolean;
@@ -56,6 +58,7 @@ export type Product = {
   sellerId: number | string;
   sellerName: string;
   sellerCampus: string;
+  sellerLocationLabel?: string | null;
   sellerVerified?: boolean;
   // Allow both object format from backend and string URLs
   image?: ProductImage | string;
@@ -64,6 +67,12 @@ export type Product = {
   type: string;
   distanceMeters?: number | null;
   locationSource?: 'pickup' | 'seller-pickup' | 'registered-campus' | null;
+};
+
+export type CapturedLocation = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
 };
 
 export type Message = {

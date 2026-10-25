@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb');
 const { getJwtSecret } = require('../config/security');
 const { createAccountToken, hashAccountToken } = require('../services/accountTokenService');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/emailService');
+const { isValidCampusId, pickupLocationFromInput } = require('../services/campusLocationService');
 const {
   SUBSCRIPTION_STATUS,
   syncExpiredSellerAccess,
@@ -30,18 +31,10 @@ const clearExpiredPendingEmail = async (db, user) => {
   return cleaned;
 };
 
-const isValidCampus = (campus) => {
-  const validCampuses = [
-    'pretoria-main', 'soshanguve-S', 'soshanguve-N', 'ga-rankuwa', 'pretoria-west',
-    'arts', 'emalahleni', 'mbombela', 'polokwane'
-  ];
-  return validCampuses.includes(campus);
-};
-
 // Register controller
 exports.register = async (req, res, db) => {
   try {
-    const { name, email, password, campus, whatsapp, type = 'buyer' } = req.body;
+    const { name, email, password, campus, whatsapp, type = 'buyer', locationLabel, location } = req.body;
     const normalizedEmail = String(email || '').toLowerCase().trim();
 
     // simple normalize whatsapp: remove non-digits, allow leading country code (E.164 expected)
@@ -66,7 +59,7 @@ exports.register = async (req, res, db) => {
       return res.status(400).json({ error: 'Password must be at least 8 characters', success: false });
     }
 
-    if (!isValidCampus(campus)) {
+    if (!isValidCampusId(campus)) {
       return res.status(400).json({ 
         error: 'Please select a valid campus',
         success: false
@@ -76,6 +69,16 @@ exports.register = async (req, res, db) => {
     if (!['buyer', 'seller'].includes(type)) {
       return res.status(400).json({
         error: 'Account type must be buyer or seller',
+        success: false
+      });
+    }
+
+    const normalizedLocationLabel = String(locationLabel || '').trim().slice(0, 80);
+    const pickupLocation = pickupLocationFromInput(location);
+    if (campus === 'other' && (!normalizedLocationLabel || !pickupLocation)) {
+      return res.status(400).json({
+        error: 'Add a residence or area name and share its location when choosing Other',
+        code: 'CUSTOM_LOCATION_REQUIRED',
         success: false
       });
     }
@@ -103,6 +106,7 @@ exports.register = async (req, res, db) => {
       name: name.trim(),
       email: normalizedEmail,
       campus: campus || null,
+      ...(campus === 'other' ? { locationLabel: normalizedLocationLabel, pickupLocation } : {}),
       type,
       hasHadSellerAccess: false,
       subscribed: false,
@@ -140,6 +144,8 @@ exports.register = async (req, res, db) => {
       email: userDoc.email,
       type: userDoc.type,
       campus: userDoc.campus,
+      locationLabel: userDoc.locationLabel || null,
+      hasCustomLocation: Boolean(userDoc.pickupLocation),
       subscribed: userDoc.subscribed,
       ...publicSubscriptionFields(userDoc),
       whatsapp: userDoc.whatsapp || null,
@@ -233,6 +239,8 @@ exports.login = async (req, res, db) => {
       email: user.email,
       type: user.type,
       campus: user.campus,
+      locationLabel: user.locationLabel || null,
+      hasCustomLocation: Boolean(user.pickupLocation),
       subscribed: user.subscribed,
       ...publicSubscriptionFields(user),
       whatsapp: user.whatsapp || null,
@@ -286,6 +294,8 @@ exports.getCurrentUser = async (req, res, db) => {
       email: user.email,
       type: user.type,
       campus: user.campus,
+      locationLabel: user.locationLabel || null,
+      hasCustomLocation: Boolean(user.pickupLocation),
       subscribed: user.subscribed,
       ...publicSubscriptionFields(user),
       whatsapp: user.whatsapp || null,

@@ -1,7 +1,7 @@
 {
-  "name": "tut-marketplace-backend",
+  "name": "campus-cart-backend",
   "version": "1.0.0",
-  "description": "Backend API for TUT Student Marketplace",
+  "description": "Backend API for Campus Cart",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -15,10 +15,10 @@
   "keywords": [
     "marketplace",
     "students",
-    "tut",
+    "campus-cart",
     "api"
   ],
-  "author": "TUT Marketplace Team",
+  "author": "LBG Software",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",

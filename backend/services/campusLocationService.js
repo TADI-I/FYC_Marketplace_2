@@ -1,28 +1,28 @@
 const CAMPUSES = Object.freeze([
   {
     id: 'pretoria-main',
-    name: 'Pretoria Campus',
+    name: 'Pretoria Central',
     location: { type: 'Point', coordinates: [28.1612167, -25.7315417] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 25°43\'53.55"S 28°09\'40.38"E'
   },
   {
     id: 'soshanguve-S',
-    name: 'Soshanguve South Campus',
+    name: 'Soshanguve South',
     location: { type: 'Point', coordinates: [28.0961556, -25.5408] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 25°32\'26.88"S 28°05\'46.16"E'
   },
   {
     id: 'soshanguve-N',
-    name: 'Soshanguve North Campus',
+    name: 'Soshanguve North',
     location: { type: 'Point', coordinates: [28.1129, -25.5203] },
     recognitionRadiusMeters: 100,
     source: 'TUT Open Day guide: 25°31\'13.08"S 28°06\'46.44"E'
   },
   {
     id: 'ga-rankuwa',
-    name: 'Ga-Rankuwa Campus',
+    name: 'Ga-Rankuwa',
     location: { type: 'Point', coordinates: [28.0023083, -25.6183111] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 25°37\'05.92"S 28°00\'08.31"E'
@@ -30,7 +30,7 @@ const CAMPUSES = Object.freeze([
   {
     // This legacy ID is retained because existing users and products store it.
     id: 'pretoria-west',
-    name: 'Arcadia Campus',
+    name: 'Pretoria Arcadia',
     location: { type: 'Point', coordinates: [28.2000528, -25.7449528] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 25°44\'41.83"S 28°12\'00.19"E'
@@ -44,21 +44,21 @@ const CAMPUSES = Object.freeze([
   },
   {
     id: 'emalahleni',
-    name: 'eMalahleni Campus',
+    name: 'eMalahleni',
     location: { type: 'Point', coordinates: [29.2360806, -25.879] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 25°52\'44.40"S 29°14\'09.89"E'
   },
   {
     id: 'mbombela',
-    name: 'Mbombela Campus',
+    name: 'Mbombela',
     location: { type: 'Point', coordinates: [30.9547306, -25.5003083] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 25°30\'01.11"S 30°57\'17.03"E'
   },
   {
     id: 'polokwane',
-    name: 'Polokwane Campus',
+    name: 'Polokwane',
     location: { type: 'Point', coordinates: [29.4497056, -23.9141139] },
     recognitionRadiusMeters: 100,
     source: 'TUT General Information 2026: 23°54\'50.81"S 29°26\'58.94"E'
@@ -71,6 +71,23 @@ const isValidCoordinates = (latitude, longitude) => (
   isFiniteNumber(latitude) && latitude >= -90 && latitude <= 90
   && isFiniteNumber(longitude) && longitude >= -180 && longitude <= 180
 );
+
+const isValidCampusId = campusId => (
+  campusId === 'other' || CAMPUSES.some(campus => campus.id === campusId)
+);
+
+const pickupLocationFromInput = input => {
+  const latitude = input?.latitude;
+  const longitude = input?.longitude;
+  if (!isValidCoordinates(latitude, longitude)) return null;
+  const accuracy = input?.accuracy;
+  return {
+    type: 'Point',
+    coordinates: [longitude, latitude],
+    ...(Number.isFinite(accuracy) && accuracy >= 0 ? { accuracy: Math.round(accuracy) } : {}),
+    capturedAt: new Date()
+  };
+};
 
 const haversineDistanceMeters = (fromLatitude, fromLongitude, toLatitude, toLongitude) => {
   if (!isValidCoordinates(fromLatitude, fromLongitude) || !isValidCoordinates(toLatitude, toLongitude)) {
@@ -169,7 +186,9 @@ module.exports = {
   CAMPUSES,
   ensureCampusLocations,
   haversineDistanceMeters,
+  isValidCampusId,
   isValidCoordinates,
+  pickupLocationFromInput,
   rankNearbyProducts,
   recognizeCampus
 };

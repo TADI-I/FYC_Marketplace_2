@@ -73,7 +73,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li><strong>Personal Details:</strong> Name, email address, campus location</li>
               <li><strong>Contact Information:</strong> WhatsApp number (for buyer-seller communication)</li>
               <li><strong>Account Type:</strong> Whether you're a buyer, seller, or admin</li>
-              <li><strong>Password:</strong> Encrypted and stored securely</li>
+              <li><strong>Password:</strong> Hashed and stored securely</li>
             </ul>
 
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>
@@ -82,7 +82,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <p>If you subscribe as a seller, we additionally collect:</p>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <li><strong>Subscription Status:</strong> Active, expired, or inactive</li>
-              <li><strong>Payment References:</strong> Your payment reference (email + CampusCart) for verification</li>
+              <li><strong>Payment Records:</strong> Checkout reference, amount, currency, status, and provider confirmation needed to manage seller access</li>
               <li><strong>Verification Documents:</strong> Student ID photo (if you request verification)</li>
               <li><strong>Subscription History:</strong> Start dates, end dates, renewal status</li>
             </ul>
@@ -94,7 +94,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <li><strong>Product Details:</strong> Title, description, price, category</li>
               <li><strong>Images:</strong> Photos you upload of your items</li>
-              <li><strong>Location:</strong> Campus location for the listing</li>
+              <li><strong>Location:</strong> Selected campus or a residence/pickup-area label; accounts using Other privately save coordinates so seller listings can be sorted by distance</li>
               <li><strong>Analytics:</strong> Number of views, WhatsApp clicks (anonymous)</li>
             </ul>
 
@@ -128,7 +128,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
                   <li>Create and manage your account</li>
                   <li>Process seller subscriptions and verify payments</li>
                   <li>Display your listings to potential buyers</li>
-                  <li>Enable communication between buyers and sellers via WhatsApp</li>
+                  <li>Enable signed-in buyers and sellers to communicate through in-app chat or WhatsApp</li>
                 </ul>
               </div>
 
@@ -146,6 +146,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
                 <p style={{ fontWeight: '600', color: '#10110f' }}>Communication</p>
                 <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <li>Send account notifications (subscription renewals, verification updates)</li>
+                  <li>Email recipients when an in-app message remains unread for ten minutes</li>
                   <li>Provide customer support responses</li>
                   <li>Notify you of important platform updates or policy changes</li>
                 </ul>
@@ -177,7 +178,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li>Campus location</li>
               <li>Product/service details and images</li>
               <li>Verification status (if you're a verified seller)</li>
-              <li>WhatsApp number (so buyers can contact you)</li>
+              <li>Your WhatsApp number is not public on listing pages; it is returned only to a signed-in user who chooses the WhatsApp contact option</li>
             </ul>
             <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', fontStyle: 'italic' }}>
               Important: Do not include sensitive personal information in your listing descriptions.
@@ -190,7 +191,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
               <li><strong>We never sell your data:</strong> Your information is never sold to advertisers or third parties</li>
               <li><strong>Private contact details:</strong> Your email address is never shared publicly</li>
               <li><strong>Payment information:</strong> We don't store credit card numbers or banking details</li>
-              <li><strong>Passwords:</strong> Stored encrypted and never shared with anyone, including our staff</li>
+              <li><strong>Passwords:</strong> Stored as one-way hashes and never shared with anyone, including our staff</li>
             </ul>
 
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#10110f', marginBottom: '0.5rem', marginTop: '1rem' }}>

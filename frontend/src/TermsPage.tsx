@@ -36,7 +36,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
           Terms of Service
         </h1>
         <p style={{ fontSize: '0.875rem', color: '#74756f', marginBottom: '2rem' }}>
-          Last Updated: February 4, 2026
+          Last Updated: October 24, 2026
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#3e403a' }}>
@@ -63,7 +63,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
             </h2>
             <p>
               Campus Cart is designed for students at participating South African universities
-              and colleges. You must be at least 18 years old or have parental consent to use this platform.
+              and colleges. You must be at least 18 years old to create or use an account on this platform.
               By registering, you confirm that all information provided is accurate and truthful. We reserve
               the right to verify your student status at any time.
             </p>
@@ -132,8 +132,9 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               pricing with 30 days' notice to active subscribers.
             </p>
             <p style={{ marginTop: '0.5rem' }}>
-              Payment must be made via approved methods (PayShap, bank transfer). You are responsible for
-              providing proof of payment and ensuring payments are processed correctly.
+              Paid seller access starts through the secure checkout shown in your profile and activates
+              only after the payment provider confirms the payment. Eligible promotional offers are shown
+              separately and begin only after you claim them.
             </p>
           </div>
 

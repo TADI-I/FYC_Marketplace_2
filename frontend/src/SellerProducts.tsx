@@ -6,6 +6,7 @@ import { deleteProduct, getProductsBySeller } from './api';
 import { showConfirmation, showNotification } from './AppNotificationModal';
 import { CardGridSkeleton } from './LoadingSkeletons';
 import { supportWhatsAppUrl } from './siteConfig';
+import { MARKETPLACE_CATEGORIES } from './marketplaceData';
 
 
 interface SellerProductsProps {
@@ -530,7 +531,7 @@ const SellerProducts: React.FC<SellerProductsProps> = ({
                   <div className="listing-field">
                     <label htmlFor="edit-product-category">Category <span>Required</span></label>
                     <select id="edit-product-category" value={editFormData.category} onChange={event => setEditFormData(current => ({ ...current, category: event.target.value }))} disabled={loading}>
-                      <option value="">Choose a category</option><option value="books">Books</option><option value="electronics">Electronics</option><option value="services">Services</option><option value="clothing">Clothing</option><option value="food">Food</option><option value="other">Other</option>
+                      <option value="">Choose a category</option>{MARKETPLACE_CATEGORIES.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
                     </select>
                   </div>
                   <div className="listing-field">

@@ -18,7 +18,7 @@ type Props = {
   onCorrectCampus: () => void;
 };
 
-const PROMPT_KEY = 'fyc_location_prompt_seen';
+const PROMPT_KEY = 'campus_cart_location_prompt_seen';
 
 const locationErrorMessage = (error: GeolocationPositionError) => {
   if (error.code === error.PERMISSION_DENIED) return 'Location permission was denied. You can retry whenever you are ready.';

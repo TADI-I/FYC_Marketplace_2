@@ -18,8 +18,8 @@ type QueuedNotification = AppNotification & {
   resolve?: (confirmed: boolean) => void;
 };
 
-const NOTIFICATION_EVENT = 'fyc:app-notification';
-export const NOTIFICATION_VISIBILITY_EVENT = 'fyc:app-notification-visibility';
+const NOTIFICATION_EVENT = 'campus-cart:app-notification';
+export const NOTIFICATION_VISIBILITY_EVENT = 'campus-cart:app-notification-visibility';
 let nextNotificationId = 1;
 
 const dispatchNotification = (notification: Omit<QueuedNotification, 'id'>) => {

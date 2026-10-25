@@ -75,7 +75,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
                 <strong>Services:</strong> Connect with fellow students offering tutoring, typing services, printing, and other helpful services.
               </li>
               <li>
-                <strong>Campus-Specific Listings:</strong> Filter items by your campus location for easy meet-ups and quick transactions.
+                <strong>Nearby Discovery:</strong> See eligible listings from closest to furthest, including sellers at accredited residences and other saved pickup areas.
               </li>
             </ul>
           </div>
@@ -85,8 +85,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
             Why Choose Campus Cart?
           </h2>
           <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
-            Unlike general marketplace platforms, Campus Cart is built exclusively for students,
-            by students. We prioritize safety, affordability, and community. Here's what makes us different:
+            Unlike general marketplace platforms, Campus Cart is built specifically for varsity students.
+            We prioritize safety, affordability, and community. Here's what makes us different:
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ backgroundColor: '#fbfaf6', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
@@ -99,8 +99,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
             <div style={{ backgroundColor: '#fbfaf6', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
               <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Safe & Verified</h3>
               <p style={{ fontSize: '0.875rem', color: '#0062cc' }}>
-                Verified seller badges help you identify trustworthy sellers, and direct WhatsApp
-                communication keeps transactions transparent.
+                Verification badges show which seller accounts have been reviewed. Sign in to use
+                protected in-app chat or reveal a seller's WhatsApp contact.
               </p>
             </div>
             <div style={{ backgroundColor: '#fbfaf6', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
@@ -140,9 +140,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
               Start Saving Today!
             </h3>
             <p style={{ color: '#3e403a', marginBottom: '1rem' }}>
-              Create your free account now and discover thousands of student listings across South
-              African campuses. Whether you're at Pretoria Central, Soshanguve, Ga-Rankuwa, or any
-              other campus, you'll find what you need right here.
+              Create your free account to contact sellers and explore current student listings across
+              supported campuses. You can browse first, then sign in when you are ready to chat.
             </p>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
@@ -174,7 +173,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
             >
               {SITE_CONTACT.supportPhoneDisplay}
             </a>{' '}
-            or email us. Our team is dedicated to making your Campus Cart experience smooth
+            or email us at <a href={`mailto:${SITE_CONTACT.supportEmail}`} style={{ color: '#10110f', textDecoration: 'underline', fontWeight: '600' }}>{SITE_CONTACT.supportEmail}</a>. Our team is dedicated to making your Campus Cart experience smooth
             and successful.
           </p>
         </div>
