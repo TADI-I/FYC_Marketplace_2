@@ -15,10 +15,32 @@ must explicitly claim an offer before its access period begins.
 - Location-assisted discovery sorts eligible listings by distance without storing a buyer's live coordinates.
 - Campus recognition accounts for browser-reported accuracy instead of guessing from an imprecise reading.
 - When buyers enable location, every eligible listing remains available and is ordered from closest to furthest.
+- Sellers at accredited residences or unlisted locations can choose **Other campus or residence**, add a public place name, and privately save coordinates for accurate nearby ranking.
+- Product contact offers authenticated in-app chat or WhatsApp; neither option reveals seller contact details to anonymous visitors.
+- Marketplace grids continue loading automatically as the user approaches the end of the current results.
+- Product sharing always uses the canonical `https://marketplace.lbgsoftware.co.za/products/:id` URL and opens a focused product presentation without a duplicate marketplace toolbar.
 - Administrators can review marketplace totals, process seller verification, edit user details and roles, manage verification badges, and suspend or restore accounts.
 - Shared skeleton layouts preserve the page shape while dashboards, profiles, listings, analytics, verification, and chats load.
 - Non-blocking application feedback uses accessible queued toasts; actions requiring a decision use an accessible confirmation dialog.
 - Public support and company details are supplied from one frontend configuration module and can be overridden at build time.
+
+## Brand identity
+
+The public product name is **Campus Cart**. Do not use the former marketplace
+name in page titles, visible copy, transactional email, social metadata, or new
+assets. LBG Software remains the supporting company and contact provider.
+
+Use these tracked assets rather than recreating or embedding a logo in a page:
+
+| Asset | Use |
+| --- | --- |
+| `frontend/public/campus-cart-logo.png` | Full wordmark for headers, social previews, and HTML email |
+| `frontend/public/campus-cart.svg` | Compact browser, app, and favicon mark |
+
+The wordmark has a transparent background and is presented on a controlled
+surface so it remains legible in light and dark mode. Email deliberately uses a
+light logo header because client-side dark-mode rendering is inconsistent
+across mail applications.
 
 ## Architecture
 
@@ -138,21 +160,50 @@ The backend sends Marketplace email through a dedicated Resend sending-only key.
 - support-form delivery plus a receipt to the sender; and
 - seller subscription reminders seven days and one day before expiry.
 
+Every HTML email uses the Campus Cart wordmark, blue action styling, security
+guidance, and an LBG Software support attribution. Subjects and plain-text
+fallbacks also use the Campus Cart name. Message-notification emails disclose
+the sender and related product but never copy the private message body into the
+email.
+
 New accounts cannot sign in until the email address is verified. Existing accounts without an `emailVerified` field are grandfathered so deployment does not lock out the current user base. Profile email changes remain pending for 10 minutes and do not replace the verified address until the new address is confirmed. Password reset and email-change flows store only SHA-256 token hashes; password changes invalidate JWT sessions issued before the change.
 
 The frontend uses history-aware SPA routes for every page-level component, including `/about`, `/faq`, `/profile`, `/seller/products`, `/seller/products/new`, `/products/:id`, `/login`, and `/register`. Authentication actions use `/verify-email`, `/reset-password`, and `/confirm-email-change`. The production static host must rewrite all unmatched frontend paths to `index.html` so direct links and browser refreshes load the React application. API and backend `/p/:id` routes must remain excluded from that frontend rewrite. Returning from an authentication action performs a full navigation to `/` to clear action state.
 
-Product cards offer WhatsApp or authenticated in-app chat. In-app threads are scoped to a product and its seller, are available from `/messages`, and store read receipts in MongoDB. Run `npm run email:unread-messages` from `backend/` every minute using the production scheduler. The job selects messages that have remained unread for at least 10 minutes, rechecks read state immediately before delivery, groups pending messages by product conversation, and records delivery idempotently in `emailNotificationEvents`. This scheduled job must be enabled in production; the web process does not use unreliable in-memory timers for delayed email.
+Product cards open a contact chooser with WhatsApp and in-app chat. Both choices
+require an account. If an anonymous visitor chooses either option, the intended
+product or conversation is kept in session storage and resumed after login or
+registration. In-app threads are scoped to a product and its seller, are
+available from `/messages`, and store read receipts in MongoDB.
 
-Seller WhatsApp numbers are excluded from public listing, nearby-search, seller-listing, and social-preview responses. An authenticated account must request `GET /api/products/:id/contact` before the frontend can open WhatsApp. Shared listing links use the public `REACT_APP_MARKETPLACE_WEBSITE` origin and the `/products/:id` route rather than the backend API origin.
+Run `npm run email:unread-messages` from `backend/` every minute using the
+production scheduler. The job selects messages that have remained unread for at
+least 10 minutes, rechecks read state immediately before delivery, groups
+pending messages by product conversation, and records delivery idempotently in
+`emailNotificationEvents`. Reading the message before the threshold prevents
+the email. This scheduled job must be enabled in production; the web process
+does not use unreliable in-memory timers for delayed email.
+
+Seller WhatsApp numbers are excluded from public listing, nearby-search,
+seller-listing, and social-preview responses. An authenticated account must
+request `GET /api/products/:id/contact` before the frontend can open WhatsApp.
+Shared listing links use the public `REACT_APP_MARKETPLACE_WEBSITE` origin and
+the `/products/:id` route rather than the backend API origin. The shared-product
+route highlights the selected listing inside the standard site shell; it does
+not add a second marketplace header.
 
 ## Location-assisted discovery
 
-The browser asks for location only after the buyer chooses **Use My Location**. The
-reading contains latitude, longitude, and the browser's accuracy estimate. It is
-kept in React state, sent only in the body of a nearby-products request, and is
-not persisted by the Marketplace application. Buyers can disable discovery or
-continue browsing without granting permission.
+Campus Cart handles buyer discovery location and seller pickup location as two
+different data flows.
+
+### Buyer discovery location
+
+The browser asks for location only after the buyer chooses **Use My Location**.
+The reading contains latitude, longitude, and the browser's accuracy estimate.
+It is kept in React state, sent only in the body of a nearby-products request,
+and is not persisted by the Marketplace application. Buyers can refresh or
+disable discovery and can always continue browsing without granting permission.
 
 Nearby results are calculated with Haversine distance and sorted nearest first.
 Location resolution uses the first valid coordinate source in this order:
@@ -165,6 +216,28 @@ Listings without usable coordinates sort last. Location never hides an eligible
 listing; it only changes the order from closest to furthest. Normal seller-access,
 listing-status, search, category, and campus restrictions still apply before
 distance pagination.
+
+### Accredited residences and other seller locations
+
+The campus selector includes **Other campus or residence** for accredited
+residences, private accommodation, and supported areas that are not formal
+campuses. A seller using this choice must:
+
+1. enter a short public location label, such as the residence or area name; and
+2. explicitly choose **Use current location** to grant browser permission.
+
+The account stores the coordinate as a private GeoJSON point in
+`users.pickupLocation` and stores the display name separately in
+`users.locationLabel`. Safe user responses return the label and a
+`hasCustomLocation` boolean, while product responses return only
+`sellerLocationLabel`. They never return the raw point. Product cards can
+therefore show a useful residence name while nearby ranking uses the more
+precise private coordinate.
+
+The saved point is reused for the seller's listings so location permission is
+not required for every product. A seller can replace it from profile settings.
+Selecting a listed campus again clears the custom label and point and returns to
+the maintained campus coordinate.
 
 Campus coordinates and independently configurable recognition radii are stored
 in the `campuses` collection. A campus is recognized only when the full browser
@@ -203,6 +276,14 @@ Example request:
 }
 ```
 
+### Location privacy rules
+
+- Buyer discovery coordinates are ephemeral and must never be written to the database or browser storage.
+- Seller custom pickup coordinates are persisted only after an explicit action and must never be returned by public profile, product, contact, or social-preview endpoints.
+- Public interfaces display the seller-provided location label, not latitude or longitude.
+- Do not put any coordinate in a URL, toast, email, analytics event, or application log.
+- Nearby sorting may use the point internally, but only `distanceMeters` and `locationSource` are returned to the buyer.
+
 ## Admin dashboard and account control
 
 All admin routes require a current JWT and the administrator role from the
@@ -217,9 +298,11 @@ The dashboard exposes these operational totals:
 - pending seller-verification requests; and
 - suspended users.
 
-Administrators can edit a user's name, email address, campus, WhatsApp number,
-buyer/seller role, and verified-seller badge. They can also suspend or restore
-non-admin accounts. An administrator cannot suspend their own account.
+Administrators can edit a user's name, email address, campus selection,
+WhatsApp number, buyer/seller role, and verified-seller badge. They can also
+suspend or restore non-admin accounts. An administrator cannot suspend their
+own account. Private custom-location coordinates are not exposed in admin user
+responses.
 
 Suspension is enforced by the backend rather than only hidden in the interface:
 
@@ -254,6 +337,19 @@ These notifications appear as queued, auto-dismissing, accessible toasts. Use
 `showConfirmation` only when the user must explicitly approve or cancel an
 action, such as suspending an account or deleting a listing. Contextual field
 validation remains next to the affected field.
+
+Listing pagination uses an `IntersectionObserver` sentinel. Fetch the next page
+when the sentinel approaches the viewport, retain already-rendered cards while
+the request is running, and stop observing once the API reports no further
+page. A small inline loading state is appropriate for continuation; the full
+card skeleton belongs to the first load. A manual **Load more** button should
+not be reintroduced as the primary marketplace flow.
+
+All application modals use the shared visual language: a constrained card,
+clear title and supporting copy, visible close control, scrollable body when
+needed, and a compact footer whose buttons retain normal height on desktop and
+mobile. Modal backdrops, surfaces, borders, fields, and actions must have both
+light- and dark-mode styles.
 
 ## Public contact configuration
 
@@ -419,9 +515,12 @@ npm run build
 
 Payment tests cover callback signatures, timestamp expiry, payload validation,
 and subscription-period behavior. Location tests cover coordinate validation,
-distance calculation, accuracy-aware campus recognition, deterministic nearby
-ranking, pagination, and privacy-safe response shaping. Admin tests cover
-dashboard totals, suspension audit fields, and self-suspension protection.
+custom residence registration and profile updates, distance calculation,
+accuracy-aware campus recognition, deterministic nearby ranking, pagination,
+and privacy-safe response shaping. Admin tests cover dashboard totals,
+suspension audit fields, and self-suspension protection. Frontend tests cover
+location discovery, custom location capture, registration validation, routing,
+contact choices, shared notifications, and the How It Works content.
 
 ## Security rules
 
@@ -431,7 +530,8 @@ dashboard totals, suspension audit fields, and self-suspension protection.
 - Never accept a client-provided subscription amount.
 - Keep callback processing idempotent and retain the unique callback-event index.
 - Rotate credentials separately per environment when exposure is suspected.
-- Treat browser coordinates as ephemeral request data; do not log or persist them.
+- Treat buyer discovery coordinates as ephemeral request data; do not log or persist them.
+- Keep seller custom pickup points private even though they are intentionally persisted for distance sorting.
 - Enforce suspension and administrator privileges on the backend, never only in the React interface.
 
 ## License

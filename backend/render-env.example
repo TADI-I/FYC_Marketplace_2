@@ -2,6 +2,7 @@
 # Replace every placeholder. Never commit the completed values.
 NODE_ENV=production
 PORT=5001
+# Compatibility database name used by the existing production data. Keep it unless the database is deliberately migrated.
 DB_NAME=tut_marketplace
 MONGODB_URI=replace-with-render-secret
 JWT_SECRET=replace-with-at-least-32-random-characters
