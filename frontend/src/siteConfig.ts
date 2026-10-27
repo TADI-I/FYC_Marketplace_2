@@ -7,6 +7,10 @@ export const SITE_CONTACT = {
   marketplaceWebsite: process.env.REACT_APP_MARKETPLACE_WEBSITE || 'https://marketplace.lbgsoftware.co.za'
 };
 
+export const SITE_SOCIAL = {
+  tiktok: 'https://www.tiktok.com/@campus.cart3?_r=1&_t=ZS-9AtU9XUjMGu'
+};
+
 export const supportWhatsAppUrl = (message = 'Hi, I need support with Campus Cart') =>
   `https://wa.me/${SITE_CONTACT.supportPhoneDigits}?text=${encodeURIComponent(message)}`;
 

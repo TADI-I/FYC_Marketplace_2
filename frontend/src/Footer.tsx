@@ -1,8 +1,8 @@
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Music2 } from 'lucide-react';
 import lbgMonogram from './lbg-monogram-cream-transparent.png';
 import type { AppView } from './navigation';
-import { supportWhatsAppUrl } from './siteConfig';
+import { SITE_SOCIAL, supportWhatsAppUrl } from './siteConfig';
 import { CAMPUS_LOCATIONS } from './marketplaceData';
 
 interface FooterProps {
@@ -225,6 +225,40 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
             </ul>
+          </div>
+
+          {/* Social Section */}
+          <div>
+            <h3 style={{
+              fontSize: '0.875rem',
+              fontWeight: 800,
+              marginBottom: '1rem',
+              color: paper,
+              textTransform: 'uppercase',
+              letterSpacing: '.06em'
+            }}>
+              Social
+            </h3>
+            <a
+              href={SITE_SOCIAL.tiktok}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Campus Cart on TikTok"
+              style={{
+                color: muted,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.875rem',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = signal}
+              onMouseLeave={(e) => e.currentTarget.style.color = muted}
+            >
+              <Music2 aria-hidden="true" style={{ height: '1rem', width: '1rem' }} />
+              TikTok
+            </a>
           </div>
 
           {/* Campus Locations */}
