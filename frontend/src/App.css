@@ -4866,6 +4866,124 @@ html.dark .product-distance {
   .location-actions > button { flex: 1; justify-content: center; }
 }
 
+/* Compact mobile chrome: preserve comfortable targets without crowding the viewport. */
+@media (max-width: 760px) {
+  .app-header > div {
+    padding: .42rem .62rem !important;
+  }
+
+  .app-header > div > div {
+    gap: .45rem !important;
+  }
+
+  .app-header .brand-logo {
+    width: 7.75rem !important;
+    max-height: 2.75rem !important;
+  }
+
+  .header-actions {
+    gap: .3rem !important;
+  }
+
+  .profile-trigger,
+  .app-header button[title="My Profile"],
+  .seller-nav-action,
+  .logout-button {
+    width: 2.75rem !important;
+    min-width: 2.75rem !important;
+    height: 2.75rem !important;
+    min-height: 2.75rem !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    border-radius: .8rem !important;
+  }
+
+  .seller-nav-action span,
+  .logout-button span {
+    display: none !important;
+  }
+
+  .seller-nav-action svg,
+  .profile-trigger svg,
+  .logout-button-icon {
+    width: 1.18rem !important;
+    height: 1.18rem !important;
+  }
+
+  .location-intro,
+  .location-control {
+    width: auto;
+    margin: 0 .55rem .6rem;
+    padding: .72rem .78rem;
+    gap: .65rem;
+    border-radius: .85rem;
+    box-shadow: none;
+  }
+
+  .location-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .location-icon svg,
+  .location-control-main > svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .location-control-main {
+    flex-basis: 100%;
+    gap: .6rem;
+  }
+
+  .location-copy,
+  .location-control-main > div {
+    gap: .1rem;
+    min-width: 0;
+  }
+
+  .location-copy strong,
+  .location-control-main strong {
+    font-size: .9rem;
+    line-height: 1.25;
+  }
+
+  .location-copy span,
+  .location-control-main span {
+    font-size: .76rem;
+    line-height: 1.35;
+  }
+
+  .location-actions {
+    gap: .4rem;
+  }
+
+  .location-primary,
+  .location-secondary {
+    min-height: 2.65rem;
+    padding: .55rem .75rem;
+    border-radius: .7rem;
+    font-size: .82rem;
+  }
+
+  .filter-rail {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: .45rem !important;
+  }
+
+  .filter-group {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-header .brand-logo {
+    width: 6.75rem !important;
+  }
+}
+
 /* Shape-preserving loading skeletons */
 .ui-skeleton-bone {
   position: relative;
