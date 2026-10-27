@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, CheckCheck, Send } from 'lucide-react';
 import { getMessages, markMessagesAsRead, sendMessage } from './api';
 import { conversationIdentifier, userIdentifier, User } from './types';
@@ -14,7 +14,7 @@ export default function ChatWindow({ currentUser, chatWith, productId, onCloseCh
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
   const currentUserId = currentUser ? userIdentifier(currentUser) : '';
   const conversationId = conversationIdentifier(currentUserId, chatWith);
 
@@ -40,7 +40,11 @@ export default function ChatWindow({ currentUser, chatWith, productId, onCloseCh
     return () => window.clearInterval(timer);
   }, [loadMessages]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length]);
+  useLayoutEffect(() => {
+    const messageList = messageListRef.current;
+    if (!messageList) return;
+    messageList.scrollTop = messageList.scrollHeight;
+  }, [messages.length]);
 
   const handleSend = async () => {
     const text = newMessage.trim();
@@ -67,14 +71,13 @@ export default function ChatWindow({ currentUser, chatWith, productId, onCloseCh
           <span className="conversation-avatar">{context.participant?.name?.slice(0, 1).toUpperCase() || 'M'}</span>
           <div><h1>{context.participant?.name || 'Conversation'}</h1><p>{context.product?.title || 'Product enquiry'}{context.participant?.campus ? ` · ${context.participant.campus}` : ''}</p></div>
         </header>
-        <div className="chat-messages" aria-live="polite">
+        <div ref={messageListRef} className="chat-messages" role="log" aria-live="polite">
           {loading ? <ListSkeleton rows={5} /> : messages.length === 0 ? (
             <div className="conversation-empty"><h2>Start the conversation</h2><p>Ask about availability, condition, or collection. Keep payment details private.</p></div>
           ) : messages.map(message => {
             const mine = String(message.senderId) === currentUserId;
             return <div key={String(message._id)} className={`chat-message-row ${mine ? 'mine' : ''}`}><div className="chat-bubble"><p>{message.text}</p><span>{message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}{mine && (message.read ? <CheckCheck /> : <Check />)}</span></div></div>;
           })}
-          <div ref={bottomRef} />
         </div>
         <div className="chat-composer">
           <textarea value={newMessage} onChange={event => setNewMessage(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleSend(); } }} maxLength={2000} rows={1} placeholder="Write a message" aria-label="Message" disabled={sending || loading} />
