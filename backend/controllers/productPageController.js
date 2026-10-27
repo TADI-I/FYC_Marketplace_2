@@ -1,5 +1,6 @@
 // controllers/productPageController.js
 const { ObjectId } = require('mongodb');
+const { SUBSCRIPTION_MODE, getSubscriptionPolicy } = require('../services/subscriptionPolicyService');
 
 exports.serveProductPage = async (req, res, db) => {
   try {
@@ -10,6 +11,16 @@ exports.serveProductPage = async (req, res, db) => {
     if (!ObjectId.isValid(productId)) {
       console.log('❌ Invalid product ID');
       return res.status(404).send('Product not found');
+    }
+
+    const policy = await getSubscriptionPolicy(db);
+    const sellerMatch = { 'seller.accountStatus': { $ne: 'suspended' } };
+    if (policy.mode === SUBSCRIPTION_MODE.PAID) {
+      sellerMatch['seller.subscribed'] = true;
+      sellerMatch.$or = [
+        { 'seller.subscriptionEndDate': { $exists: false } },
+        { 'seller.subscriptionEndDate': { $gte: new Date() } }
+      ];
     }
 
     // Fetch product with seller info
@@ -25,14 +36,7 @@ exports.serveProductPage = async (req, res, db) => {
       },
       { $unwind: '$seller' },
       {
-        $match: {
-          'seller.subscribed': true,
-          'seller.accountStatus': { $ne: 'suspended' },
-          $or: [
-            { 'seller.subscriptionEndDate': { $exists: false } },
-            { 'seller.subscriptionEndDate': { $gte: new Date() } }
-          ]
-        }
+        $match: sellerMatch
       },
       {
         $addFields: {

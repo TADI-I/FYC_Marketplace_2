@@ -304,6 +304,8 @@ app.get('/api/admin/users',
   (req, res) => userController.getAllUsers(req, res, req.db)
 );
 app.get('/api/admin/overview', authenticateToken, requireAdmin, (req, res) => userController.getAdminOverview(req, res, req.db));
+app.get('/api/admin/subscription-policy', authenticateToken, requireAdmin, (req, res) => userController.getSubscriptionPolicy(req, res, req.db));
+app.patch('/api/admin/subscription-policy', authenticateToken, requireAdmin, (req, res) => userController.updateSubscriptionPolicy(req, res, req.db));
 app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, validateObjectId('id'), (req, res) => userController.adminUpdateUser(req, res, req.db));
 
 app.get('/api/admin/reactivation-requests', authenticateToken, requireAdmin, (req, res) => {

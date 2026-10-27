@@ -512,6 +512,18 @@ export const getAdminOverview = async () => {
   return response.overview;
 };
 
+export const getSubscriptionPolicy = async () => {
+  const response = await apiCall('/api/admin/subscription-policy');
+  return response.policy;
+};
+
+export const updateSubscriptionPolicy = async (paymentsEnabled) => {
+  return apiCall('/api/admin/subscription-policy', {
+    method: 'PATCH',
+    body: JSON.stringify({ paymentsEnabled })
+  });
+};
+
 export const updateUser = async (userId, updateData) => {
   try {
     const response = await apiCall(`/api/admin/users/${userId}`, {

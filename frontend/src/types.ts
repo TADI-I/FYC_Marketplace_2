@@ -20,6 +20,9 @@ export type User = {
   subscriptionAmount?: number;
   subscriptionCurrency?: string;
   subscriptionSource?: 'PAYMENT' | 'OFFER' | null;
+  subscriptionMode?: 'FREE' | 'NOTICE' | 'PAID';
+  subscriptionsEnabled?: boolean;
+  subscriptionNoticeEndsAt?: Date | string | null;
   currentOfferId?: string | null;
   currentOfferClaimId?: string | null;
   whatsapp?: string | null;

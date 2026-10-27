@@ -7,6 +7,10 @@ const {
   hasActiveSellerAccess,
   syncExpiredSellerAccess
 } = require('../services/sellerSubscriptionService');
+const {
+  getSubscriptionPolicy,
+  sellerHasAccessUnderPolicy
+} = require('../services/subscriptionPolicyService');
 
 // JWT authentication middleware
 exports.authenticateToken = async (req, res, next) => {
@@ -218,7 +222,9 @@ exports.requireActiveSubscription = async (req, res, next, db) => {
       return res.status(403).json({ error: 'This account is suspended', code: 'ACCOUNT_SUSPENDED', success: false });
     }
 
-    if (user.type !== 'seller' || !user.subscribed) {
+    const policy = await getSubscriptionPolicy(db);
+
+    if (user.type !== 'seller' || !sellerHasAccessUnderPolicy(user, policy)) {
       return res.status(403).json({ 
         error: 'Active seller subscription required',
         code: 'SUBSCRIPTION_REQUIRED',
@@ -227,7 +233,7 @@ exports.requireActiveSubscription = async (req, res, next, db) => {
     }
 
     // Check if subscription has expired
-    if (!hasActiveSellerAccess(user)) {
+    if (policy.mode === 'PAID' && !hasActiveSellerAccess(user)) {
       await syncExpiredSellerAccess(db, user);
       
       return res.status(403).json({ 

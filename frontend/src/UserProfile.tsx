@@ -166,7 +166,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
           subscriptionStatus: status.subscriptionStatus,
           subscriptionEndDate: status.subscriptionEndDate,
           hasHadSellerAccess: status.hasHadSellerAccess,
-          subscriptionSource: status.subscriptionSource
+          subscriptionSource: status.subscriptionSource,
+          subscriptionMode: status.subscriptionMode,
+          subscriptionsEnabled: status.subscriptionsEnabled,
+          subscriptionNoticeEndsAt: status.subscriptionNoticeEndsAt
         } : current);
       }
     } catch (error) {
@@ -187,6 +190,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
 
   const getSubscriptionAlert = () => {
     if (user?.type !== 'seller') return null;
+
+    if (user.subscriptionMode === 'FREE') {
+      return {
+        type: 'success',
+        icon: CheckCircle,
+        title: 'Seller Access Is Free',
+        message: 'You can publish and manage listings without a monthly payment while subscriptions are off.'
+      };
+    }
+
+    if (user.subscriptionMode === 'NOTICE') {
+      const startsOn = user.subscriptionNoticeEndsAt
+        ? new Date(user.subscriptionNoticeEndsAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })
+        : 'in 30 days';
+      return {
+        type: 'warning',
+        icon: Clock,
+        title: 'Monthly Subscriptions Are Starting',
+        message: `Seller access remains free until ${startsOn}. After that, an active subscription will cost R25 per month.`
+      };
+    }
     
     const daysRemaining = getSubscriptionDaysRemaining();
     const status = (user?.subscriptionStatus || '').toUpperCase();
@@ -679,9 +703,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   <h2>{subscriptionAlert.title}</h2>
                   <p>{subscriptionAlert.message}</p>
                 </div>
-                {(subscriptionAlert.type === 'error' || subscriptionAlert.type === 'warning') && (
+                {subscriptionAlert.actionLabel && (
                   <button type="button" onClick={handleRenewSubscription} disabled={loading || upgrading}>
-                    {upgrading ? 'Checking options…' : subscriptionAlert.type === 'warning' ? 'Renew subscription' : subscriptionAlert.actionLabel}
+                    {upgrading ? 'Checking options…' : subscriptionAlert.actionLabel}
                   </button>
                 )}
               </section>
@@ -705,7 +729,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                 <section className="profile-panel profile-status-panel" aria-labelledby="account-status-title">
                   <div className="profile-panel-heading"><div><p className="listing-eyebrow">Current plan</p><h2 id="account-status-title">Account status</h2></div></div>
                   <dl className="profile-status-list">
-                    <div><dt>Subscription</dt><dd className={user.subscribed ? 'is-active' : ''}>{(user.subscriptionStatus || (user.subscribed ? 'ACTIVE' : 'NONE')).replace(/_/g, ' ')}</dd></div>
+                    <div><dt>Subscription</dt><dd className={user.subscribed ? 'is-active' : ''}>{(user.subscriptionMode === 'FREE' ? 'FREE ACCESS' : user.subscriptionMode === 'NOTICE' ? 'FREE — PAYMENT NOTICE' : user.subscriptionStatus || (user.subscribed ? 'ACTIVE' : 'NONE')).replace(/_/g, ' ')}</dd></div>
                     <div><dt>Account role</dt><dd>{user.type.charAt(0).toUpperCase() + user.type.slice(1)}</dd></div>
                     {user.subscriptionEndDate && <div><dt><CalendarDays aria-hidden="true" />{user.subscriptionSource === 'OFFER' ? 'Offer ends' : 'Renews or expires'}</dt><dd>{new Date(user.subscriptionEndDate).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</dd></div>}
                   </dl>
@@ -717,7 +741,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ currentUser, onLogout, onBack
                   <section className="profile-panel profile-seller-cta">
                     <div className="profile-seller-cta-icon"><Zap aria-hidden="true" /></div>
                     <h2>Start selling</h2>
-                    <p>Activate seller access and publish listings for R25 per month. Eligible offers appear separately.</p>
+                    <p>{user.subscriptionMode === 'FREE' ? 'Activate free seller access and start publishing listings.' : user.subscriptionMode === 'NOTICE' ? 'Start selling free during the notice period. R25 monthly payments begin on the date shown after activation.' : 'Activate seller access and publish listings for R25 per month. Eligible offers appear separately.'}</p>
                     <button type="button" onClick={handleUpgradeToSeller} disabled={loading || upgrading}>{upgrading ? 'Checking options…' : 'Become a seller'}</button>
                   </section>
                 )}

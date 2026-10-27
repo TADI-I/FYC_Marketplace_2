@@ -12,6 +12,13 @@ const { getEligibleOffers } = require('../services/sellerOfferService');
 const { createAccountToken, hashAccountToken } = require('../services/accountTokenService');
 const { sendEmailChangeVerificationEmail } = require('../services/emailService');
 const { isValidCampusId, pickupLocationFromInput } = require('../services/campusLocationService');
+const {
+  SUBSCRIPTION_MODE,
+  getSubscriptionPolicy,
+  setSubscriptionPaymentsEnabled,
+  sellerHasAccessUnderPolicy,
+  publicPolicyFields
+} = require('../services/subscriptionPolicyService');
 
 const EMAIL_CHANGE_WINDOW_MS = 10 * 60 * 1000;
 
@@ -49,16 +56,20 @@ exports.getSubscriptionStatus = async (req, res, db) => {
       });
     }
 
-    const syncedUser = await syncExpiredSellerAccess(db, user);
+    const policy = await getSubscriptionPolicy(db);
+    const syncedUser = policy.mode === SUBSCRIPTION_MODE.PAID
+      ? await syncExpiredSellerAccess(db, user)
+      : user;
     Object.assign(user, syncedUser);
-    const hasActiveSubscription = hasActiveSellerAccess(user);
+    const hasActiveSubscription = sellerHasAccessUnderPolicy(user, policy);
 
     res.json({
       success: true,
       hasActiveSubscription,
       ...publicSubscriptionFields(user),
+      ...publicPolicyFields(policy),
       canSell: hasActiveSubscription,
-      requiresPayment: user.type === 'seller' && !hasActiveSubscription && hasHistoricalSellerActivation(user)
+      requiresPayment: policy.mode === SUBSCRIPTION_MODE.PAID && user.type === 'seller' && !hasActiveSubscription
     });
 
   } catch (error) {
@@ -197,13 +208,17 @@ exports.updateUserProfile = async (req, res, db) => {
     const responseUser = verificationEmailSent
       ? updatedUser
       : await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const responsePolicy = await getSubscriptionPolicy(db);
+    const safeResponseUser = publicUser(responseUser);
+    if (responseUser.type === 'seller') safeResponseUser.subscribed = sellerHasAccessUnderPolicy(responseUser, responsePolicy);
+    Object.assign(safeResponseUser, publicPolicyFields(responsePolicy));
 
     res.json({
       success: true,
       message: emailChanged
         ? (verificationEmailSent ? 'Profile updated. Confirm the new email within 10 minutes; your current email remains active until then.' : 'Your profile details were saved, but the email-change message could not be sent. Your current email is unchanged.')
         : 'Profile updated successfully',
-      user: publicUser(responseUser),
+      user: safeResponseUser,
       requiresEmailVerification: emailChanged && verificationEmailSent,
       verificationEmailSent
     });
@@ -315,9 +330,13 @@ exports.getUserProfile = async (req, res, db) => {
       });
     }
 
+    const policy = await getSubscriptionPolicy(db);
+    const responseUser = publicUser(user);
+    if (user.type === 'seller') responseUser.subscribed = sellerHasAccessUnderPolicy(user, policy);
+    Object.assign(responseUser, publicPolicyFields(policy));
     res.json({
       success: true,
-      user: publicUser(user)
+      user: responseUser
     });
 
   } catch (error) {
@@ -341,13 +360,16 @@ exports.upgradeUserToSeller = async (req, res, db) => {
       return res.status(404).json({ success: false, error: 'User not found.' });
     }
 
-    if (hasActiveSellerAccess(user)) {
+    const policy = await getSubscriptionPolicy(db);
+    if (sellerHasAccessUnderPolicy(user, policy)) {
       const { password, ...safeUser } = user;
       return res.json({
         success: true,
-        activation: user.subscriptionStatus === SUBSCRIPTION_STATUS.TRIAL ? 'TRIAL' : 'ACTIVE',
+        activation: policy.mode === SUBSCRIPTION_MODE.PAID
+          ? (user.subscriptionStatus === SUBSCRIPTION_STATUS.TRIAL ? 'TRIAL' : 'ACTIVE')
+          : policy.mode,
         alreadyActive: true,
-        user: safeUser
+        user: { ...safeUser, subscribed: true, ...publicPolicyFields(policy) }
       });
     }
 
@@ -365,6 +387,15 @@ exports.upgradeUserToSeller = async (req, res, db) => {
         type: 'seller',
         subscriptionStatus: SUBSCRIPTION_STATUS.PAYMENT_REQUIRED
       };
+    }
+
+    if (policy.mode !== SUBSCRIPTION_MODE.PAID) {
+      const { password, ...safeUser } = user;
+      return res.json({
+        success: true,
+        activation: policy.mode,
+        user: { ...safeUser, subscribed: true, ...publicPolicyFields(policy) }
+      });
     }
 
     const offers = await getEligibleOffers(db, user);
@@ -515,13 +546,17 @@ exports.getAllUsers = async (req, res, db) => {
 exports.getAdminOverview = async (_req, res, db) => {
   try {
     const now = new Date();
+    const policy = await getSubscriptionPolicy(db, now);
+    const activeSellerFilter = policy.mode === SUBSCRIPTION_MODE.PAID
+      ? { type: 'seller', subscribed: true, accountStatus: { $ne: 'suspended' }, $or: [
+        { subscriptionEndDate: { $exists: false } },
+        { subscriptionEndDate: { $gte: now } }
+      ] }
+      : { type: 'seller', accountStatus: { $ne: 'suspended' } };
     const [users, sellers, activeSellers, products, pendingVerifications, suspendedUsers] = await Promise.all([
       db.collection('users').countDocuments({}),
       db.collection('users').countDocuments({ type: 'seller' }),
-      db.collection('users').countDocuments({ type: 'seller', subscribed: true, accountStatus: { $ne: 'suspended' }, $or: [
-        { subscriptionEndDate: { $exists: false } },
-        { subscriptionEndDate: { $gte: now } }
-      ] }),
+      db.collection('users').countDocuments(activeSellerFilter),
       db.collection('products').countDocuments({ status: 'active' }),
       db.collection('verificationRequests').countDocuments({ status: 'pending' }),
       db.collection('users').countDocuments({ accountStatus: 'suspended' })
@@ -530,6 +565,34 @@ exports.getAdminOverview = async (_req, res, db) => {
   } catch (error) {
     console.error('Admin overview failed:', error.message);
     return res.status(500).json({ success: false, error: 'Failed to load the admin overview.' });
+  }
+};
+
+exports.getSubscriptionPolicy = async (_req, res, db) => {
+  try {
+    const policy = await getSubscriptionPolicy(db);
+    return res.json({ success: true, policy: { ...policy, ...publicPolicyFields(policy) } });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: 'Failed to load subscription settings.' });
+  }
+};
+
+exports.updateSubscriptionPolicy = async (req, res, db) => {
+  try {
+    if (typeof req.body?.paymentsEnabled !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'paymentsEnabled must be true or false.' });
+    }
+    const policy = await setSubscriptionPaymentsEnabled(db, req.body.paymentsEnabled, req.user.id);
+    return res.json({
+      success: true,
+      message: policy.mode === SUBSCRIPTION_MODE.FREE
+        ? 'Seller subscriptions are free.'
+        : `The 30-day seller notice is active. Payments become required on ${policy.paymentsRequiredAt.toISOString()}.`,
+      policy: { ...policy, ...publicPolicyFields(policy) }
+    });
+  } catch (error) {
+    console.error('Subscription policy update failed:', error.message);
+    return res.status(500).json({ success: false, error: 'Failed to update subscription settings.' });
   }
 };
 

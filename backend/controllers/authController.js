@@ -11,6 +11,18 @@ const {
   syncExpiredSellerAccess,
   publicSubscriptionFields
 } = require('../services/sellerSubscriptionService');
+const {
+  SUBSCRIPTION_MODE,
+  getSubscriptionPolicy,
+  sellerHasAccessUnderPolicy,
+  publicPolicyFields
+} = require('../services/subscriptionPolicyService');
+
+const effectiveUserSubscriptionFields = (user, policy) => ({
+  subscribed: user.type === 'seller' ? sellerHasAccessUnderPolicy(user, policy) : Boolean(user.subscribed),
+  ...publicSubscriptionFields(user),
+  ...publicPolicyFields(policy)
+});
 
 // Validation helpers
 const isValidEmail = (email) => {
@@ -222,7 +234,8 @@ exports.login = async (req, res, db) => {
       });
     }
 
-    user = await syncExpiredSellerAccess(db, user);
+    const policy = await getSubscriptionPolicy(db);
+    if (policy.mode === SUBSCRIPTION_MODE.PAID) user = await syncExpiredSellerAccess(db, user);
     user = await clearExpiredPendingEmail(db, user);
 
     // Create JWT token
@@ -241,8 +254,7 @@ exports.login = async (req, res, db) => {
       campus: user.campus,
       locationLabel: user.locationLabel || null,
       hasCustomLocation: Boolean(user.pickupLocation),
-      subscribed: user.subscribed,
-      ...publicSubscriptionFields(user),
+      ...effectiveUserSubscriptionFields(user, policy),
       whatsapp: user.whatsapp || null,
       emailVerified: user.emailVerified !== false,
       pendingEmail: user.pendingEmail || null,
@@ -284,7 +296,8 @@ exports.getCurrentUser = async (req, res, db) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    user = await syncExpiredSellerAccess(db, user);
+    const policy = await getSubscriptionPolicy(db);
+    if (policy.mode === SUBSCRIPTION_MODE.PAID) user = await syncExpiredSellerAccess(db, user);
     user = await clearExpiredPendingEmail(db, user);
 
     // only return safe fields (include whatsapp)
@@ -296,8 +309,7 @@ exports.getCurrentUser = async (req, res, db) => {
       campus: user.campus,
       locationLabel: user.locationLabel || null,
       hasCustomLocation: Boolean(user.pickupLocation),
-      subscribed: user.subscribed,
-      ...publicSubscriptionFields(user),
+      ...effectiveUserSubscriptionFields(user, policy),
       whatsapp: user.whatsapp || null,
       emailVerified: user.emailVerified !== false,
       pendingEmail: user.pendingEmail || null,

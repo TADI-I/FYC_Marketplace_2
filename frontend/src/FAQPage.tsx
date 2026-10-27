@@ -25,7 +25,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'getting-started',
       question: 'Is Campus Cart free to use?',
-      answer: 'Yes. Buyers can browse and contact sellers without a platform fee, although an account is required before starting an in-app chat or opening a seller\'s WhatsApp contact. Standard seller access costs R25 per month. Eligible sellers may also receive claimable free-period or discount offers.'
+      answer: 'Yes. Buyers can browse and contact sellers without a platform fee, although an account is required before starting an in-app chat or opening a seller\'s WhatsApp contact. Seller access may be free during growth periods. When payments are enabled, standard access costs R25 per month.'
     },
     {
       category: 'buying',
@@ -50,12 +50,12 @@ const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
     {
       category: 'selling',
       question: 'How do I become a seller on Campus Cart?',
-      answer: 'You can register as a Seller or register as a Buyer and later choose Profile → Become a Seller. No admin approval is required. Standard access is R25 per month. If you are eligible for a promotion, the marketplace shows a separate offer that you must claim before its free period or discount begins.'
+      answer: 'You can register as a Seller or register as a Buyer and later choose Profile → Become a Seller. No admin approval is required. The app shows whether access is currently free; when payments are enabled, standard access is R25 per month after advance notice.'
     },
     {
       category: 'selling',
       question: 'How much does the seller subscription cost and how do I pay?',
-      answer: 'The standard seller subscription costs R25 per month. Start secure checkout from your profile; paid access activates only after the payment provider confirms the payment. Promotional periods are claim-based and do not start just because you log in.'
+      answer: 'The standard seller subscription costs R25 per month when payments are enabled. During a free-access or payment-notice period, no checkout is required. Paid access activates only after the payment provider confirms the payment.'
     },
     {
       category: 'selling',

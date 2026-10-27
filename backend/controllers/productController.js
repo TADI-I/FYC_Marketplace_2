@@ -5,6 +5,11 @@ const {
   rankNearbyProducts,
   recognizeCampus
 } = require('../services/campusLocationService');
+const {
+  SUBSCRIPTION_MODE,
+  getSubscriptionPolicy,
+  sellerHasAccessUnderPolicy
+} = require('../services/subscriptionPolicyService');
 
 const isValidCategory = (category) => {
   const validCategories = [
@@ -29,21 +34,22 @@ const buildFilter = ({ category, campus, search }) => {
   return filter;
 };
 
-const buildEligibleProductPipeline = filter => {
+const buildEligibleProductPipeline = (filter, enforcePaidSubscriptions = true) => {
   const now = new Date();
+  const sellerMatch = { 'seller.accountStatus': { $ne: 'suspended' } };
+  if (enforcePaidSubscriptions) {
+    sellerMatch['seller.subscribed'] = true;
+    sellerMatch.$or = [
+      { 'seller.subscriptionEndDate': { $exists: false } },
+      { 'seller.subscriptionEndDate': { $gte: now } }
+    ];
+  }
   return [
     { $match: filter },
     { $lookup: { from: 'users', localField: 'sellerId', foreignField: '_id', as: 'seller' } },
     { $unwind: '$seller' },
     {
-      $match: {
-        'seller.subscribed': true,
-        'seller.accountStatus': { $ne: 'suspended' },
-        $or: [
-          { 'seller.subscriptionEndDate': { $exists: false } },
-          { 'seller.subscriptionEndDate': { $gte: now } }
-        ]
-      }
+      $match: sellerMatch
     },
     {
       $lookup: {
@@ -79,8 +85,9 @@ exports.getProducts = async (req, res, db) => {
   try {
     const { category, campus, search } = req.query;
     const filter = buildFilter({ category, campus, search });
+    const policy = await getSubscriptionPolicy(db);
     const pipeline = [
-      ...buildEligibleProductPipeline(filter),
+      ...buildEligibleProductPipeline(filter, policy.mode === SUBSCRIPTION_MODE.PAID),
       { $project: { seller: 0, campus: 0, pickupLocation: 0 } },
       { $sort: { sellerVerified: -1, title: 1, _id: 1 } }
     ];
@@ -117,8 +124,9 @@ exports.getNearbyProducts = async (req, res, db) => {
     }
 
     const filter = buildFilter(req.body?.filters || {});
+    const policy = await getSubscriptionPolicy(db);
     const products = await db.collection('products')
-      .aggregate(buildEligibleProductPipeline(filter))
+      .aggregate(buildEligibleProductPipeline(filter, policy.mode === SUBSCRIPTION_MODE.PAID))
       .toArray();
     const ranked = rankNearbyProducts(products, { latitude, longitude });
     const offset = (page - 1) * limit;
@@ -161,6 +169,15 @@ exports.getProductById = async (req, res, db) => {
       });
     }
     
+    const policy = await getSubscriptionPolicy(db);
+    const sellerMatch = { 'seller.accountStatus': { $ne: 'suspended' } };
+    if (policy.mode === SUBSCRIPTION_MODE.PAID) {
+      sellerMatch['seller.subscribed'] = true;
+      sellerMatch.$or = [
+        { 'seller.subscriptionEndDate': { $exists: false } },
+        { 'seller.subscriptionEndDate': { $gte: new Date() } }
+      ];
+    }
     const pipeline = [
       { $match: { _id: new ObjectId(productId), status: 'active' } },
       {
@@ -173,14 +190,7 @@ exports.getProductById = async (req, res, db) => {
       },
       { $unwind: '$seller' },
       {
-        $match: {
-          'seller.subscribed': true,
-          'seller.accountStatus': { $ne: 'suspended' },
-          $or: [
-            { 'seller.subscriptionEndDate': { $exists: false } },
-            { 'seller.subscriptionEndDate': { $gte: new Date() } }
-          ]
-        }
+        $match: sellerMatch
       },
       {
         $addFields: {
@@ -245,7 +255,8 @@ exports.getProductsBySeller = async (req, res, db) => {
       return res.status(404).json({ error: 'Seller account not active', success: false });
     }
     
-    const hasActiveSubscription = seller.subscribed && (!seller.subscriptionEndDate || new Date() <= new Date(seller.subscriptionEndDate));
+    const policy = await getSubscriptionPolicy(db);
+    const hasActiveSubscription = sellerHasAccessUnderPolicy({ ...seller, type: 'seller' }, policy);
     if (!hasActiveSubscription) {
       return res.status(404).json({ error: 'Seller account not active', success: false });
     }
@@ -390,7 +401,8 @@ exports.getProductContact = async (req, res, db) => {
       { _id: product.sellerId, accountStatus: { $ne: 'suspended' } },
       { projection: { name: 1, whatsapp: 1, subscribed: 1, subscriptionEndDate: 1 } }
     );
-    const hasActiveSubscription = seller?.subscribed && (!seller.subscriptionEndDate || new Date() <= new Date(seller.subscriptionEndDate));
+    const policy = await getSubscriptionPolicy(db);
+    const hasActiveSubscription = sellerHasAccessUnderPolicy({ ...seller, type: 'seller' }, policy);
     if (!seller || !hasActiveSubscription) {
       return res.status(404).json({ success: false, error: 'Seller contact is not available' });
     }

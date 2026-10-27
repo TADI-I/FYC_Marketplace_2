@@ -4927,6 +4927,16 @@ html.dark .ui-skeleton-bone::after { background: linear-gradient(90deg, transpar
 .admin-overview-card { padding: 1rem; border: 1px solid var(--border-color, #deded8); border-radius: .65rem; background: var(--bg-secondary, #fff); }
 .admin-overview-card span { display: block; color: var(--text-secondary, #686963); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .admin-overview-card strong { display: block; margin-top: .35rem; font-size: 1.65rem; }
+
+.admin-subscription-control { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin: 0 0 1.5rem; padding: 1.15rem; border: 1px solid var(--border-color, #deded8); border-radius: .75rem; background: var(--bg-secondary, #fff); }
+.admin-subscription-control h3 { margin: .15rem 0 .3rem; font-size: 1.1rem; }
+.admin-subscription-control p { margin: 0; color: var(--text-secondary, #686963); }
+.subscription-toggle { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .55rem; min-width: 9.5rem; padding: .6rem .75rem; border: 1px solid #b7b8b2; border-radius: 999px; background: #ecece8; color: #353631; font: inherit; font-size: .8rem; font-weight: 750; cursor: pointer; }
+.subscription-toggle span { width: 1.35rem; height: 1.35rem; border-radius: 50%; background: #85867f; box-shadow: 0 1px 2px rgba(0,0,0,.18); }
+.subscription-toggle.is-on { border-color: #0075e8; background: rgba(0,117,232,.1); color: #0059ad; }
+.subscription-toggle.is-on span { background: #0075e8; }
+.subscription-toggle:disabled { cursor: wait; opacity: .65; }
+.subscription-notice-banner { width: 100%; padding: .7rem 1rem; background: #fff4d6; border-bottom: 1px solid #ead49a; color: #6f4b00; text-align: center; font-size: .86rem; }
 .admin-user-badges { display: flex; gap: .35rem; margin: .35rem 0 .7rem; }
 .admin-status-badge { padding: .2rem .45rem; border-radius: 999px; font-size: .68rem; font-weight: 800; text-transform: uppercase; }
 .admin-status-badge.is-active { color: #17623a; background: #dcfce7; }

@@ -46,7 +46,7 @@ const sellerSteps = [
   {
     icon: UserPlus,
     title: 'Create or upgrade your account',
-    description: 'Start as a seller or upgrade later from your account. Standard seller access is R25 per month, while eligible offers are shown separately for you to claim.'
+    description: 'Start as a seller or upgrade later from your account. Access may be free during growth periods; when payments are enabled, standard seller access is R25 per month.'
   },
   {
     icon: Store,
@@ -137,7 +137,7 @@ const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onBack, onRegister }) =
     <section className="how-details" aria-label="Pricing and safety">
       <article className="how-price-card">
         <span className="how-eyebrow">Straightforward pricing</span>
-        <h2>Browse free. Sell for R25 monthly.</h2>
+        <h2>Browse free. Start selling simply.</h2>
         <div className="how-price-lines">
           <div><Check aria-hidden="true" /><span><strong>Buyers</strong> browse and contact sellers free.</span></div>
           <div><Check aria-hidden="true" /><span><strong>Sellers</strong> can publish unlimited active listings while subscribed.</span></div>

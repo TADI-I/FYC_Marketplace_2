@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { getAdminOverview, getReactivationRequests, processReactivationRequest, getVerificationRequests, processVerificationRequest } from './api';
+import { getAdminOverview, getReactivationRequests, processReactivationRequest, getVerificationRequests, processVerificationRequest, getSubscriptionPolicy, updateSubscriptionPolicy } from './api';
 import AdminUsers from '../src/AdminUsers';
 import { CheckCircle, XCircle, Clock, Eye, MessageCircle } from 'lucide-react';
 import { showNotification } from './AppNotificationModal';
@@ -9,6 +9,12 @@ type RequestItem = any;
 type TabKey = 'all' | 'pending' | 'approved' | 'rejected';
 type MainTabKey = 'reactivation' | 'verification' | 'users';
 const ADMIN_PAGE_SIZE = 10;
+
+type SubscriptionPolicy = {
+  paymentsEnabled: boolean;
+  mode: 'FREE' | 'NOTICE' | 'PAID';
+  paymentsRequiredAt?: string | null;
+};
 
 export interface AdminReactivationProps {
   darkMode?: boolean;
@@ -66,6 +72,8 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
   const [reactivationVisibleCount, setReactivationVisibleCount] = useState(ADMIN_PAGE_SIZE);
   const [verificationVisibleCount, setVerificationVisibleCount] = useState(ADMIN_PAGE_SIZE);
   const [overview, setOverview] = useState<Record<string, number> | null>(null);
+  const [subscriptionPolicy, setSubscriptionPolicy] = useState<SubscriptionPolicy | null>(null);
+  const [savingSubscriptionPolicy, setSavingSubscriptionPolicy] = useState(false);
 
   const loadOverview = useCallback(() => {
     getAdminOverview()
@@ -78,7 +86,29 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
 
   useEffect(() => {
     loadOverview();
+    getSubscriptionPolicy()
+      .then(setSubscriptionPolicy)
+      .catch(error => showNotification({ type: 'error', title: 'Subscription setting unavailable', message: error.message || 'Could not load the subscription setting.' }));
   }, [loadOverview]);
+
+  const handleSubscriptionToggle = async () => {
+    if (!subscriptionPolicy || savingSubscriptionPolicy) return;
+    setSavingSubscriptionPolicy(true);
+    try {
+      const result = await updateSubscriptionPolicy(!subscriptionPolicy.paymentsEnabled);
+      setSubscriptionPolicy(result.policy);
+      loadOverview();
+      showNotification({
+        type: 'success',
+        title: result.policy.mode === 'FREE' ? 'Seller access is free' : '30-day notice started',
+        message: result.message
+      });
+    } catch (error: any) {
+      showNotification({ type: 'error', title: 'Setting not changed', message: error.message || 'Please try again.' });
+    } finally {
+      setSavingSubscriptionPolicy(false);
+    }
+  };
 
   // Build proper image URL with API_BASE
   const buildImageUrl = (imageUrl: string): string => {
@@ -271,6 +301,34 @@ const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false 
           ].map(([label, value]) => <div className="admin-overview-card" key={String(label)}><span>{label}</span><strong>{value ?? '—'}</strong></div>)}
         </section>
       )}
+
+      <section className="admin-subscription-control" aria-labelledby="subscription-control-title">
+        <div>
+          <p className="listing-eyebrow">Seller billing</p>
+          <h3 id="subscription-control-title">R25 monthly subscriptions</h3>
+          {!subscriptionPolicy ? (
+            <p>Loading the current setting…</p>
+          ) : subscriptionPolicy.mode === 'FREE' ? (
+            <p>Payments are off. Every active seller can list for free.</p>
+          ) : subscriptionPolicy.mode === 'NOTICE' ? (
+            <p>Payments are on, with free access until {new Date(subscriptionPolicy.paymentsRequiredAt!).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}. Sellers are shown this notice.</p>
+          ) : (
+            <p>Payments are enforced. Sellers need an active R25 monthly subscription.</p>
+          )}
+        </div>
+        <button
+          type="button"
+          className={`subscription-toggle ${subscriptionPolicy?.paymentsEnabled ? 'is-on' : ''}`}
+          role="switch"
+          aria-checked={Boolean(subscriptionPolicy?.paymentsEnabled)}
+          aria-label="Require seller subscription payments"
+          disabled={!subscriptionPolicy || savingSubscriptionPolicy}
+          onClick={handleSubscriptionToggle}
+        >
+          <span aria-hidden="true" />
+          {savingSubscriptionPolicy ? 'Saving…' : subscriptionPolicy?.paymentsEnabled ? 'Payments on' : 'Payments off'}
+        </button>
+      </section>
 
       {/* Main Tabs */}
       <div className="flex gap-2 mb-6">

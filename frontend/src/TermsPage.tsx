@@ -126,7 +126,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
               6. Seller Subscriptions and Payments
             </h2>
             <p>
-              Sellers must maintain an active R25 monthly subscription to list products or services.
+              When seller billing is enabled and its notice period has ended, sellers must maintain an active R25 monthly subscription to list products or services. Campus Cart may provide free-access periods.
               Subscription fees are non-refundable except as required by law. If your subscription lapses,
               your listings will be hidden until reactivation. We reserve the right to change subscription
               pricing with 30 days' notice to active subscribers.

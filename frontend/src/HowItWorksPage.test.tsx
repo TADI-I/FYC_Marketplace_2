@@ -8,7 +8,7 @@ describe('HowItWorksPage', () => {
     expect(screen.getByRole('heading', { name: /safe campus handover/i })).toBeInTheDocument();
     expect(screen.getByText(/orders them from closest to furthest/i)).toBeInTheDocument();
     expect(screen.getByText(/unread in-app messages trigger an email reminder after ten minutes/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /browse free\. sell for r25 monthly/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /browse free\. start selling simply/i })).toBeInTheDocument();
   });
 
   it('connects the marketplace and registration actions', () => {

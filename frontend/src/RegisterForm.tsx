@@ -94,7 +94,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         type: 'success',
         title: `Welcome to Campus Cart, ${response.user.name}`,
         message: accountType === 'seller'
-          ? 'Your seller profile is ready. Subscribe for R25/month, or claim an eligible offer when one appears.'
+          ? 'Your seller profile is ready. The app will show whether access is free or whether the standard R25 monthly subscription applies.'
           : 'Your buyer account is ready. You can start exploring the marketplace.',
         actionLabel: 'Get started'
       });
@@ -182,7 +182,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           </div>
           {accountType === "seller" && (
             <p className="text-xs text-gray-600 mt-2">
-              Seller status requires an active R25/month subscription. Any free period or discount appears as a separate offer and starts only when you claim it. No admin approval is required.
+              Seller access may be free during a marketplace growth period. When payments are enabled, standard access is R25/month after advance notice. No admin approval is required.
             </p>
           )}
         </div>

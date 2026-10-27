@@ -298,6 +298,13 @@ The dashboard exposes these operational totals:
 - pending seller-verification requests; and
 - suspended users.
 
+It also includes the global **R25 monthly subscriptions** switch. New
+deployments default to free seller access. Turning the switch on starts a
+30-day notice period during which sellers keep full access and see the payment
+start date in the app. Paid-subscription enforcement begins automatically when
+that date arrives. Turning the switch off restores free seller access
+immediately without deleting paid subscription history.
+
 Administrators can edit a user's name, email address, campus selection,
 WhatsApp number, buyer/seller role, and verified-seller badge. They can also
 suspend or restore non-admin accounts. An administrator cannot suspend their
@@ -315,6 +322,8 @@ Relevant endpoints:
 
 ```text
 GET   /api/admin/overview          Operational dashboard totals
+GET   /api/admin/subscription-policy
+PATCH /api/admin/subscription-policy
 GET   /api/admin/users             User list, optionally filtered by type
 PATCH /api/admin/users/:id         Admin-controlled account update
 GET   /api/admin/reactivation-requests
@@ -439,12 +448,16 @@ frontend or in this document.
 
 ## Seller activation and subscription flow
 
-1. A user may choose Seller at registration or later use **Profile → Become a Seller**. This does not automatically start a free period.
+The global policy has three effective modes: `FREE`, `NOTICE`, and `PAID`.
+Checkout and expiry enforcement apply only in `PAID` mode; suspended accounts
+remain blocked in every mode.
+
+1. A user may choose Seller at registration or later use **Profile → Become a Seller**. In `FREE` and `NOTICE` modes, seller access is immediate.
 2. The backend checks active `sellerOffers` against configurable eligibility rules and the user's prior `sellerOfferClaims`.
 3. Eligible offers are shown in a premium in-app modal. No browser notification or native alert is used, and login or offer discovery does not activate access.
 4. The user explicitly claims an offer. The backend creates a unique claim, creates a `sellerSubscriptions` access period, and reactivates seller access.
 5. When the promotional period expires, access returns to `PAYMENT_REQUIRED`; the claim history remains, preventing the same offer from being claimed again.
-6. Without an eligible offer, Marketplace starts standard R25 checkout and creates a local order priced at `2500` minor units (`R25.00`).
+6. In `PAID` mode, without an eligible offer, Marketplace starts standard R25 checkout and creates a local order priced at `2500` minor units (`R25.00`).
 7. Paid seller access begins only after a matching, verified `PAYMENT_SUCCESS` callback.
 
 The immediate promotion is seeded as `SELLER_REACTIVATION_2_MONTHS`. It is

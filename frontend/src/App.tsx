@@ -478,15 +478,9 @@ const App = () => {
 
   useEffect(() => {
     if (currentView === 'home' && currentUser && currentUser.type === 'seller') {
-      const needsCheck = !currentUser.subscribed;
-      if (needsCheck) {
-        const interval = setInterval(async () => {
-          const fresh = await refreshCurrentUser();
-          if (fresh && fresh.subscribed) clearInterval(interval);
-        }, 10000);
-        setTimeout(() => clearInterval(interval), 300000);
-        return () => clearInterval(interval);
-      }
+      const refreshDelay = currentUser.subscribed ? 60000 : 10000;
+      const interval = setInterval(refreshCurrentUser, refreshDelay);
+      return () => clearInterval(interval);
     }
   }, [currentView, currentUser, refreshCurrentUser]);
 
@@ -562,9 +556,15 @@ const App = () => {
             <li>• Priority listing placement</li>
           </ul>
         </div>
-        <p className="text-lg font-semibold mb-1">Monthly Subscription: R25</p>
+        <p className="text-lg font-semibold mb-1">
+          {currentUser?.subscriptionMode === 'FREE' ? 'Seller access is currently free' : currentUser?.subscriptionMode === 'NOTICE' ? 'Free during the notice period' : 'Monthly Subscription: R25'}
+        </p>
         <p className="text-sm text-gray-600 mb-4">
-          Eligible free periods and discounts appear as separate offers and only start after you claim them.
+          {currentUser?.subscriptionMode === 'FREE'
+            ? 'No payment is required while subscriptions are switched off.'
+            : currentUser?.subscriptionMode === 'NOTICE' && currentUser.subscriptionNoticeEndsAt
+              ? `No payment is required until ${new Date(currentUser.subscriptionNoticeEndsAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+              : 'Eligible free periods and discounts appear as separate offers and only start after you claim them.'}
         </p>
         <div className="flex gap-2">
           <button onClick={handleUpgrade} className="flex-1 bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
@@ -574,7 +574,7 @@ const App = () => {
         </div>
       </div>
     </div>
-  ), [handleUpgrade]);
+  ), [currentUser?.subscriptionMode, currentUser?.subscriptionNoticeEndsAt, handleUpgrade]);
 
   const getImageUrl = useCallback((product: Product) => {
     return getProductImageUrl(product, API_BASE || '');
@@ -846,6 +846,12 @@ const App = () => {
           </div>
         </div>
       </header>
+
+      {currentUser?.type === 'seller' && currentUser.subscriptionMode === 'NOTICE' && currentUser.subscriptionNoticeEndsAt && (
+        <aside className="subscription-notice-banner" role="status">
+          Seller access is free until <strong>{new Date(currentUser.subscriptionNoticeEndsAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>. After that, seller subscriptions will cost R25 per month.
+        </aside>
+      )}
 
       {visibleSellerOffer && !claimedOfferExpiry && !appNotificationOpen && (
         <SellerOfferModal

@@ -5,6 +5,7 @@ const {
   SUBSCRIPTION_STATUS,
   SELLER_MONTHLY_PRICE_CENTS
 } = require('../services/sellerSubscriptionService');
+const { getSubscriptionPolicy, SUBSCRIPTION_MODE } = require('../services/subscriptionPolicyService');
 
 const MONTHLY_SUBSCRIPTION_CENTS = SELLER_MONTHLY_PRICE_CENTS;
 
@@ -82,6 +83,17 @@ exports.startCheckout = async (req, res, db) => {
     }
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
     if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const policy = await getSubscriptionPolicy(db);
+    if (policy.mode !== SUBSCRIPTION_MODE.PAID) {
+      return res.status(409).json({
+        success: false,
+        code: policy.mode === SUBSCRIPTION_MODE.NOTICE ? 'SUBSCRIPTION_NOTICE_PERIOD' : 'SUBSCRIPTIONS_FREE',
+        error: policy.mode === SUBSCRIPTION_MODE.NOTICE
+          ? `Seller payments begin on ${policy.paymentsRequiredAt.toISOString()}. No payment is required yet.`
+          : 'Seller access is currently free. No payment is required.'
+      });
+    }
 
     const existing = await db.collection('subscriptionOrders').findOne({
       userId: user._id,

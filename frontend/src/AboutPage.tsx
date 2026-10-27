@@ -112,7 +112,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
             <div style={{ backgroundColor: '#fbfaf6', border: '1px solid rgba(16, 17, 15, .17)', borderRadius: '0.5rem', padding: '1rem' }}>
               <h3 style={{ fontWeight: 'bold', color: '#10110f', marginBottom: '0.5rem' }}>Affordable for Everyone</h3>
               <p style={{ fontSize: '0.875rem', color: '#3e403a' }}>
-                Buyers browse for free, and sellers pay just R25/month to list unlimited items –
+                Buyers browse for free, and seller access may be free during growth periods. When billing is active, sellers pay just R25/month to list unlimited items –
                 far cheaper than other platforms.
               </p>
             </div>

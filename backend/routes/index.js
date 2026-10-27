@@ -77,6 +77,8 @@ module.exports = (db) => {
   // Admin endpoints
   router.get('/admin/reactivation-requests', authenticateToken, requireAdmin, withDb(userController.getReactivationRequests));
   router.get('/admin/overview', authenticateToken, requireAdmin, withDb(userController.getAdminOverview));
+  router.get('/admin/subscription-policy', authenticateToken, requireAdmin, withDb(userController.getSubscriptionPolicy));
+  router.patch('/admin/subscription-policy', authenticateToken, requireAdmin, withDb(userController.updateSubscriptionPolicy));
   router.get('/admin/users', authenticateToken, requireAdmin, withDb(userController.getAllUsers));
   router.patch('/admin/users/:id', authenticateToken, requireAdmin, validateObjectId('id'), withDb(userController.adminUpdateUser));
   router.post('/admin/reactivation-requests/:requestId/process', authenticateToken, requireAdmin, validateObjectId('requestId'), withDb(userController.processReactivationRequest));
