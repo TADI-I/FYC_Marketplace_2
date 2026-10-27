@@ -166,6 +166,26 @@ async function sendVerificationSubmittedEmail(user) {
   });
 }
 
+async function sendNewSellerVerificationEmail(admin, seller, requestId) {
+  const { frontendUrl } = getEmailConfiguration();
+  const reviewUrl = `${frontendUrl}/admin/reactivation?tab=verification`;
+  const sellerName = seller.name || 'A seller';
+  const sellerEmail = seller.email || 'Email unavailable';
+  return sendEmail({
+    to: admin.email,
+    subject: `Campus Cart: New seller verification from ${sellerName}`,
+    text: `Campus Cart administrator alert\n\n${sellerName} (${sellerEmail}) submitted a seller verification request.\n\nRequest ID: ${requestId}\nReview it here: ${reviewUrl}`,
+    html: emailLayout({
+      frontendUrl,
+      heading: 'New seller verification request',
+      body: `<p><strong>${escapeHtml(sellerName)}</strong> (${escapeHtml(sellerEmail)}) submitted identity documents for administrator review.</p><p><strong>Request ID:</strong> ${escapeHtml(requestId)}</p>`,
+      actionLabel: 'Review verification',
+      actionUrl: reviewUrl,
+      preheader: `${sellerName} submitted a seller verification request.`
+    })
+  });
+}
+
 async function sendSubscriptionActivatedEmail(user, expiresAt) {
   const { frontendUrl } = getEmailConfiguration();
   const date = new Date(expiresAt).toLocaleDateString('en-ZA', { dateStyle: 'long', timeZone: 'Africa/Johannesburg' });
@@ -249,6 +269,7 @@ module.exports = {
   escapeHtml,
   sendContactEmails,
   sendEmailChangeVerificationEmail,
+  sendNewSellerVerificationEmail,
   sendNewMessageEmail,
   sendPasswordResetEmail,
   sendSubscriptionActivatedEmail,

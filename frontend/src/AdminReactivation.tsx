@@ -55,11 +55,14 @@ const normalizeSAPhoneNumber = (phoneNumber: string): string | null => {
 };
 
 const AdminReactivation: React.FC<AdminReactivationProps> = ({ darkMode = false }) => {
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [verificationRequests, setVerificationRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<TabKey>('all');
-  const [mainTab, setMainTab] = useState<MainTabKey>('reactivation');
+  const [mainTab, setMainTab] = useState<MainTabKey>(
+    requestedTab === 'verification' || requestedTab === 'users' ? requestedTab : 'reactivation'
+  );
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [verificationCounts, setVerificationCounts] = useState<Record<string, number>>({});
   const [processingId, setProcessingId] = useState<string | null>(null);
