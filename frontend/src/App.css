@@ -5564,3 +5564,63 @@ html.dark .how-safety-card { background: #172a43; }
     font-size: 16px !important;
   }
 }
+
+/* Mobile marketplace cards: keep each listing visually self-contained. */
+@media (max-width: 640px) {
+  main > .product-grid,
+  .product-grid {
+    gap: .7rem !important;
+    padding: .65rem !important;
+    border-top: 0 !important;
+    background: #f5f5f7 !important;
+  }
+
+  .product-grid > div {
+    display: flex;
+    min-width: 0;
+  }
+
+  .product-card,
+  html.dark .product-card,
+  html.dark .product-card:hover {
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(60, 60, 67, .12) !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 22px rgba(0, 0, 0, .08) !important;
+  }
+
+  .product-grid > div:nth-child(2n) .product-card {
+    border-right: 1px solid rgba(60, 60, 67, .12) !important;
+  }
+
+  .product-media,
+  .product-card-skeleton .product-media {
+    border-bottom: 1px solid rgba(60, 60, 67, .08);
+  }
+
+  html.dark main > .product-grid,
+  html.dark .product-grid {
+    border-top: 0 !important;
+    background: #050506 !important;
+  }
+
+  html.dark .product-card,
+  html.dark .product-card:hover {
+    border-color: rgba(235, 235, 245, .14) !important;
+    background: #111113 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 26px rgba(0, 0, 0, .34) !important;
+  }
+
+  html.dark .product-grid > div:nth-child(2n) .product-card {
+    border-right-color: rgba(235, 235, 245, .14) !important;
+  }
+
+  html.dark .product-media,
+  html.dark .product-card-skeleton .product-media {
+    border-bottom-color: rgba(235, 235, 245, .1);
+  }
+}
